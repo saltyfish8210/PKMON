@@ -1,0 +1,115 @@
+@startuml 客户端交互分析类图
+' 冉昕霖 · 第二阶段分析 · 客户端分析类图
+' 只画本人负责的页面、控制、网络端口与数据对象；DTO 细节留到设计阶段
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 55
+skinparam ranksep 55
+skinparam class {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F2A37
+  ArrowColor #5B6B7C
+}
+
+package "features/capture" {
+  class CapturePage {
+    - view : ChallengeView
+    - submitting : bool
+    + showQuestion(ChallengeView)
+    + onSubmit(optionId)
+    + showResult(CaptureResult)
+    + showPending()
+    + showExpired()
+  }
+  class CaptureController {
+    - requestId : String
+    + loadChallenge(spawnId) : ChallengeView
+    + submit(optionId) : CaptureResult
+    + recover(challengeId) : CaptureResult
+    + newAttempt() : String
+  }
+  class ChallengeView {
+    + challengeId : String
+    + speciesName : String
+    + questionText : String
+    + options : List<Option>
+    + expiresAt : DateTime
+    + sourceType : String
+  }
+  class AnswerAttempt {
+    + requestId : String
+    + optionId : String
+  }
+  class CaptureResult {
+    + result : CORRECT/WRONG
+    + captureRecordId : String
+    + speciesId : String
+  }
+}
+
+package "features/collection" {
+  class CollectionPage {
+    + refresh()
+    + showSummary(CollectionSummary)
+  }
+  class CollectionSummary {
+    + collectedSpeciesCount : int
+    + totalSpeciesCount : int
+    + captureCount : int
+  }
+}
+
+package "data/api" {
+  class CaptureApi {
+    + challenge(spawnId)
+    + answer(requestId, challengeId, optionId)
+    + status(challengeId)
+  }
+  class CollectionApi {
+    + summary()
+  }
+  class ApiClient {
+    + post(path, body)
+    + get(path)
+  }
+}
+
+package "core" {
+  interface SessionStore {
+    + token() : String
+    + clear()
+  }
+  class ApiFailure {
+    + code : int
+    + message : String
+  }
+}
+
+CapturePage --> CaptureController : 用户操作
+CaptureController --> CaptureApi
+CaptureController --> CollectionApi
+CaptureController --> ChallengeView : 持有当前题目
+CaptureController --> AnswerAttempt : 生成一次请求
+CaptureController --> CaptureResult : 结算结果
+CaptureApi --> ApiClient
+CollectionApi --> ApiClient
+CaptureApi ..> ApiFailure : 失败时抛出
+ApiClient --> SessionStore : 读取 token
+CollectionPage --> CollectionApi
+CollectionPage --> CollectionSummary
+
+note right of AnswerAttempt
+  同一次提交的重试沿用同一 requestId；
+  用户重新作答才生成新 UUID。
+end note
+
+note bottom of ApiFailure
+  网络未完成 ≠ 业务失败：
+  超时先查询挑战状态，
+  再决定重试或显示成功。
+end note
+@enduml
