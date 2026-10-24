@@ -1,0 +1,6 @@
+图名,可编辑源文件,导出文件,说明
+答题捕获客户端用况图,analysis/diagrams/答题捕获客户端用况图.puml,analysis/diagrams/答题捕获客户端用况图.png,analysis.txt 3.7 用况清单与玩家目标
+客户端交互分析类图,analysis/diagrams/客户端交互分析类图.puml,analysis/diagrams/客户端交互分析类图.png,analysis.txt 4.1-4.2 对象、职责与关联
+答题捕获客户端顺序图,analysis/diagrams/答题捕获客户端顺序图.puml,analysis/diagrams/答题捕获客户端顺序图.png,analysis.txt 5.1 正常提交与超时恢复
+捕获界面状态图,analysis/diagrams/捕获界面状态图.puml,analysis/diagrams/捕获界面状态图.png,analysis.txt 6.1 界面状态与转换
+客户端网络适配包图,analysis/diagrams/客户端网络适配包图.puml,analysis/diagrams/客户端网络适配包图.png,analysis.txt 7.1 包与依赖方向
