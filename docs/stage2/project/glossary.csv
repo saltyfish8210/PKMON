@@ -1,7 +1,7 @@
 ﻿中文名,统一名称,含义,责任人
 用户,User / userId,账号和资源归属主体,闫昕
 登录会话,AuthSession / sessionId,一次登录凭据生命周期，不等于旧DemoSession,闫昕
-当前身份,CurrentUser；接入端口CurrentUserProvider,服务器验证后的userId；下一轮设计落实,闫昕
+当前身份,CurrentUser；接入端口CurrentUserProvider,服务器验证后的userId；user.port.CurrentUser，公共桥接保留capture.CurrentUserProvider签名；原型已测、HTTP未接,闫昕
 自习任务,StudyTask / taskId,一次自习的等待/累计/暂停/触发/结束,董欣毓
 位置样本,LocationSample / sampleId,含坐标系、精度、时刻、来源的单次输入,赵冠钧、董欣毓
 遭遇机会,Spawn / spawnId,可挑战机会，不是奖励,孙虹毅

@@ -1,0 +1,7 @@
+依据
+1. 软件工程文档标准/5、面向对象分析设计文档.docx：设计类图、顺序图、状态图、包图及问题域/人机交互/控制驱动/数据管理四部分说明。
+2. 当前闫昕个人开发指南：10月29日04:00详细设计交接、可编译签名/替身/最小验证；后续实现另行推进。
+3. Spring Security官方 Password Storage：https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html
+4. OWASP会话管理：https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+5. OWASP密码存储：https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+本轮技术选型说明：采用成熟BCrypt适配计划、成本12及72字节限制；SHA-256仅摘要随机token。选择与参数为项目决定，不是课程强制要求。

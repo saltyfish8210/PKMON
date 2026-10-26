@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1000" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1000" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1000" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<circle cx="500" cy="610" r="8" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<path d="M 500,602 L 500,550 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 500,550 L 504.784621,559.904918 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 500,550 L 495.215379,559.904918 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="564.838134765625" y="580" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1160) scale(1,-1)">登录成功 / 创建新会话</text>
+			<rect x="340" y="380" width="320" height="170" rx="18" ry="18" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="442.3828125" y="521" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1042) scale(1,-1)">ACTIVE 有效</text>
+			<path d="M 340,503 L 660,503 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="355" y="475" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,950) scale(1,-1)">entry / 保存签发与到期信息</text>
+			<text x="355" y="452" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,904) scale(1,-1)">访问 [未到期且未撤销]</text>
+			<text x="355" y="429" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,858) scale(1,-1)">/ 校验通过，不自动续期</text>
+			<rect x="70" y="80" width="340" height="150" rx="18" ry="18" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="160.6396484375" y="201" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,402) scale(1,-1)">REVOKED 已撤销</text>
+			<path d="M 70,183 L 410,183 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="85" y="155" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,310) scale(1,-1)">entry / 首次记录撤销时刻</text>
+			<text x="85" y="132" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,264) scale(1,-1)">重复退出 / 幂等成功</text>
+			<rect x="600" y="80" width="330" height="150" rx="18" ry="18" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="691.3916015625" y="201" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,402) scale(1,-1)">EXPIRED 已到期</text>
+			<path d="M 600,183 L 930,183 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="615" y="155" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,310) scale(1,-1)">entry / 拒绝新的业务认证</text>
+			<text x="615" y="132" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,264) scale(1,-1)">到期状态可由时间字段推导</text>
+			<path d="M 390,380 L 240,230 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 240,230 L 250.387073,233.620597 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 240,230 L 243.620597,240.387073 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="143.80712890625" y="336" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,672) scale(1,-1)">退出 [当前会话有效]</text>
+			<text x="152.884521484375" y="308" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,616) scale(1,-1)">/ 记录revokedAt</text>
+			<path d="M 610,380 L 765,230 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 765,230 L 761.209632,240.326331 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 765,230 L 754.554977,233.449853 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="669.84326171875" y="336" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,672) scale(1,-1)">时间检查 [now &gt;= expiresAt]</text>
+			<text x="749.853271484375" y="308" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,616) scale(1,-1)">/ 判定过期</text>
+			<text x="287.5" y="35" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(39%,47%,52%); stroke:none;" transform="translate(0,70) scale(1,-1)">已撤销与已到期均不可恢复；再次登录创建另一条会话。</text>
+			<path d="M 600,120 L 410,120 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 410,120 L 419.904918,115.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 410,120 L 419.904918,124.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="455.86669921875" y="157" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,314) scale(1,-1)">退出 / 补记撤销</text>
+		</g>
+	</g>
+</svg>

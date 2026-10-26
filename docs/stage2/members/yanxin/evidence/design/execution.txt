@@ -1,0 +1,10 @@
+执行日期：2026-10-27（北京时间）
+输入主线：f1e3639b46e6b6630dbd4dbd02f9e311a6b5073b
+独立分支：design/yanxin-auth-design
+执行：本次Codex工具调用；没有新增本人已手工运行或已审阅的声明。
+标准复现：cd server，然后mvn test（JDK17、Maven3.9）。
+本机复现：设置JAVA_HOME为工作区.tools/jdk17/jdk17.0.20_12；使用.tools/maven/apache-maven-3.9.11/bin/mvn.cmd，参数-Dmaven.repo.local=<工作区>/.tools/m2 -o -B test。
+固定主线先运行原34项测试成功；新增后54项测试全部成功，0失败/0错误/0跳过，其中账号20项。
+首次在受限执行环境中测试停在Spring测试上下文之后，未获得完成结果；终止本次创建的测试调用后，在正常本机执行权限下重新运行成功，没有修改测试或停掉其他服务。
+原始Surefire文本报告和summary.json在本目录。测试替身位于src/test，未注册到应用。
+本轮未改pom、启动配置、其他成员源码；未运行新账号HTTP或客户端，因为尚未接线。
