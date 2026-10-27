@@ -1,11 +1,11 @@
 阶段：analysis（2026-10-20 至 10-24）
 作者：董欣毓
 截止：2026-10-25 04:00（北京时间）；本材料于截止后补交，接收方按实际合入/推送时间读取。
-状态：已推送 fork（anghuw/PKMON）的 design/dongxinyu-stage2，并开 PR #4；待上游合并后改为已合入并填写 main 合入提交号
+状态：已合入 main（成果提交 6e25078；main 合入提交号见下行）
 任务分支：design/dongxinyu-stage2
-开 PR：https://github.com/saltyfish8210/PKMON/pull/4
+开 PR：无（已直接合入 main；此前的 fork PR #4 已作废关闭）
 分析成果版本（正文、图表、证据、问题清单与 AI 记录；本交接记录回填该号）：db2f6ca892b8bcc5419f05ec35a80fb200262a25
-main成果合入提交号：（未合入则留空）
+main成果合入提交号：6e25078（design/dongxinyu-stage2 与 main 同一提交，2026-10-27 推送）
 所用输入源码/仓库提交：f1e3639（main，2026-10-25）
 
 输入材料：
