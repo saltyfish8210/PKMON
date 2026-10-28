@@ -1,0 +1,43 @@
+执行者：本次 Cursor 编码助手；材料责任人：赵冠钧。
+日期：2026-10-28（北京时间）
+阶段：foundation
+分支：foundation/zhaoguanjun-stage2
+设计输入成果：42b97aef24966174645e33ffbf78377643ecb95b
+分支起点 tip：ac5d0342bf2d11970dda834e96435a14203355a7
+
+1. 交付代码路径
+client/lib/core/location/location_sample.dart
+client/lib/core/location/location_provider.dart（LocationProviderPort + RealLocationProvider stub）
+client/lib/core/location/simulated_location_provider.dart
+client/lib/features/study/study_api.dart（含 HttpStudyApi stub）
+client/lib/features/study/fake_study_api.dart
+client/lib/features/study/study_controller.dart
+client/lib/features/study/study_page.dart
+client/lib/widgets/task_sheet.dart（增加「打开自习骨架（模拟）」）
+client/lib/features/home_shell.dart（导航至 StudyPage）
+client/android/app/src/main/AndroidManifest.xml（ACCESS_FINE/COARSE_LOCATION）
+client/test/location/simulated_location_provider_test.dart
+client/test/study/fake_study_api_test.dart
+client/test/study/study_controller_test.dart
+
+未改：client/pubspec.yaml / 锁文件（插件仍交余星晨）。
+
+2. 预期运行命令
+cd client
+flutter pub get
+flutter test test/location test/study
+flutter analyze
+
+3. 本机实际
+Flutter / Dart 命令均不可用（CommandNotFoundException）。
+因此 flutter test / analyze 本机未执行；测试源码已提交，供有 SDK 的环境复跑。
+不把未执行标为通过。
+
+4. 真实 / 模拟 / 未执行
+真实：源码文件与 Manifest 权限声明已写入仓库。
+模拟：FakeStudyApi、SimulatedLocationProvider、StudyPage 全路径。
+未执行：flutter test；Android 真机权限；RealLocationProvider；Study HTTP；HttpStudyApi。
+
+5. 入口
+地图/我的 → 任务弹窗 → 「打开自习骨架（模拟）」→ StudyPage。
+旧布尔「开始模拟自习」演示保留。

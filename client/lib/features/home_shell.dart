@@ -12,6 +12,7 @@ import 'capture_page.dart';
 import 'dex_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
+import 'study/study_page.dart';
 
 /// App 外壳：**全局状态机** + 底部导航 + 四个页面。
 ///
@@ -193,6 +194,11 @@ class _HomeShellState extends State<HomeShell> {
       onFastForward: () {
         setState(() => _task = false);
         _explore();
+      },
+      onOpenStudySkeleton: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const StudyPage()),
+        );
       },
     );
   }

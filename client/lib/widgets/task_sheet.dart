@@ -15,6 +15,7 @@ Future<void> showTaskSheet(
   required bool running,
   required VoidCallback onToggle,
   required VoidCallback onFastForward,
+  VoidCallback? onOpenStudySkeleton,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -71,6 +72,21 @@ Future<void> showTaskSheet(
                     onFastForward();
                   },
                   child: const Text('快进至完成（演示）'),
+                ),
+              ),
+            ),
+
+          if (onOpenStudySkeleton != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.base),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    onOpenStudySkeleton();
+                  },
+                  child: const Text('打开自习骨架（模拟）'),
                 ),
               ),
             ),

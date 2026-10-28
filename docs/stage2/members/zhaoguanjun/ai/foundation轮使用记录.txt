@@ -1,0 +1,9 @@
+AI辅助 foundation 记录
+材料责任人：赵冠钧；日期：2026-10-28。
+工具：Cursor 编码助手。
+
+任务：执行 foundation 计划——LocationSample、SimulatedLocationProvider、FakeStudyApi、StudyPage、Manifest 权限、测试与交接。
+
+过程：从 design/zhaoguanjun-stage2 拉 foundation/zhaoguanjun-stage2；实现 core/location 与 features/study；任务弹窗增加骨架入口；未改 pubspec；本机无 Flutter 未跑测试。
+
+风险：未跑 flutter test；Fake 驻留推进规则为骨架演示非董欣毓定稿算法。

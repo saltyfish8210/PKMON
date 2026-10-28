@@ -1,0 +1,42 @@
+阶段：foundation（10/31）
+作者：赵冠钧
+截止：2026-11-01 04:00（北京时间）；材料于工作日前交付。
+状态：仅个人分支（合入 main 后填写 main 合入提交号）
+任务分支：foundation/zhaoguanjun-stage2
+成果提交号：（首次成果提交后回填）
+main成果合入提交号：（未合入则留空）
+设计输入：42b97aef24966174645e33ffbf78377643ecb95b
+分支起点：ac5d0342bf2d11970dda834e96435a14203355a7
+
+一、本次交付
+  client/lib/core/location/（LocationSample、LocationProviderPort、Simulated、Real stub）
+  client/lib/features/study/（FakeStudyApi、StudyController、StudyPage、HttpStudyApi stub）
+  AndroidManifest 定位权限 FINE/COARSE
+  client/test/location/ 与 client/test/study/
+  任务弹窗入口「打开自习骨架（模拟）」
+  docs/stage2/members/zhaoguanjun/evidence/foundation.txt
+  docs/stage2/members/zhaoguanjun/design/interfaces.json（客户端端口状态更新）
+
+二、运行方式
+  cd client
+  flutter pub get
+  flutter test test/location test/study
+  应用内：任务弹窗 → 打开自习骨架（模拟）→ 开始模拟自习
+
+三、实测
+  本机无 Flutter SDK，未执行 test/analyze。详见 evidence/foundation.txt。
+
+四、真实／模拟／未执行
+  真实：骨架代码与 Manifest 声明。
+  模拟：Fake + Simulated 全路径。
+  未执行：真机权限、Study HTTP、geolocator、flutter test。
+
+五、对调用方
+  余星晨：仍需合入 permission_handler、geolocator 后方可实现 RealLocationProvider。
+  董欣毓：四条 Study HTTP 仍 implemented=false；Fake 字段形状见 interfaces.json。
+  冉昕霖：HttpStudyApi 为 UnsupportedError stub，待网络层接线。
+
+六、下一步
+  implementation（11/01-11/05）：异常路径完善、与任务 HTTP/网络层联调、有 SDK 时补测证据。
+
+开 PR：https://github.com/saltyfish8210/PKMON/pull/new/foundation/zhaoguanjun-stage2
