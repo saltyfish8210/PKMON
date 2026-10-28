@@ -1,0 +1,7 @@
+﻿需求或用况,分析来源,设计落实,接口,图,测试对应,当前状态
+注册账户,User、注册用况,AuthRules; AuthService.register; UserRepository,POST /auth/register,账号设计类图,registerNormalizesUsernameButDoesNotCreateSession; caseVariantsCannotCreateDuplicateAccountsEvenConcurrently,核心原型通过；HTTP/数据库待接
+登录并建立会话,User/AuthSession；登录顺序图,PasswordHasher; AuthService.login; AuthSessionRepository,POST /auth/login,登录顺序图,unknownUserAndWrongPasswordReturnSameFailureAndBothUseHasher; loginReturnsOpaqueTokenAndOnlyStoresItsDigest,核心原型通过；真实散列待接
+读取当前身份,CurrentUser；身份与资源顺序图,CurrentUser; AuthService.currentUserPort/currentUser,GET /users/me；capture CurrentUserProvider,身份访问顺序图,identityPortResolvesPerRequestAndFitsExistingCaptureInterface,签名适配通过；Spring桥接待接
+会话到期或退出,AuthSession状态图,isActiveAt; revokeIfActive; Clock,POST /auth/logout,会话设计状态图,sessionExpiresAtTheExactBoundaryAndNeverSlides; logoutRevokesOnlyThisSessionAndIsIdempotent,核心原型通过；持久化待接
+自习任务与精灵遭遇,核心用况1；董欣毓分析PR4,trigger按CurrentUser获得身份；任务状态由董欣毓维护,trigger接口由董欣毓设计,身份访问顺序图；引用董欣毓领域图,待李宗晏补任务验收追踪,账号支撑已设计；核心1实现不由本轮代写
+答题捕获与精灵收录,核心用况2；孙虹毅分析/设计,保持capture.CurrentUserProvider与资源归属检查,capture接口沿用孙虹毅design/interfaces.json,身份访问顺序图；引用孙虹毅领域图,现有CaptureServiceTest；真实用户业务隔离待执行,内存业务现有；真实账号和DB联调待做

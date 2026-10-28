@@ -1,0 +1,69 @@
+{
+  "inputCommit": "f1e3639b46e6b6630dbd4dbd02f9e311a6b5073b",
+  "executedOn": "2026-10-27 Asia/Shanghai",
+  "executor": "Codex local tool execution",
+  "java": "17.0.20.1",
+  "maven": "3.9.11",
+  "springBoot": "3.5.7",
+  "baselineTests": 34,
+  "tests": 54,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "name": "edu.pkmon.capture.config.CaptureDefaultProfileHttpTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.639"
+    },
+    {
+      "name": "edu.pkmon.capture.config.CaptureDevProfileHttpTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.978"
+    },
+    {
+      "name": "edu.pkmon.capture.config.CaptureSwitchTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.107"
+    },
+    {
+      "name": "edu.pkmon.capture.service.CaptureServiceTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.159"
+    },
+    {
+      "name": "edu.pkmon.demo.DemoServiceTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.043"
+    },
+    {
+      "name": "edu.pkmon.user.AuthServiceTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.245"
+    }
+  ],
+  "limitations": [
+    "production password adapter not implemented",
+    "database adapter not implemented",
+    "account HTTP not wired",
+    "client/Android/GPS not verified"
+  ]
+}

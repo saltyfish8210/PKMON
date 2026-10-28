@@ -1,0 +1,12 @@
+﻿表,字段,Java类型,SQL建议类型,允许空,约束或索引,语义
+users,user_id,String UUID,VARCHAR(36),否,主键,服务器生成，不接受客户端指定
+users,username,String,VARCHAR(24),否,唯一,3-24 ASCII字母数字下划线；统一小写
+users,nickname,String,VARCHAR(80),否,无,存储容量预留；业务按1-20 Unicode码点校验
+users,password_hash,String,VARCHAR(255),否,无,成熟口令编码，计划{bcrypt}；不存密码原文
+users,created_at,Instant,UTC时间类型/统一精度时间戳,否,无,由服务器生成
+auth_sessions,session_id,String UUID,VARCHAR(36),否,主键,服务器生成
+auth_sessions,user_id,String UUID,VARCHAR(36),否,"外键users.user_id；联合索引(user_id,expires_at)",不随退出删除用户业务历史
+auth_sessions,token_hash,String,CHAR(64),否,唯一,SHA-256随机token摘要；小写十六进制，不存原token
+auth_sessions,issued_at,Instant,UTC时间类型/统一精度时间戳,否,无,服务器签发时刻
+auth_sessions,expires_at,Instant,同issued_at,否,expires_at>issued_at,固定issued_at+8h；等号即失效
+auth_sessions,revoked_at,Instant,同issued_at,是,为空或>=issued_at,首次撤销时间；原子更新且不覆盖
