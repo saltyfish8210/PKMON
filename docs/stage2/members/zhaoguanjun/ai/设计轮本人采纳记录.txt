@@ -1,0 +1,14 @@
+设计轮本人采纳记录
+材料责任人：赵冠钧
+日期：2026-10-28（北京时间）
+
+确认范围：用户确认执行 design 交付计划，授权助手生成 docs/stage2/members/zhaoguanjun/design/ 材料。
+
+采纳结论：
+- 插件需求定为 permission_handler + geolocator（交余星晨合入）；
+- 上传坐标系契约 GCJ02，未知不改标签；
+- Study 四条 HTTP 全部 implemented=false，开发用 FakeStudyApi；
+- 保留旧 location_provider.dart，新端口落 core/location/；
+- Manifest 权限仅设计列出，改动留给 foundation。
+
+若通读发现与董欣毓后续定稿冲突，更新 interfaces.json 与 questions.csv 并追加本文件修订段。

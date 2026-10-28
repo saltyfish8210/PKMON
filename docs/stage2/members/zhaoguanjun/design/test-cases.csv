@@ -1,0 +1,13 @@
+id,类型,对应规则,时钟控制,场景,前置数据,输入与操作,预期结果,证据位置,状态
+TC-01,正常,BR-L01,固定合成时刻,授权后合成采样并刷新状态,FakeStudyApi；SimulatedLocationProvider,开始任务→授权→推送合格样本,界面 status 随 Fake 响应变化；不出现本地伪造 spawnId,待填,待执行（foundation）
+TC-02,异常,BR-L03,—,权限拒绝,任务已创建 WAITING,系统权限返回拒绝,展示用途说明+重试/去设置；不调用 uploadSample；不发奖,待填,待执行（真机；无设备标未执行）
+TC-03,异常,BR-L03,—,位置服务关闭,已授权,关闭系统定位服务,errors 含 SERVICE_DISABLED；横幅提示打开服务；不假装 DWELLING,待填,待执行（真机；无设备标未执行）
+TC-04,边界,BR-L04,—,退出页停止监听,采样 Running 中,离开 StudyPage dispose,LocationProvider.stop 被调用；无继续上传,待填,待执行（foundation）
+TC-05,正常,BR-L01/BR-L05,Fake 手动切换,Fake 五态均能展示,FakeStudyApi,依次切换 WAITING/DWELLING/PAUSED/TRIGGERED/ENDED,状态条文案与按钮符合五态；SIMULATED 有模拟标注,待填,待执行（foundation）
+TC-06,异常,BR-L02,Fake,PAUSED 保留累计,effectiveSeconds=30 后进入 PAUSED,展示暂停原因,界面仍显示 30；不得清零；恢复后从 30 续增（由 Fake/服务端决定）,待填,待执行（foundation）
+TC-07,异常,BR-L07,—,断网上传失败,Running 中,uploadSample 抛网络错误,提示连接问题；本地 status 不变为 TRIGGERED；可 GET current,待填,待执行（foundation）
+TC-08,幂等,BR-L08 相关,—,createTask 同 requestId 重试,首次创建成功,用同一 requestId 再 create,不产生冲突业务副作用（以服务端/Fake 约定为准）；客户端不新生成该次 requestId,待填,待执行（待 HTTP）
+TC-09,权限,BR-L08,—,身份失效 401,上传中,API 返回 40101,停止后续上传；引导登录；登录后 getCurrent,待填,待执行（待认证）
+TC-10,边界,BR-L06,—,坐标系未知不改标签,样本 coordinateSystem=WGS84 或 UNKNOWN,准备上传,客户端不改写成 GCJ02；拒传或接受服务端 rejectionReason,待填,待执行（foundation）
+TC-11,边界,BR-L01,Fake,重复 sampleId,已接受 sampleId=S1,再次上传 S1,sampleAccepted=false 或等价拒绝；effectiveSeconds 不因重复增加,待填,待执行（待 HTTP/Fake 规则）
+TC-12,正常,BR-L01,Fake,TRIGGERED 跳转入口,响应 status=TRIGGERED 且 spawnId 非空,点击前往答题,携带 spawnId 进入捕获流程；本模块不本地发奖,待填,待执行（联调）

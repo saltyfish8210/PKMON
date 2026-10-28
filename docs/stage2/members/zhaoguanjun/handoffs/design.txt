@@ -1,0 +1,33 @@
+阶段：design（2026-10-25至10-28）
+作者：赵冠钧
+截止：2026-10-29 04:00（北京时间）
+状态：仅个人分支（合入 main 后填写 main 合入提交号）
+任务分支：design/zhaoguanjun-stage2
+设计成果版本（design 正文、图、interfaces、测试与 CSV；不含本交接记录循环）：见下方「成果提交号」——首次成果提交后回填。
+main成果合入提交号：（未合入则留空）
+所用输入源码/仓库 tip：3248a513d0760f32b50587a055c3030151207bc3
+分析成果输入：592c1634ad364ed3d26916b5fb3e996261c764e0
+闫昕共享用况：members/yanxin/analysis/analysis.txt §6（已读）
+董欣毓/余星晨目录：本机未见对应交付；设计按候选接口与插件需求清单继续，不声称已对齐定稿。
+
+材料路径：
+docs/stage2/members/zhaoguanjun/design/design.txt
+docs/stage2/members/zhaoguanjun/design/analysis-to-design.csv
+docs/stage2/members/zhaoguanjun/design/interfaces.json
+docs/stage2/members/zhaoguanjun/design/test-cases.csv
+docs/stage2/members/zhaoguanjun/design/diagram-index.csv
+docs/stage2/members/zhaoguanjun/design/diagrams/（4×.puml + 4×.png）
+docs/stage2/members/zhaoguanjun/evidence/design-notes.txt
+docs/stage2/members/zhaoguanjun/analysis/questions.csv（设计轮状态更新）
+
+读者：闫昕读进度；余星晨读 dependencyRequests（permission_handler、geolocator）；董欣毓读 Study 四条路由字段与五态假设；冉昕霖读 HttpStudyApi 端口；李宗晏读 test-cases 待执行项。
+
+实际验证：PlantUML 导出成功。未构建 Flutter；未改业务源码；未跑真机权限。
+
+真实性：接口与 RealLocationProvider 为设计态 implemented=false；开发期约定 FakeStudyApi + SimulatedLocationProvider。
+
+不足与后续：foundation（10/31）实现 LocationSample、模拟流、Manifest 定位权限与最小测试页；任务 HTTP 待董欣毓。
+
+交接读取方式：先读 design/design.txt 与 interfaces.json，再打开 diagrams 与 test-cases.csv。
+
+成果提交号：（首次成果提交后回填完整 SHA）

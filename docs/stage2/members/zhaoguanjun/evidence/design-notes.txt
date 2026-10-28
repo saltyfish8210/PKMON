@@ -1,0 +1,22 @@
+执行者：本次 Cursor 编码助手；材料责任人：赵冠钧。
+日期：2026-10-28（北京时间）
+阶段：design
+分支：design/zhaoguanjun-stage2
+输入分析成果提交号：592c1634ad364ed3d26916b5fb3e996261c764e0
+所读分支 tip（含 analysis）：3248a513d0760f32b50587a055c3030151207bc3
+
+1. 本轮交付性质
+仅详细设计文档与图、interfaces.json、test-cases；未修改 client/lib 业务代码、未改 pubspec、未改 AndroidManifest。
+Study HTTP implemented=false；FakeStudyApi / SimulatedLocationProvider 为设计约定，代码落点见 design.txt 第七节，实现属 foundation。
+
+2. 工具
+PlantUML 1.2024.8（本机 .tools/plantuml.jar，gitignore，不纳入提交）导出 design/diagrams 四张 PNG。
+Flutter 本机仍不可用；未执行 flutter analyze/test。
+
+3. 依赖缺口（事实）
+docs/stage2/members/dongxinyu/：不存在。
+docs/stage2/members/yuxingchen/：不存在。
+server 无 /api/v1/study 实现。
+
+4. 不可声称
+真实 GPS、真机权限、任务 HTTP、驻留判定定稿对齐、客户端编译通过。

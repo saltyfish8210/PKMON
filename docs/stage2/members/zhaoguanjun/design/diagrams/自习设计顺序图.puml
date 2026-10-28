@@ -1,0 +1,59 @@
+@startuml 自习设计顺序图
+' 赵冠钧 · 第二阶段设计 · 顺序图
+!pragma layout smetana
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+
+actor 玩家 as P
+participant "StudyPage" as Page
+participant "StudyController" as Ctrl
+participant "LocationProviderPort" as LP
+participant "StudyApi\n(Fake/Http)" as API
+
+== 正常：开始至触发 ==
+P -> Page : 开始自习(regionId)
+Page -> Ctrl : startStudy(SIMULATED|GPS)
+Ctrl -> API : createTask(requestId,...)
+API --> Ctrl : TaskSnapshot WAITING
+Ctrl -> LP : start()
+loop 采样
+  LP --> Ctrl : LocationSample
+  Ctrl -> API : uploadSample(taskId, sample)
+  API --> Ctrl : TaskSnapshot(+accepted)
+  Ctrl --> Page : 刷新 TaskViewState
+end
+API --> Ctrl : status=TRIGGERED, spawnId
+Ctrl --> Page : 显示前往答题
+note right of Ctrl
+  spawnId 仅来自响应
+  禁止本地伪造
+end note
+
+== 异常：权限拒绝 ==
+Ctrl -> LP : start()
+LP --> Ctrl : LocationError PERMISSION_DENIED
+Ctrl --> Page : 说明+去设置/重试
+note over Ctrl, API
+  不 uploadSample
+  不发奖
+end note
+
+== 异常：断网 ==
+LP --> Ctrl : LocationSample
+Ctrl -> API : uploadSample
+API --> Ctrl : 网络失败
+Ctrl --> Page : 连接问题
+Ctrl -> API : getCurrent()
+API --> Ctrl : 真实快照或仍失败
+note over Ctrl
+  本地不设 TRIGGERED
+end note
+
+== 结束 ==
+P -> Page : 结束
+Page -> Ctrl : endStudy()
+Ctrl -> API : endTask(requestId)
+API --> Ctrl : ENDED
+Ctrl -> LP : stop()
+@enduml

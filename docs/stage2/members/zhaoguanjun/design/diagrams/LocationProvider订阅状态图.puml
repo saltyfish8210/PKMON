@@ -1,0 +1,52 @@
+@startuml LocationProvider订阅状态图
+' 赵冠钧 · 第二阶段设计 · LocationProvider 订阅状态
+!pragma layout smetana
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+
+[*] --> Idle
+
+state Idle {
+  Idle : 未订阅
+  Idle : stop 幂等无副作用
+}
+
+state Starting {
+  Starting : 检查权限/定位服务
+}
+
+state Running {
+  Running : 入口：开始推送 samples
+  Running : 内部：按间隔采样
+}
+
+state Failed {
+  Failed : 入口：推送 LocationError
+  Failed : PERMISSION_DENIED /
+  Failed : SERVICE_DISABLED / UNKNOWN
+}
+
+state Stopping {
+  Stopping : 释放平台监听
+}
+
+Idle --> Starting : start()
+Starting --> Running : 授权且服务可用
+Starting --> Failed : 拒绝或服务关闭
+Running --> Failed : 运行中权限丢失/服务关闭
+Running --> Stopping : stop() / dispose
+Failed --> Starting : retry / start()
+Failed --> Stopping : stop()
+Stopping --> Idle : 释放完成
+
+note right of Running
+  StudyController 在 Running
+  期间才 uploadSample
+end note
+
+note right of Failed
+  对应界面 DEGRADED
+  不假装采样成功
+end note
+@enduml

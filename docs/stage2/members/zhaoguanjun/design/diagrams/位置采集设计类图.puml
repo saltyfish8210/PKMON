@@ -1,0 +1,92 @@
+@startuml 位置采集设计类图
+' 赵冠钧 · 第二阶段设计 · 设计类图
+!pragma layout smetana
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+
+class StudyPage <<视图>> {
+  绑定 TaskViewState
+  开始/结束/去设置/跳转捕获
+}
+
+class StudyController <<控制>> {
+  startStudy()
+  endStudy()
+  retryPermission()
+  dispose()
+  --
+  持有 TaskViewState
+  禁止本地判奖
+}
+
+interface LocationProviderPort <<端口>> {
+  +start(): Future
+  +stop(): Future
+  +samples: Stream
+  +errors: Stream
+}
+
+class LocationSample <<数据>> {
+  sampleId
+  latitude
+  longitude
+  accuracyMeters
+  sampledAt
+  coordinateSystem
+  source
+}
+
+class LocationError <<数据>> {
+  code
+  message
+}
+
+class SimulatedLocationProvider
+class RealLocationProvider
+
+interface StudyApi <<端口>> {
+  +createTask()
+  +uploadSample()
+  +getCurrent()
+  +endTask()
+}
+
+class FakeStudyApi
+class HttpStudyApi
+
+class TaskSnapshot <<数据>> {
+  taskId
+  regionId
+  status
+  pauseReason
+  effectiveSeconds
+  requiredSeconds
+  spawnId
+  serverTime
+  sampleAccepted
+  rejectionReason
+}
+
+StudyPage --> StudyController
+StudyController --> LocationProviderPort
+StudyController --> StudyApi
+LocationProviderPort ..> LocationSample : 产出
+LocationProviderPort ..> LocationError : 产出
+SimulatedLocationProvider ..|> LocationProviderPort
+RealLocationProvider ..|> LocationProviderPort
+FakeStudyApi ..|> StudyApi
+HttpStudyApi ..|> StudyApi
+StudyApi ..> TaskSnapshot : 返回
+StudyController --> TaskSnapshot : 映射为视图状态
+
+note right of FakeStudyApi
+  implemented HTTP 前使用
+  UI 标注模拟
+end note
+
+note right of RealLocationProvider
+  geolocator
+  未知坐标系不改标签
+end note
+@enduml
