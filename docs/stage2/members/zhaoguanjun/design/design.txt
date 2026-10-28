@@ -1,0 +1,288 @@
+自习任务界面与位置采集 · 详细设计
+作者：赵冠钧
+阶段：第二阶段 10/25-10/28（阶段键 design）
+对应截止：10/29 04:00（北京时间）
+状态：设计文档交付；任务 HTTP 与真实 GPS 均未实现，见第十节模拟标注。
+所读源码提交号：3248a513d0760f32b50587a055c3030151207bc3（含 analysis 材料的分支 tip）
+所读分析成果提交号：592c1634ad364ed3d26916b5fb3e996261c764e0
+共享用况输入：docs/stage2/members/yanxin/analysis/analysis.txt §6
+董欣毓目录：本机仍不存在 members/dongxinyu/；驻留判定权威待其定稿，本设计只定客户端采集/展示端口。
+
+====================================================================
+零、本阶段产出与图码对应
+====================================================================
+本文将 analysis 的业务结论落成技术设计：分层职责、Dart 方法签名、Study HTTP 字段、
+LocationProvider 端口、测试设计。分析对象与规则不推翻，技术对象补充见 analysis-to-design.csv。
+
+图表索引（design/diagrams/，PlantUML 源 + PNG 导出）：
+  图1 自习定位包图                  说明见本文 8.1
+  图2 位置采集设计类图              说明见本文 8.2
+  图3 自习设计顺序图                说明见本文 8.3
+  图4 LocationProvider订阅状态图    说明见本文 8.4
+分析阶段四张图仍在 analysis/diagrams/：分析图表达业务，设计图表达技术实现，不互相替代。
+
+本阶段明确边界：
+- 只设计客户端位置采集、权限交互、任务状态展示与 StudyApi/FakeStudyApi 契约。
+- StudyTask 驻留秒数判定与发奖权威在服务端（董欣毓）；页面本地计时不能决定奖励。
+- 本阶段交付签名、JSON 样例与测试设计；可编译骨架放到 10/31 foundation。
+- 不修改 pubspec/锁文件；插件由余星晨统一合入。定位采集候选：permission_handler + geolocator。
+
+====================================================================
+一、从分析到设计的变化总览
+====================================================================
+变化1 增加客户端分层：StudyPage（视图）→ StudyController（编排）→ LocationProvider / StudyApi。
+  理由：把权限、采样、上传与界面刷新从业务规则中分离，便于 Fake 与合成流独立验证。
+
+变化2 LocationProvider 从「地点字符串 Demo」升级为样本流端口：start/stop、samples 流、errors 流。
+  理由：analysis 已要求 LocationSample 固定字段；现有 DemoLocationProvider 不能支撑上传契约。
+
+变化3 引入 FakeStudyApi：在任务 HTTP 未实现前展示 WAITING/DWELLING/PAUSED/TRIGGERED/ENDED。
+  理由：不等后端即可验证界面与异常路径；正式环境不得把 Fake 伪装为真实到场。
+
+变化4 坐标策略固定：上传契约仅 GCJ02；插件坐标系未知时保留原始标签并拒传/上报，禁止改标签。
+  理由：误标坐标系会导致围栏误判；真机未验证前不得声称已转换。
+
+变化5 requestId 与 sampleId 客户端生成 UUID；同一业务操作重试沿用同一 requestId。
+  理由：与全组幂等约定一致，避免重复创建任务或重复累计。
+
+变化6 兼容出口：保留 client/lib/core/location_provider.dart；新实现放 client/lib/core/location/。
+  理由：指南要求不破坏现有课堂 Demo 入口，同时给 foundation 清晰落点。
+
+变化7 Android 权限清单进入设计（ACCESS_FINE/COARSE_LOCATION）；Manifest 改动留给 foundation。
+  理由：分析已登记缺权限；设计轮写清字段，避免实现时临时猜测。
+
+====================================================================
+二、问题域设计
+====================================================================
+2.1 业务规则由谁负责
+  任务服务 / DwellEvaluator（董欣毓）：样本合格性、进出围栏、暂停/恢复、有效累计、一次触发 spawnId。
+  StudyController（赵冠钧）：编排开始/结束、权限、订阅、上传、把响应绑定到界面状态。
+  LocationProvider（赵冠钧）：产出 LocationSample 与定位错误，不判奖、不改累计。
+  StudyApi（端口；HTTP 主责董欣毓，客户端适配赵冠钧/冉昕霖网络层）：传输任务与样本。
+  StudyPage：只渲染 Controller 持有的 TaskViewState，不本地推算 effectiveSeconds 权威值。
+
+2.2 规则与代码位置的对应（客户端侧）
+  BR-L01 页面不计奖 → Controller 禁止在本地将状态设为 TRIGGERED 除非响应含 spawnId/status。
+  BR-L02 暂停保留累计 → 展示层直接绑定响应 effectiveSeconds，结束前不本地清零。
+  BR-L03 权限拒绝不发奖 → 未授权则不 start 采样、不上传；可结束任务或保持等待授权。
+  BR-L04 退出释放订阅 → StudyPage dispose / 结束任务必须 LocationProvider.stop。
+  BR-L05 模拟须标注 → locationSource=SIMULATED 或 Fake 路径在 UI 明示「模拟」。
+  BR-L06 未知坐标系不改标签 → coordinateSystem 原样上传或拒传，不得写成 GCJ02 冒充。
+  BR-L07 断网不本地触发 → 上传失败只标连接问题；可 GET current；不得伪造 spawnId。
+  BR-L08 身份失效停传 → 401 停止上传并引导登录；重登后 GET current。
+
+2.3 与董欣毓边界
+  进入 80m / 退出 100m / 精度≤50m / 间隔≤30s / 双样本确认进入 / NO_SIGNAL 30s：
+  沿用闫昕§6 与指南候选，作为 Fake 与接口字段假设；定稿后只改服务端与 Fake 规则，不改 LocationSample 字段形状。
+
+====================================================================
+三、人机交互设计
+====================================================================
+3.1 输入
+  - 选择区域（默认 library_entrance）并开始 / 结束
+  - 系统权限弹窗结果；「去设置」「重试」
+  - TRIGGERED 时「前往答题」（携带 spawnId，捕获模块主责孙虹毅/冉昕霖）
+
+3.2 输出（TaskViewState，全部来自 API/Fake，非本地倒计时权威）
+  taskId, regionId, status, pauseReason, effectiveSeconds, requiredSeconds,
+  spawnId, serverTime, locationSource, lastError（权限/网络/定位文案）
+
+3.3 错误恢复
+  权限拒绝 / 永久拒绝 → 用途说明 + 再次授权 / 去设置
+  位置服务关闭 → 打开位置服务 + 重试
+  断网 → 连接问题 + 重试上传 / 查询 current
+  定位中无样本 → 「定位中」；不假装 DWELLING
+
+3.4 与现有原型差距
+  现有 task_sheet.dart 仅布尔 running；正式 StudyPage 替换为五态状态条。
+  地图 chip「模拟自习进行中」可继续作入口，但须绑定 TaskViewState.status。
+
+====================================================================
+四、控制驱动设计
+====================================================================
+4.1 事件
+  onStartStudy(regionId, locationSource)
+  onPermissionResult(granted|denied|permanentlyDenied)
+  onSample(LocationSample)
+  onLocationError(code, message)
+  onUploadResult(TaskSnapshot)
+  onNetworkFailure / onUnauthorized
+  onEndStudy / onDispose
+
+4.2 调用次序（开始任务）
+  1) StudyApi.createTask(requestId, regionId, locationSource)
+  2) 说明用途 → 请求权限
+  3) 授权后 LocationProvider.start
+  4) 每样本：可选本地预检精度 → StudyApi.uploadSample
+  5) 用响应刷新 TaskViewState
+  6) status=TRIGGERED 且 spawnId 非空 → 显示跳转
+  7) end 或 dispose → stop +（若未结束）endTask
+
+4.3 并发与重试
+  创建任务 / 结束任务：同一操作重试沿用 requestId。
+  样本：每个样本唯一 sampleId；失败可换新 sampleId 再传（新采样），不重放旧点冒充新时刻。
+  上传中再来样本：允许队列或丢弃过密点；不得阻塞 UI 线程（实现细节 foundation）。
+
+4.4 前台离开
+  本阶段设计：回到前台时检查订阅是否有效；失效则 DEGRADED 并提示重试。
+  前台服务 / 常驻通知：记入后续任务模式 FGS，不在本轮假实现。
+
+====================================================================
+五、数据管理设计
+====================================================================
+5.1 LocationSample（客户端模型，与上传 JSON 同字段）
+  sampleId, latitude, longitude, accuracyMeters, sampledAt,
+  coordinateSystem, source（GPS|SIMULATED）
+
+5.2 客户端不做
+  不持久化奖励、不本地写 spawn、不存真实轨迹到公共日志。
+  脱敏：evidence 截图打码坐标；测试用合成坐标。
+
+5.3 任务快照
+  仅内存持有当前 TaskViewState；进程被杀后以 GET current 恢复（接口就绪后）。
+  Fake 模式：进程内状态，重启丢失须标注。
+
+5.4 配置（只提需求，胡豪/余星晨合入）
+  采样目标间隔约 10s；requiredSeconds 正式 600 / 测试 60 由服务端返回，客户端不写死发奖阈值。
+
+====================================================================
+六、接口设计
+====================================================================
+详见 design/interfaces.json。摘要：
+
+  POST /api/v1/study/tasks
+    入：regionId, requestId, locationSource
+    出：task 快照字段
+
+  POST /api/v1/study/tasks/{taskId}/samples
+    入：LocationSample 字段
+    出：task 快照 + sampleAccepted + rejectionReason
+
+  GET /api/v1/study/tasks/current
+    出：task 或 null
+
+  POST /api/v1/study/tasks/{taskId}/end
+    入：requestId
+    出：task 快照 status=ENDED
+
+  LocationProvider（非 HTTP）
+    start(), stop(), Stream<LocationSample> samples, Stream<LocationError> errors
+
+全部 Study HTTP：implemented=false。客户端开发期接 FakeStudyApi。
+
+====================================================================
+七、方法签名清单（Dart，foundation 落点）
+====================================================================
+// client/lib/core/location/location_sample.dart
+class LocationSample {
+  final String sampleId;
+  final double latitude;
+  final double longitude;
+  final double accuracyMeters;
+  final DateTime sampledAt; // UTC
+  final String coordinateSystem; // 期望上传 GCJ02；未知保留原标签
+  final String source; // GPS | SIMULATED
+}
+
+// client/lib/core/location/location_provider.dart（新端口；旧文件保留兼容）
+abstract interface class LocationProviderPort {
+  Future<void> start();
+  Future<void> stop();
+  Stream<LocationSample> get samples;
+  Stream<LocationError> get errors;
+}
+
+class LocationError {
+  final String code; // PERMISSION_DENIED | SERVICE_DISABLED | UNKNOWN
+  final String message;
+}
+
+class SimulatedLocationProvider implements LocationProviderPort { /* 合成流 */ }
+// RealLocationProvider：foundation 后接 geolocator；未验证坐标系前不得改标签
+
+// client/lib/features/study/study_api.dart
+abstract interface class StudyApi {
+  Future<TaskSnapshot> createTask({required String regionId, required String requestId, required String locationSource});
+  Future<TaskSnapshot> uploadSample({required String taskId, required LocationSample sample});
+  Future<TaskSnapshot?> getCurrent();
+  Future<TaskSnapshot> endTask({required String taskId, required String requestId});
+}
+
+class FakeStudyApi implements StudyApi { /* 五态可切换；标明模拟 */ }
+class HttpStudyApi implements StudyApi { /* 冉昕霖网络层就绪后接线；当前未实现 */ }
+
+class TaskSnapshot {
+  final String taskId;
+  final String regionId;
+  final String status;
+  final String? pauseReason;
+  final int effectiveSeconds;
+  final int requiredSeconds;
+  final String? spawnId;
+  final DateTime serverTime;
+  final bool? sampleAccepted;
+  final String? rejectionReason;
+}
+
+// client/lib/features/study/study_controller.dart
+class StudyController {
+  Future<void> startStudy({required String regionId, required String locationSource});
+  Future<void> endStudy();
+  Future<void> retryPermission();
+  void dispose(); // stop provider
+  // 暴露 ValueListenable / Stream<TaskViewState>
+}
+
+AndroidManifest（foundation 修改，本轮仅设计）：
+  uses-permission android.permission.ACCESS_FINE_LOCATION
+  uses-permission android.permission.ACCESS_COARSE_LOCATION
+  （后台定位 / FGS 留待任务模式前台服务设计）
+
+向余星晨提交的依赖需求：
+  permission_handler、geolocator（版本约束由余在 pubspec 统一选定）
+
+====================================================================
+八、设计图说明
+====================================================================
+8.1 自习定位包图
+  features/study（Page/Controller/Api）依赖 core/location（Sample/Provider）；
+  StudyApi 依赖网络适配（冉昕霖）；不依赖捕获业务包内部。
+  服务端 study 包（董欣毓）在边界外，经 HTTP 交互。
+
+8.2 位置采集设计类图
+  技术类：StudyController、LocationProviderPort、Simulated/Real、StudyApi、Fake/Http、TaskSnapshot。
+  LocationSample 为数据对象；StudyTask 领域状态机不在本图展开。
+
+8.3 自习设计顺序图
+  正常开始→权限→采样→上传→TRIGGERED；分支：权限拒绝、断网。
+
+8.4 LocationProvider 订阅状态图
+  Idle → Starting → Running → Stopping → Idle；错误进入 Failed，可重试或 stop。
+
+====================================================================
+九、测试设计
+====================================================================
+见 design/test-cases.csv。设计轮状态均为待执行；foundation/implementation 补证据路径。
+优先级：权限拒绝/停止监听/Fake 五态/断网不触发 > 真机 GPS（无设备标未执行）。
+
+====================================================================
+十、未实现与模拟标注
+====================================================================
+- Study HTTP：未实现 → FakeStudyApi
+- RealLocationProvider / geolocator：未实现 → SimulatedLocationProvider
+- Android 权限 Manifest：未改 → 设计已列字段
+- 真机授权/拒绝/关服务：未验证
+- 董欣毓状态机定稿：未对齐 → 字段与五态名称已固定，转换细节待对齐
+- 前台服务与后台定位：未设计实现
+
+====================================================================
+十一、缺项与依赖
+====================================================================
+读者 | 需要其提供 | 本设计已给出
+董欣毓 | 任务状态转换最终规则与 HTTP 实现 | 请求/响应字段与 Fake 假设
+余星晨 | pubspec 合入 permission_handler、geolocator | 插件用途与平台说明
+冉昕霖 | HttpStudyApi 接入统一网络层 | StudyApi 端口形状
+胡豪 | 若落库的样本/任务配置项编号 | 字段清单（客户端侧）
+李宗晏 | 后续真实测试记录 | 本轮 test-cases 设计条目
+
+下一节点 foundation（10/31）：实现 LocationSample、SimulatedLocationProvider、最小测试页与 Manifest 权限；interfaces.json 保持同步。

@@ -1,0 +1,50 @@
+@startuml 自习定位包图
+' 赵冠钧 · 第二阶段设计 · 包图
+!pragma layout smetana
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam arrowColor #5B6B7C
+
+package "client features/study" as StudyPkg {
+  [StudyPage]
+  [StudyController]
+  [StudyApi]
+  [FakeStudyApi]
+  [HttpStudyApi]
+}
+
+package "client core/location" as LocPkg {
+  [LocationSample]
+  [LocationProviderPort]
+  [SimulatedLocationProvider]
+  [RealLocationProvider]
+}
+
+package "client 网络适配\n（冉昕霖）" as NetPkg {
+  [HttpClientAdapter]
+}
+
+package "server study\n（董欣毓·边界外）" as SrvPkg {
+  [StudyTaskHTTP]
+}
+
+package "client 兼容出口" as LegacyPkg {
+  [location_provider.dart\nDemoLocationProvider]
+}
+
+StudyPkg --> LocPkg : 订阅样本/错误
+StudyPkg --> NetPkg : HttpStudyApi 可选依赖
+NetPkg --> SrvPkg : REST /api/v1/study/*
+FakeStudyApi ..> StudyApi : 实现（模拟）
+HttpStudyApi ..> StudyApi : 实现（未接通）
+SimulatedLocationProvider ..> LocationProviderPort
+RealLocationProvider ..> LocationProviderPort
+LegacyPkg ..> StudyPkg : 课堂 Demo 并行\n不满足采样端口
+
+note bottom of SrvPkg
+  驻留判定与发奖在服务端
+  客户端不计奖
+end note
+@enduml

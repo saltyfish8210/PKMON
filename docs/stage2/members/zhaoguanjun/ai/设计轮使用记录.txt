@@ -1,0 +1,18 @@
+AI辅助设计记录（本次真实过程）
+材料责任人：赵冠钧；日期：2026-10-28。
+工具：Cursor 桌面编码助手（精确模型快照、Token 和费用未提供）。
+
+任务：用户确认执行「赵冠钧 · design 交付」计划，完成 10/29 04:00 前详细设计交接。
+
+上下文：赵冠钧开发指南 design 页；已有 analysis 成果 592c1634…；孙虹毅 design 模板结构；指南候选 Study API；客户端 location_provider/task_sheet 现状。未收集真实账号或真实轨迹。
+
+过程：
+1. 从 analysis/zhaoguanjun-stage2 创建 design/zhaoguanjun-stage2。
+2. 撰写 design.txt（四部分设计、签名、模拟标注）。
+3. 填写 analysis-to-design.csv、interfaces.json、test-cases.csv。
+4. 绘制四张设计 PlantUML 并导出 PNG。
+5. 更新 questions.csv；写 evidence/design-notes.txt、handoffs/design.txt、本 AI 记录。
+
+输出：design/ 目录全套；不修改 client 业务代码。
+本人采纳：见 ai/设计轮本人采纳记录.txt。
+风险：董欣毓未齐时字段为候选；不得把设计写成已实现；PlantUML jar 不提交。

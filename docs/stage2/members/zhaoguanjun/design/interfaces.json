@@ -1,0 +1,180 @@
+{
+  "owner": "zhaoguanjun",
+  "stage": "stage2",
+  "module": "study-location",
+  "version": "design-2026-10-28",
+  "designedVersion": "design-2026-10-28",
+  "status": "designed_not_implemented",
+  "statusNote": "四条 Study HTTP 与 RealLocationProvider 均未实现。客户端开发期使用 FakeStudyApi + SimulatedLocationProvider。storageSimulated/implemented 标记如下；不得把 Fake 伪装为真实到场。董欣毓定稿后若字段冲突，以交接差异更新本文件并通知调用方。",
+  "conventions": {
+    "baseUrl": "http://127.0.0.1:4180",
+    "businessPrefix": "/api/v1",
+    "auth": "Authorization: Bearer <token>（正式）；开发期可暂用与捕获模块一致的身份头，接认证后关闭替身",
+    "userIdSource": "只从认证上下文取得，请求体不传 userId",
+    "successEnvelope": { "code": 0, "message": "ok", "data": {} },
+    "errorEnvelope": { "code": 40001, "message": "参数错误", "data": null },
+    "fieldCase": "lowerCamelCase",
+    "timeFormat": "UTC ISO 8601（界面展示转换为北京时间）",
+    "coordinateSystemForUpload": "GCJ02",
+    "coordinateUnknownPolicy": "保留原始标签并拒传或由服务端 rejectionReason 拒绝；禁止改标签冒充 GCJ02",
+    "idempotency": "同一业务操作重试沿用 requestId；新操作新 UUID；每个样本唯一 sampleId"
+  },
+  "errorCodes": [
+    { "code": 0, "httpStatus": 200, "meaning": "成功" },
+    { "code": 40001, "httpStatus": 400, "meaning": "参数错误（缺字段、非法枚举、坐标系不接受等）" },
+    { "code": 40101, "httpStatus": 401, "meaning": "身份无效；客户端停止上传并引导登录" },
+    { "code": 40401, "httpStatus": 404, "meaning": "任务不存在或不属于当前用户，不泄露归属" },
+    { "code": 40902, "httpStatus": 409, "meaning": "同一 requestId 内容冲突" },
+    { "code": 50301, "httpStatus": 503, "meaning": "认证上下文尚未接入" }
+  ],
+  "clientPorts": [
+    {
+      "name": "LocationProviderPort",
+      "kind": "dart_interface",
+      "pathHint": "client/lib/core/location/location_provider.dart",
+      "implemented": false,
+      "methods": [
+        { "name": "start", "returns": "Future<void>", "notes": "开始采样；未授权应通过 errors 发出 PERMISSION_DENIED" },
+        { "name": "stop", "returns": "Future<void>", "notes": "释放订阅；可重复调用无副作用" },
+        { "name": "samples", "returns": "Stream<LocationSample>", "notes": "字段见 LocationSample" },
+        { "name": "errors", "returns": "Stream<LocationError>", "notes": "PERMISSION_DENIED|SERVICE_DISABLED|UNKNOWN" }
+      ],
+      "implementations": [
+        { "name": "SimulatedLocationProvider", "source": "SIMULATED", "notes": "合成流；UI 必须标注模拟" },
+        { "name": "RealLocationProvider", "source": "GPS", "notes": "geolocator；坐标系未确认前不得改标签" }
+      ],
+      "legacyCompat": "client/lib/core/location_provider.dart 的 DemoLocationProvider 仅课堂示意，不满足本端口"
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "createStudyTask",
+      "method": "POST",
+      "path": "/api/v1/study/tasks",
+      "implemented": false,
+      "storageSimulated": true,
+      "requestFields": ["regionId", "requestId", "locationSource"],
+      "responseDataFields": [
+        "taskId", "regionId", "status", "pauseReason",
+        "effectiveSeconds", "requiredSeconds", "spawnId", "serverTime"
+      ],
+      "enums": {
+        "locationSource": ["GPS", "SIMULATED"],
+        "status": ["WAITING", "DWELLING", "PAUSED", "TRIGGERED", "ENDED"],
+        "pauseReason": ["OUTSIDE", "NO_SIGNAL", null]
+      },
+      "exampleRequest": {
+        "regionId": "library_entrance",
+        "requestId": "00000000-0000-4000-8000-000000000101",
+        "locationSource": "SIMULATED"
+      },
+      "exampleResponseData": {
+        "taskId": "00000000-0000-4000-8000-000000000005",
+        "regionId": "library_entrance",
+        "status": "WAITING",
+        "pauseReason": null,
+        "effectiveSeconds": 0,
+        "requiredSeconds": 60,
+        "spawnId": null,
+        "serverTime": "2026-10-19T02:00:00Z"
+      },
+      "notes": "服务端主责董欣毓。客户端创建后不得本地改为 TRIGGERED。",
+      "ruleIds": ["BR-L01", "BR-L05"]
+    },
+    {
+      "name": "uploadLocationSample",
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/samples",
+      "implemented": false,
+      "storageSimulated": true,
+      "requestFields": [
+        "sampleId", "latitude", "longitude", "accuracyMeters",
+        "sampledAt", "coordinateSystem", "source"
+      ],
+      "responseDataFields": [
+        "taskId", "regionId", "status", "pauseReason",
+        "effectiveSeconds", "requiredSeconds", "spawnId", "serverTime",
+        "sampleAccepted", "rejectionReason"
+      ],
+      "exampleRequest": {
+        "sampleId": "00000000-0000-4000-8000-000000000201",
+        "latitude": 39.9925,
+        "longitude": 116.326,
+        "accuracyMeters": 12.0,
+        "sampledAt": "2026-10-19T02:00:10Z",
+        "coordinateSystem": "GCJ02",
+        "source": "SIMULATED"
+      },
+      "exampleResponseData": {
+        "taskId": "00000000-0000-4000-8000-000000000005",
+        "regionId": "library_entrance",
+        "status": "PAUSED",
+        "pauseReason": "NO_SIGNAL",
+        "effectiveSeconds": 30,
+        "requiredSeconds": 60,
+        "spawnId": null,
+        "serverTime": "2026-10-19T02:00:00Z",
+        "sampleAccepted": true,
+        "rejectionReason": null
+      },
+      "notes": "sampleAccepted=false 时界面可提示但不本地改累计。重复 sampleId/乱序/低精度由服务端拒绝。",
+      "ruleIds": ["BR-L01", "BR-L02", "BR-L06"]
+    },
+    {
+      "name": "getCurrentStudyTask",
+      "method": "GET",
+      "path": "/api/v1/study/tasks/current",
+      "implemented": false,
+      "storageSimulated": true,
+      "requestFields": [],
+      "responseDataFields": ["task"],
+      "exampleResponseData": {
+        "task": {
+          "taskId": "00000000-0000-4000-8000-000000000005",
+          "regionId": "library_entrance",
+          "status": "PAUSED",
+          "pauseReason": "NO_SIGNAL",
+          "effectiveSeconds": 30,
+          "requiredSeconds": 60,
+          "spawnId": null,
+          "serverTime": "2026-10-19T02:00:00Z"
+        }
+      },
+      "notes": "无进行中任务时 data.task 可为 null。用于断网恢复与进程重启后对齐真实状态。",
+      "ruleIds": ["BR-L07", "BR-L08"]
+    },
+    {
+      "name": "endStudyTask",
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/end",
+      "implemented": false,
+      "storageSimulated": true,
+      "requestFields": ["requestId"],
+      "responseDataFields": [
+        "taskId", "regionId", "status", "pauseReason",
+        "effectiveSeconds", "requiredSeconds", "spawnId", "serverTime"
+      ],
+      "exampleRequest": {
+        "requestId": "00000000-0000-4000-8000-000000000102"
+      },
+      "exampleResponseData": {
+        "taskId": "00000000-0000-4000-8000-000000000005",
+        "regionId": "library_entrance",
+        "status": "ENDED",
+        "pauseReason": null,
+        "effectiveSeconds": 30,
+        "requiredSeconds": 60,
+        "spawnId": null,
+        "serverTime": "2026-10-19T02:05:00Z"
+      },
+      "notes": "结束后客户端必须 stop LocationProvider，不再接收新计时输入。",
+      "ruleIds": ["BR-L04"]
+    }
+  ],
+  "dependencyRequests": {
+    "yuxingchen_pubspec": ["permission_handler", "geolocator"],
+    "dongxinyu_http": "实现上述四条 Study 路由并与五态语义对齐",
+    "ranxinlin_network": "HttpStudyApi 走统一网络层与错误码映射",
+    "androidManifest_owner": "zhaoguanjun（foundation 仅改定位权限相关行）"
+  }
+}

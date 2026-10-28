@@ -1,0 +1,5 @@
+图名,源文件,导出图,正文说明位置
+自习定位包图,design/diagrams/自习定位包图.puml,design/diagrams/自习定位包图.png,design.txt 8.1
+位置采集设计类图,design/diagrams/位置采集设计类图.puml,design/diagrams/位置采集设计类图.png,design.txt 8.2
+自习设计顺序图,design/diagrams/自习设计顺序图.puml,design/diagrams/自习设计顺序图.png,design.txt 8.3
+LocationProvider订阅状态图,design/diagrams/LocationProvider订阅状态图.puml,design/diagrams/LocationProvider订阅状态图.png,design.txt 8.4
