@@ -1,0 +1,15 @@
+analysisId,分析对象或规则,设计补充,变更类型,属于哪部分设计,变更理由,是否模拟,对应接口,对应测试
+A-01,LocationSample 固定字段,新增 LocationSample 数据类与上传 JSON 同构,新增,数据管理,分析已定字段；设计固定 Dart 类型与校验点,否,POST .../samples,TC-01
+A-02,LocationProvider 抽象,升级为 start/stop/samples/errors 端口；新代码放 core/location/,调整,控制驱动,现有 Demo 仅字符串无法支撑采样上传,是（Simulated）,LocationProviderPort,TC-01
+A-03,页面只展示服务端状态,TaskViewState 绑定 TaskSnapshot；禁止本地判 TRIGGERED,新增,人机交互,手机计时不能决定奖励,是（Fake 响应）,全部 StudyApi,TC-05
+A-04,暂停保留已认可时间,展示层不本地清零 effectiveSeconds,调整,人机交互,对齐 decisions.csv,是（Fake PAUSED）,uploadSample/getCurrent,TC-06
+A-05,权限拒绝/位置关闭,StudyController 权限分支 + LocationError 通道,新增,人机交互,不得卡死；不上传不发奖,否（设计）,LocationProviderPort.errors,TC-02
+A-06,退出页释放订阅,dispose/endStudy 调用 stop,新增,控制驱动,避免重复监听与耗电,否,LocationProviderPort.stop,TC-04
+A-07,任务 HTTP 候选四条,interfaces.json 固化字段；implemented=false；FakeStudyApi,新增,控制驱动,后端未就绪时仍可验界面,是,StudyApi 四接口,TC-05
+A-08,requestId 幂等,create/end 重试沿用同一 requestId；sample 每点新 sampleId,新增,控制驱动,与全组约定一致,否,createTask/endTask,TC-08
+A-09,坐标系仅 GCJ02 上传,未知坐标系保留原标签并拒传/上报；禁止改标签,新增,数据管理,避免围栏误判,否,uploadSample,TC-10
+A-10,断网不本地触发,上传失败只提示；可 GET current；不伪造 spawnId,新增,人机交互,结果待确认语义,是（断网场景）,getCurrent,TC-07
+A-11,身份失效停传,401 停上传并回登录；重登拉 current,新增,控制驱动,引用闫昕账号边界,否,StudyApi,TC-09
+A-12,插件需求交余星晨,选定 permission_handler + geolocator 需求清单,新增,问题域,本人不擅自改锁文件,是（依赖未合入）,—,TC-02
+A-13,Android 定位权限,设计列出 FINE/COARSE；Manifest 改动留给 foundation,新增,控制驱动,当前仅 INTERNET,否,Manifest,TC-02
+A-14,兼容课堂 Demo,保留 location_provider.dart 出口；Study 新路径并行,迁移,人机交互,避免打断现有演示,是（旧 Demo）,—,TC-05

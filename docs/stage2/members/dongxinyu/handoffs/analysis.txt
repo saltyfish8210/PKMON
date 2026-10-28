@@ -1,0 +1,35 @@
+阶段：analysis（2026-10-20 至 10-24）
+作者：董欣毓
+截止：2026-10-25 04:00（北京时间）；本材料于截止后补交，接收方按实际合入/推送时间读取。
+状态：已合入 main（成果提交 6e25078；main 合入提交号见下行）
+任务分支：design/dongxinyu-stage2
+开 PR：无（已直接合入 main；此前的 fork PR #4 已作废关闭）
+分析成果版本（正文、图表、证据、问题清单与 AI 记录；本交接记录回填该号）：db2f6ca892b8bcc5419f05ec35a80fb200262a25
+main成果合入提交号：6e25078（design/dongxinyu-stage2 与 main 同一提交，2026-10-27 推送）
+所用输入源码/仓库提交：f1e3639（main，2026-10-25）
+
+输入材料：
+docs/stage2/project/decisions.csv（驻留暂停保留已认可时间，已采用）
+docs/stage2/project/glossary.csv（StudyTask、LocationSample、Spawn 命名与主责）
+docs/stage2/members/yanxin/analysis/analysis.txt（§6 共享用况与驻留规则）
+docs/stage2/members/zhaoguanjun/analysis/analysis.txt（任务页与定位采集边界）
+开发文档/03_软件需求说明书.md（UC-08；其心跳与清零口径与最新指南冲突，按 decisions.csv 处理）
+
+材料路径：
+docs/stage2/members/dongxinyu/analysis/analysis.txt
+docs/stage2/members/dongxinyu/analysis/questions.csv
+docs/stage2/members/dongxinyu/analysis/diagram-index.csv
+docs/stage2/members/dongxinyu/analysis/diagrams/（4×.puml + 4×.png）
+docs/stage2/members/dongxinyu/evidence/environment.txt
+docs/stage2/members/dongxinyu/evidence/source-index.csv
+docs/stage2/members/dongxinyu/ai/
+
+读者：闫昕读汇总口径与旧 SRS 冲突；赵冠钧读任务页字段、快进与暂停提示；胡豪读 study_task、task_sample 字段与配置注入；孙虹毅读一次性遭遇创建；李宗晏读规则边界与未验证项。
+
+实际验证：只读核对 main（无 study 包、task_sheet 为界面原型）；4 张图用 PlantUML 1.2024.8 导出并检查。未构建客户端与服务端；未调用任务接口（不存在）；未做真机定位与数据库。
+
+真实性：当前实现仅为客户端布尔原型；服务端没有任务与驻留逻辑。本文给的是分析结论与候选规则，不是已实现的功能，也不是验收通过。
+
+不足与后续：见 analysis/questions.csv 十一条。下一轮（10/25-10/28）交 design：状态机落地的类与方法签名、interfaces.json、与赵冠钧核对页面字段、与孙虹毅核对遭遇创建接口。
+
+交接读取方式：更新到含本记录的分支或 main 后，先读 analysis/analysis.txt 与 questions.csv，再打开 diagrams。成果提交号指业务材料提交，不要求包含本 handoffs 文件自身。

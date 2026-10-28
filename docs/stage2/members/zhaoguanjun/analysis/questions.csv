@@ -1,8 +1,8 @@
 问题,影响,直接责任人,建议,状态,目标交接时间,证据或结论
-尚未收到董欣毓驻留详细分析,暂停转换、冷却与样本拒绝细则未与领域作者定稿核对,董欣毓（读取：赵冠钧）,依既定交接读 members/dongxinyu/analysis/；当前沿用闫昕§6与指南候选规则并记录差异,等待计划中的交付,2026-10-25 04:00,本机 SHA 中不存在 dongxinyu 目录
-定位插件最终选型未定,pubspec 与坐标系/版本约束影响 LocationProvider 实现,余星晨（需求：赵冠钧）,分析轮列出 permission_handler 与 geolocator/高德候选；由余统一改依赖，本人不擅自改锁文件,待设计轮确认,2026-10-29 04:00,analysis.txt 第9节
-坐标系与标签转换风险,插件若为 WGS84 而接口候选仅 GCJ02，误改标签会导致围栏误判,赵冠钧、董欣毓,不确定时保留原始标签并报告；禁止直接改标签；设计轮固定转换方案,未验证,2026-10-29 04:00,指南第18页；本机无真机证据
-Android 真机权限未验证,授权/拒绝/位置关闭/离开前台恢复无真机证据,赵冠钧,缺真机时仅交合成流与分析；实现节点在 Android 前台逐项验证,本机环境缺项,2026-11-06 04:00,evidence/environment.txt
-任务 HTTP 尚未实现,界面无法对接真实 StudyApi，只能用 Fake 展示五态,董欣毓（接口）、冉昕霖（网络层）,设计轮定 interfaces；实现轮 FakeStudyApi 全状态演示并标明非真实持久化,待设计与实现,2026-10-29 04:00,server 无 study 包；候选 POST /api/v1/study/tasks
-旧 SRS 离开清零与现行暂停保留冲突,若实现者仍按旧文档清零会导致错误验收,赵冠钧、董欣毓,按 decisions.csv 采用暂停保留已认可时间；界面不得本地清零,本轮分析已明确,2026-10-25 04:00,project/decisions.csv；analysis.txt 第6节
-本机无 Flutter 命令,无法构建当前客户端或跑 flutter test 作为本轮证据,赵冠钧（客户端 SDK：余星晨）,采用满足 pubspec 的 SDK 后在独立环境验证；本轮不降低源码约束,本机环境缺项,2026-10-29 04:00,evidence/environment.txt
+尚未收到董欣毓驻留详细分析,暂停转换、冷却与样本拒绝细则未与领域作者定稿核对,董欣毓（读取：赵冠钧）,依既定交接读 members/dongxinyu/analysis/；当前沿用闫昕§6与指南候选规则并记录差异,仍等待；设计轮已固定客户端字段与五态名称,2026-10-29 04:00,design.txt 第十一节；本机仍无 dongxinyu 目录
+定位插件最终选型未定,pubspec 与坐标系/版本约束影响 LocationProvider 实现,余星晨（需求：赵冠钧）,设计轮选定需求：permission_handler + geolocator；由余统一改依赖，本人不擅自改锁文件,设计已给出需求清单待余合入,2026-10-29 04:00,design/interfaces.json dependencyRequests；design.txt 第七节
+坐标系与标签转换风险,插件若为 WGS84 而接口候选仅 GCJ02，误改标签会导致围栏误判,赵冠钧、董欣毓,设计固定：上传契约 GCJ02；未知则保留原标签并拒传/上报；禁止改标签,设计已定策略；真机未验证,2026-10-29 04:00,interfaces.json coordinateUnknownPolicy；TC-10
+Android 真机权限未验证,授权/拒绝/位置关闭/离开前台恢复无真机证据,赵冠钧,缺真机时仅交合成流与设计；实现节点在 Android 前台逐项验证,本机环境缺项,2026-11-06 04:00,evidence/environment.txt；TC-02/03
+任务 HTTP 尚未实现,界面无法对接真实 StudyApi，只能用 Fake 展示五态,董欣毓（接口）、冉昕霖（网络层）,设计轮 interfaces.json 已固化四条路由；实现轮 FakeStudyApi 全状态演示并标明非真实持久化,设计已交契约；HTTP 仍未实现,2026-10-29 04:00,design/interfaces.json implemented=false
+旧 SRS 离开清零与现行暂停保留冲突,若实现者仍按旧文档清零会导致错误验收,赵冠钧、董欣毓,按 decisions.csv 采用暂停保留已认可时间；界面不得本地清零,分析已明确；设计 BR-L02 固化,2026-10-25 04:00,design.txt 2.2；TC-06
+本机无 Flutter 命令,无法构建当前客户端或跑 flutter test 作为本轮证据,赵冠钧（客户端 SDK：余星晨）,采用满足 pubspec 的 SDK 后在独立环境验证；不降源码约束；design 轮不要求编译通过,本机环境缺项,2026-10-29 04:00,evidence/environment.txt；本轮仅文档设计

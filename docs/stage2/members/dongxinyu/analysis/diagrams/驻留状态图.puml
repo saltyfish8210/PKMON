@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+title 自习任务状态图（分析）
+[*] --> WAITING : 用户开始任务
+WAITING --> DWELLING : 第二条连续合格样本在进入半径内
+DWELLING --> TRIGGERED : 有效累计达到阈值（只触发一次）
+DWELLING --> PAUSED : 连续两次超出退出半径 / 超过30秒无合格样本
+PAUSED --> DWELLING : 两条连续合格样本，已认可时长保留
+PAUSED --> PAUSED : 继续无合格样本（不补算）
+TRIGGERED --> TRIGGERED : 继续提交样本（结果固定）
+WAITING --> ENDED : 用户结束
+DWELLING --> ENDED : 用户结束
+PAUSED --> ENDED : 用户结束
+TRIGGERED --> ENDED : 用户结束
+ENDED --> [*]
+
+state PAUSED {
+  OUTSIDE : 离开区域
+  NO_SIGNAL : 无定位信号
+}
+@enduml

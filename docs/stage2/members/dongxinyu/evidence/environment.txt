@@ -1,0 +1,41 @@
+环境与源码索引（evidence/environment.txt）
+作者：董欣毓
+采集时间：2026-10-26 16:55（北京时间，UTC+8）
+阶段：第二阶段第一次交接，阶段键 analysis（工作区间 2026-10-20 至 10-24）
+
+一、读取的仓库版本
+
+1. 仓库：https://github.com/saltyfish8210/PKMON（main）。
+2. 读取提交：f1e3639（2026-10-25，fix(capture): 开发期开关改为仅 dev/test 默认开启…）。
+3. 分支：本轮成果在 design/dongxinyu-stage2 上提交，合入 main 的提交号见 handoffs/analysis.txt。
+
+二、只读核对到的事实
+
+1. server/src/main/java/edu/pkmon 下只有 capture（31 个类）与 demo 两个包；在 server/src 中检索 study 无结果，任务接口与驻留逻辑尚未实现。
+2. client/lib/widgets/task_sheet.dart 注释自述"纯界面原型：开始/结束只是本地一个布尔值，不采集真实位置、不计算驻留时长"，另有"快进"入口；client/lib/features/dex_page.dart 仅提到"未来可以通过自习驻留……"。
+3. docs/stage2/members/ 已有 huhao、lizongyan、sunhongyi、yanxin、yuxingchen、zhaoguanjun 六个目录，dongxinyu 目录在本轮之前不存在。
+4. docs/stage2/project/decisions.csv 已裁定驻留暂停"保留已认可时间，暂停区间不累计，恢复重新确认"；glossary.csv 已固定 StudyTask、LocationSample、Spawn 等命名与主责。
+
+三、本阶段实际做了什么
+
+1. 阅读：个人开发指南、开发工作安排、第一阶段提交材料、decisions.csv、glossary.csv、闫昕 analysis（§6 共享用况）、赵冠钧 analysis 与 handoffs（格式与界面边界）。
+2. 产出：analysis/analysis.txt、questions.csv、diagram-index.csv、4 张图（.puml + .png）、本文件、source-index.csv、ai/ 两份记录、handoffs/analysis.txt。
+3. 未做：没有构建或运行客户端与服务端；没有调用任何任务接口（服务端不存在该接口）；没有真机定位；没有数据库操作。
+
+四、工具版本
+
+1. 操作系统：Windows 11（内核 10.0.26200）。
+2. Git 2.56.0.windows.2；gh CLI 已登录。
+3. JDK 17.0.19（Microsoft Build）；Maven 3.9.9。
+4. PlantUML 1.2024.8：把 4 个 .puml 导出 PNG，导出后逐张打开检查。
+5. 未安装 Flutter/Dart 命令行；无 MySQL。
+
+五、预期与实际
+
+1. 预期：4 张图正常导出、中文可读、对象名与 glossary 一致。
+2. 实际：4 张图均导出成功并检查；中文显示正常；对象名与 glossary.csv 一致。
+3. 未执行项：任何构建、接口调用、真机、数据库。
+
+六、结论
+
+本轮交付只到分析图文，不能声称任何功能已实现。按个人指南第 3 页完成条件：场景、对象、异常与图文齐全，依赖需求有接收人——本文与图满足该条件；实现与验收属于后续轮次。
