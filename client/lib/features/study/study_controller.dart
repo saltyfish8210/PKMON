@@ -32,11 +32,10 @@ class TaskViewState {
 /// 编排开始/采样上传/结束；不计本地奖励。
 class StudyController extends ChangeNotifier {
   StudyController({
-    required StudyApi api,
-    required LocationProviderPort location,
+    required this._api,
+    required this._location,
     this.regionId = 'library_entrance',
-  })  : _api = api,
-        _location = location;
+  });
 
   final StudyApi _api;
   final LocationProviderPort _location;
@@ -50,7 +49,7 @@ class StudyController extends ChangeNotifier {
 
   TaskViewState get view => _view;
 
-  FakeStudyApi? get fakeApi => _api is FakeStudyApi ? _api as FakeStudyApi : null;
+  FakeStudyApi? get fakeApi => _api is FakeStudyApi ? _api : null;
 
   Future<void> startStudy({String locationSource = 'SIMULATED'}) async {
     _setError(null);
@@ -184,8 +183,9 @@ class StudyController extends ChangeNotifier {
       await _location.stop();
       await _sampleSub?.cancel();
       await _errorSub?.cancel();
-      if (_location is SimulatedLocationProvider) {
-        await (_location as SimulatedLocationProvider).dispose();
+      final loc = _location;
+      if (loc is SimulatedLocationProvider) {
+        await loc.dispose();
       }
     }());
     super.dispose();

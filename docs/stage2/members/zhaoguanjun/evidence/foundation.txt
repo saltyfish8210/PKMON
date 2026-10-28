@@ -26,17 +26,24 @@ client/test/study/study_controller_test.dart
 cd client
 flutter pub get
 flutter test test/location test/study
-flutter analyze
+flutter analyze lib/core/location lib/features/study
 
 3. 本机实际
-Flutter / Dart 命令均不可用（CommandNotFoundException）。
-因此 flutter test / analyze 本机未执行；测试源码已提交，供有 SDK 的环境复跑。
-不把未执行标为通过。
+SDK：C:\Users\23921\AppData\Local\flutter（CFUG zip：flutter_windows_3.47.6-stable）
+Flutter 3.47.6 • channel stable • Dart 3.13.5
+镜像：PUB_HOSTED_URL=https://pub.flutter-io.cn
+      FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+用户 PATH 已写入 flutter\bin。
+
+执行结果（2026-10-28）：
+- flutter pub get：成功（未提交 pubspec.lock 变更）
+- flutter test test/location test/study：All tests passed!（+6）
+- flutter analyze lib/core/location lib/features/study：No issues found.
 
 4. 真实 / 模拟 / 未执行
-真实：源码文件与 Manifest 权限声明已写入仓库。
+真实：源码、Manifest、本机 Flutter 安装与上述测试/分析。
 模拟：FakeStudyApi、SimulatedLocationProvider、StudyPage 全路径。
-未执行：flutter test；Android 真机权限；RealLocationProvider；Study HTTP；HttpStudyApi。
+未执行：Android 真机权限；RealLocationProvider；Study HTTP；HttpStudyApi。
 
 5. 入口
 地图/我的 → 任务弹窗 → 「打开自习骨架（模拟）」→ StudyPage。
