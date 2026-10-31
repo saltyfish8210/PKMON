@@ -18,4 +18,5 @@
 "编译与静态分析","client 工作区","无","flutter analyze","No issues found!","自动","Flutter 3.47.6","evidence/foundation.txt#T01（已通过）"
 "全量测试回归","client 工作区","无","flutter test","90/90 通过（含原有 51）","自动","Flutter 3.47.6","evidence/foundation.txt#T02（已通过）"
 "Web 构建","client 工作区","无","flutter build web --release","Built build\\web","自动","Flutter 3.47.6","evidence/foundation.txt#T03（已通过）"
+"Android APK 构建","client 工作区；Android SDK；permission_handler 12.0.1","无","flutter build apk --debug","Built app-debug.apk；不含 geolocator（见 T14）","自动","Flutter 3.47.6、Android SDK","evidence/foundation.txt#T14（已通过，不含 geolocator）"
 "真实账号联调","服务端实现 /auth 与 /users/me","注册/登录/退出/me","真实 HTTP 调用","未执行：服务端账号接口不存在","手工","后端账号接口","evidence/foundation.txt#T13（未执行）"

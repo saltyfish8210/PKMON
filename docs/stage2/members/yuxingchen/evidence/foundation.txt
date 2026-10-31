@@ -1,5 +1,5 @@
 阶段：foundation（10/31 本人模块骨架；11/01 04:00 前提交）
-源码提交号与依赖版本：基线 b28bbebba7eb0069bca9faf3a5e96638807afc15 + 本次工作区改动（成果 SHA 见 handoffs/foundation.txt）；Flutter 3.47.6 / Dart 3.13.5；http 1.6.0；geolocator 14.1.2；permission_handler 13.0.2。
+源码提交号与依赖版本：基线 b28bbebba7eb0069bca9faf3a5e96638807afc15 + 本次工作区改动（成果 SHA 见 handoffs/foundation.txt）；Flutter 3.47.6 / Dart 3.13.5；http 1.6.0；permission_handler 12.0.1；geolocator 未合入（见 T14）。
 运行环境：Windows 11 Home China 10.0.26200；工作目录 E:/GAMES/APP/PKMON/client；PUB_CACHE=D:\Android\pub-cache。
 说明：以下每组按「前置与数据 / 目录和命令 / 输入 / 预期 / 实际 / 判定 / 真实或模拟 / 证据 / 缺陷」记录；未执行项单独标注，不写成通过。
 
@@ -146,11 +146,23 @@ T13 真实账号联调（未执行）
   证据路径：本文件 T13；design/interfaces.json 的 endpoints（implemented=false）。
   缺陷与处理：依赖闫昕/冉昕霖落地服务端账号接口；客户端 HttpAuthApi 与 SessionTokenProvider 已就绪。
 
+T14 Android APK 构建与定位依赖
+  前置与数据：Android SDK 已配置；AGP 9.1.0；项目 compileSdk 36；permission_handler 12.0.1；尝试 geolocator 14.1.2。
+  准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter build apk --debug
+  输入：无。
+  预期：产出 app-debug.apk。
+  实际：仅含 permission_handler 12.0.1 时 ✓ Built build\app\outputs\flutter-apk\app-debug.apk。
+        尝试加入 geolocator 14.1.2 时失败：:package_info_plus:compileDebugKotlin 报 “Could not close incremental caches”。
+        尝试 permission_handler 13.0.2 时失败：它要求 compileSdk 37，项目为 36。
+  通过/失败/未执行：APK 构建通过（不含 geolocator）；geolocator 未合入。
+  真实/模拟：真实执行。
+  证据路径：本文件 T14；android/gradle.properties（未修改）；pubspec.lock。
+  缺陷与处理：geolocator 经 geolocator_linux 引入 package_info_plus，本机 Windows 需关闭 Kotlin 增量编译；该配置主责胡豪，未擅自修改。permission_handler 降级到 12.0.1 后 APK 可构建；RealLocationProvider 仍未实现，需赵冠钧/胡豪确认后再加 geolocator。
 文档校验
   命令：python 读取 interfaces.json；csv.reader 校验两个 CSV 表头与列宽。
-  实际：json-ok；analysis-to-design 6 列 12 行；test-cases 8 列 20 行。
+  实际：json-ok；analysis-to-design 6 列 12 行；test-cases 8 列 21 行。
   判定：通过。
 依赖变更
   命令：git diff -- client/pubspec.yaml client/pubspec.lock
-  实际：新增 geolocator ^14.1.2、permission_handler ^13.0.2；无其他直接依赖升级。
-  判定：符合赵冠钧的依赖需求；代码尚未调用定位插件，RealLocationProvider 未实现。
+  实际：新增 permission_handler 12.0.1；geolocator 未合入；无其他直接依赖升级。
+  判定：permission_handler 可用；geolocator 待构建配置确认，已在 T14 记录阻塞。

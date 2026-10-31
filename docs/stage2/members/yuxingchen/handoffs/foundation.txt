@@ -1,5 +1,5 @@
 阶段与作者：foundation / 余星晨
-本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号 986a3cca95050f22430d822c5eb14046a6a09a5f
+本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号「待回填，见本次提交后补」
 状态：本地已提交，未推送
 主线合并提交号（已合入才填）：无（由本人推送后补）
 文件路径与运行方式：
@@ -7,7 +7,7 @@
         client/lib/widgets/{loading,error,empty}_view.dart
         client/lib/features/auth/{session_store,unavailable_auth_api,auth_controller,login_page,app_gate}.dart
         client/lib/main.dart（home 改为 AppGate）
-        client/pubspec.yaml、client/pubspec.lock（新增 geolocator、permission_handler）
+        client/pubspec.yaml、client/pubspec.lock（新增 permission_handler 12.0.1；geolocator 因构建阻塞暂缓）
   测试：client/test/core/request_id_test.dart
         client/test/features/auth/{auth_controller,login_page,app_gate,session_store}_test.dart
         client/test/widgets/state_views_test.dart
@@ -25,6 +25,7 @@
   输入 1：flutter analyze；预期：无问题；实际：No issues found!。
   输入 2：flutter test；预期：原有 51 + 新增 39 全部通过；实际：90/90 All tests passed!。
   输入 3：flutter build web --release；预期：编译产出 build/web；实际：Built build\web。
+  输入 4：flutter build apk --debug；预期：产出安卓 APK；实际：Built app-debug.apk。
   证据：evidence/foundation.txt 的 T01-T12。
 真实/模拟/未执行：
   真实：组件、控制器、入口门禁、单元/组件测试、Web 构建均真实执行；
@@ -35,5 +36,5 @@
   2. SessionStore 不持久化：重启丢失登录态；下一步确定安全存储方案后再实现。
   3. 注册页后置：登录页只有说明；下一步 11/01-11/05 补 RegisterPage 与 40901 界面。
   4. HomeShell 仍走旧 core/api.dart：登录成功不会自动给业务请求注入 Bearer；下一步 11/06 接线时替换旧层。
-  5. 定位依赖已合入但未调用：geolocator/permission_handler 已在 pubspec，RealLocationProvider 待赵冠钧实现。
+  5. 定位依赖部分完成：permission_handler 12.0.1 已合入但未调用；geolocator 14.1.2 因 package_info_plus 的 Kotlin 增量缓存阻塞，未合入，需胡豪确认是否在 android/gradle.properties 关闭 kotlin.incremental 后再加；RealLocationProvider 待赵冠钧实现。详见 evidence/foundation.txt T14。
   6. 仅本地提交：推送命令由本人执行；推送后补主线合并号。

@@ -82,6 +82,8 @@ Flutter：3.47.6（stable，5fc346839b）；Dart 3.13.5；PUB_CACHE=D:\Android\p
   flutter analyze        -> No issues found!
   flutter test           -> 86/86 All tests passed!（当时：原 51 + 新增 35；补 4 个测试后最终 90/90，见 foundation.txt T02）
   flutter build web --release -> Built build\web
-  flutter pub add geolocator permission_handler -> geolocator 14.1.2、permission_handler 13.0.2
+  flutter build apk --debug -> Built app-debug.apk（含 permission_handler 12.0.1）
+  flutter pub add permission_handler -> 12.0.1（13.0.2 要求 compileSdk 37，项目为 36）
+  geolocator 14.1.2 试装失败 -> package_info_plus Kotlin 增量缓存报错；已移除，需胡豪确认 android/gradle.properties
   python 校验 interfaces.json / 两个 CSV 表头 -> 见 evidence/foundation.txt
 账号接口：服务端仍无 /auth/register、/auth/login、/auth/logout、/users/me；真实登录未执行。
