@@ -38,3 +38,4 @@
   4. HomeShell 仍走旧 core/api.dart：登录成功不会自动给业务请求注入 Bearer；下一步 11/06 接线时替换旧层。
   5. 定位依赖部分完成：permission_handler 12.0.1 已合入但未调用；geolocator 14.1.2 因 package_info_plus 的 Kotlin 增量缓存阻塞，未合入，需胡豪确认是否在 android/gradle.properties 关闭 kotlin.incremental 后再加；RealLocationProvider 待赵冠钧实现。详见 evidence/foundation.txt T14。
   6. 仅本地提交：推送命令由本人执行；推送后补主线合并号。
+  7. RequestId 目前有两份实现：client/lib/core/request_id.dart（本模块，UUID v4）与 client/lib/data/api/request_id.dart（defaultRequestIdGenerator，CaptureController 使用）。本阶段未改冉昕霖负责的文件；建议 11/06 由接口负责人统一为一处，避免同一次重试出现两种 id 语义。
