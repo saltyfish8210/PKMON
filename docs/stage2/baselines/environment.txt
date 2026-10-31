@@ -1,0 +1,26 @@
+PKMon 运行环境基线（胡豪维护）
+更新：2026-10-31 | 对应源码：chore/huhao-foundation 分支（合入主线后见 handoffs/foundation.txt）
+
+后端
+- JDK 17+（开发机实测 OpenJDK 21.0.2）、Maven 3.9+
+- Spring Boot 3.5.7；持久化：spring-jdbc/spring-tx 6.2.12 + HikariCP 6.3.3
+- 构建与测试：mvn -f server/pom.xml test
+- 启动：mvn -f server/pom.xml spring-boot:run
+- 地址：http://127.0.0.1:4180 ；健康检查 GET /test/hello 返回 hello world（仅表示入口可达）
+
+数据库（嵌入式 H2 2.3.232，免安装，无需单独启动服务）
+- 默认（无 profile）：内存库 jdbc:h2:mem:pkmon，不写磁盘，适合直接启动验证
+- dev：jdbc:h2:file:./data/pkmon-dev，重启后数据保留；文件在 server/data/（不入库）
+- test：jdbc:h2:mem:pkmon_test，自动化测试专用独立库；清理前先核对连接目标
+- 口令：环境变量 PKMON_DB_PASSWORD，默认空；不要提交含真实口令的配置
+- 迁移：Flyway 11.7.2，脚本位于 server/src/main/resources/db/migration/，
+  由胡豪统一编号（V1__init_schema.sql 起）；已应用的迁移不改写，变更走 V2+ 增量
+- 启用 profile：mvn -f server/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+
+启动自检
+- 启动日志含「PKMon 启动检查 | profiles=… | datasource=… | 已应用迁移=…」一行，
+  用于核对连的是哪个库、迁移到哪个版本；数据库不可用时启动直接失败。
+- Windows 控制台中文日志显示为 GBK 乱码属已知显示问题，不影响接口与文件内容。
+
+客户端
+- Flutter/Dart 开发机要求见开发指南环境页；客户端不直连数据库，所有数据经 HTTP API。

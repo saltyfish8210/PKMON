@@ -1,0 +1,37 @@
+环境与运行记录（胡豪）
+阶段：第二阶段 foundation | 日期：2026-10-31 | 分支：chore/huhao-foundation
+基线：origin/main 9e84480d1949663bfdcb3b05a0eafc9e348a9343（本次工作的起点提交）
+
+工具版本（本机实测）
+- OS：Windows 11 x86_64
+- JDK：OpenJDK 21.0.2（2024-01-16，Oracle 构建）
+- Maven：Apache Maven 3.9.12
+- Git：本机已装（用于上述提交操作）
+- 服务端框架：Spring Boot 3.5.7（pom parent，Java 17 目标字节码，JDK 21 编译运行）
+
+本次新增依赖（server/pom.xml，版本由 Spring Boot 3.5.7 统一管理，mvn dependency:list 实测）
+- spring-boot-starter-jdbc → spring-jdbc 6.2.12、spring-tx 6.2.12、HikariCP 6.3.3
+- flyway-core 11.7.2
+- com.h2database:h2 2.3.232（runtime）
+
+数据库与迁移
+- 类型：H2 嵌入式（免安装、可随 jar 分发；选型见 design/questions.csv Q01）
+- 默认（无 profile）：jdbc:h2:mem:pkmon;DB_CLOSE_DELAY=-1（内存库，不写磁盘）
+- dev profile：jdbc:h2:file:./data/pkmon-dev（文件库，重启保留；server/data/ 已 gitignore）
+- test profile：jdbc:h2:mem:pkmon_test;DB_CLOSE_DELAY=-1（独立测试库）
+- 迁移：Flyway，classpath:db/migration；V1__init_schema.sql（8 张表，唯一约束见 interfaces.json）
+- 口令：环境变量 PKMON_DB_PASSWORD，默认空；仓库内不含任何实际口令
+
+端口与启动
+- 服务地址：127.0.0.1:4180（server.address/server.port，见 application.properties）
+- 构建/测试：在仓库根或 server/ 下执行 mvn -f server/pom.xml test
+- 启动：mvn -f server/pom.xml spring-boot:run（占用终端，另开终端做接口检查）
+
+已知问题（不阻塞）
+- Windows 控制台按 GBK 显示，启动日志中的中文显示为乱码；仅为控制台显示问题，
+  HTTP 响应与文件内容均为 UTF-8，不受影响。后续可在启动参数加 -Dfile.encoding=UTF-8 改善。
+
+未完成项（如实记录）
+- 业务 Repository 的真实持久化实现（替换 capture 内存替身）：11/01-11/05 实现轮任务。
+- 题库/图鉴种子数据入库：内容待孙虹毅提供（Q02，机制已就绪）。
+- study_tasks / location_samples 建表：字段待董欣毓、赵冠钧定稿（Q05），走 V2 迁移。
