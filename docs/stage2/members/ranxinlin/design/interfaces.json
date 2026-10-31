@@ -1,0 +1,354 @@
+{
+  "owner": "ranxinlin",
+  "stage": "stage2-design",
+  "module": "client-network-capture",
+  "version": "design-2026-10-31",
+  "sourceCommit": "eb86b64",
+  "status": "designed_not_implemented",
+  "statusNote": "本文件是客户端网络层、答题捕获与收藏概览的设计契约，不是已实现代码。capture 与 collection 服务端已实现（孙虹毅，内存仓储+开发身份替身）；auth 与 study 服务端未实现。客户端代码在 foundation（10/31）交付骨架、11/01-11/05 交付实现；本机无 Flutter SDK，未编译、未执行任何用例。",
+  "conventions": {
+    "baseUrl": "开发默认 http://127.0.0.1:4180；Web 同源；Android 模拟器 10.0.2.2:4180；真机用 --dart-define=API_BASE",
+    "businessPrefix": "/api/v1",
+    "envelope": { "success": { "code": 0, "message": "ok", "data": {} }, "failure": { "code": 40001, "message": "说明", "data": null } },
+    "auth": "Authorization: Bearer <token>；注册/登录不需要；旧演示使用 X-Demo-Session，二者不混用",
+    "encoding": "响应必须 utf8.decode(bodyBytes)；禁止 response.body",
+    "time": "UTC ISO 8601；界面转北京时间",
+    "timeoutSeconds": 10,
+    "idempotency": "同一业务提交重试复用 requestId 与 optionId；重新作答生成新 UUID",
+    "sessionGeneration": "请求前读取 (token, generation)，响应后比较；变化则丢弃并抛 staleSession",
+    "pagination": { "pageStartsAt": 1, "defaultPageSize": 20, "maxPageSize": 50 }
+  },
+  "failureMapping": [
+    { "http": 400, "code": 40001, "kind": "badRequest", "clientAction": "提示输入/选项错误，允许重选" },
+    { "http": 401, "code": 40101, "kind": "unauthorized", "clientAction": "调用 onUnauthorized 清会话，页面退出" },
+    { "http": 404, "code": 40401, "kind": "notFound", "clientAction": "按不存在提示并返回，不解释归属" },
+    { "http": 409, "code": 40901, "kind": "conflict", "clientAction": "注册用户名已存在，转登录" },
+    { "http": 409, "code": 40902, "kind": "conflict", "clientAction": "requestId 内容冲突，提示重新作答并记缺陷" },
+    { "http": 409, "code": 40903, "kind": "conflict", "clientAction": "该遭遇已收录，提示返回" },
+    { "http": 409, "code": 40904, "kind": "conflict", "clientAction": "任务冷却，提示剩余时间" },
+    { "http": 410, "code": 41001, "kind": "expired", "clientAction": "提示重新遭遇，不显示成功" },
+    { "http": 503, "code": 50301, "kind": "serviceUnavailable", "clientAction": "服务未就绪，保留凭据，可重试" },
+    { "http": 503, "code": 50302, "kind": "serviceUnavailable", "clientAction": "题库不可用，可重试" },
+    { "http": 500, "code": 50001, "kind": "server", "clientAction": "服务错误，可重试" },
+    { "http": null, "code": null, "kind": "timeout", "clientAction": "写操作进结果待确认；读操作提示重试" },
+    { "http": null, "code": null, "kind": "network", "clientAction": "同 timeout，区分文案" },
+    { "http": null, "code": null, "kind": "staleSession", "clientAction": "丢弃响应，不提示用户" },
+    { "http": null, "code": null, "kind": "protocol", "clientAction": "契约违约，提示重试并记录缺陷" }
+  ],
+  "clientPorts": [
+    {
+      "name": "TokenProvider",
+      "path": "client/lib/core/session/token_provider.dart",
+      "owner": "interface: 冉昕霖；implementation: 余星晨（SessionStore）",
+      "methods": [
+        { "name": "current", "returns": "Future<SessionToken?>", "notes": "返回 token 与 generation；无会话时 null" }
+      ]
+    },
+    {
+      "name": "RequestIdGenerator",
+      "path": "client/lib/data/api/ports.dart",
+      "owner": "typedef 冉昕霖；默认实现由余星晨提供于 core/request_id.dart",
+      "signature": "String Function()",
+      "notes": "测试注入固定序列；不新增 uuid 依赖也可用时间戳+安全随机实现"
+    },
+    {
+      "name": "AuthApi",
+      "path": "client/lib/data/api/auth_api.dart",
+      "implemented": false,
+      "serverImplemented": false,
+      "serverContractSource": "docs/stage2/members/yanxin/design（design/yanxin-auth-design 分支，未合入 main）",
+      "methods": [
+        { "name": "register", "params": ["username", "password", "nickname"], "returns": "Future<UserView>", "notes": "成功不返回 token；界面转登录" },
+        { "name": "login", "params": ["username", "password"], "returns": "Future<LoginResult>", "notes": "token/expiresAt/user；40101 统一文案" },
+        { "name": "logout", "params": [], "returns": "Future<void>", "notes": "已知会话重复退出视为成功；客户端本地必清" },
+        { "name": "me", "params": [], "returns": "Future<UserView>", "notes": "启动恢复与门禁校验" }
+      ],
+      "inputRules": {
+        "username": "3..24 ASCII [A-Za-z0-9_]，去首尾空格后校验，服务端转小写",
+        "password": "12..64 Unicode 码点，UTF-8 ≤72 字节，不裁剪不去空格",
+        "nickname": "去首尾空格后 1..20 码点"
+      }
+    },
+    {
+      "name": "CaptureApi",
+      "path": "client/lib/data/api/capture_api.dart",
+      "implemented": false,
+      "serverImplemented": true,
+      "serverOwner": "孙虹毅",
+      "methods": [
+        { "name": "createDevSpawn", "params": ["regionId", "speciesId"], "returns": "Future<SpawnView>" },
+        { "name": "challenge", "params": ["spawnId"], "returns": "Future<ChallengeView>" },
+        { "name": "answer", "params": ["challengeId", "requestId", "optionId"], "returns": "Future<CaptureResult>" },
+        { "name": "status", "params": ["challengeId"], "returns": "Future<ChallengeStatus>" }
+      ]
+    },
+    {
+      "name": "StudyApi",
+      "path": "client/lib/data/api/study_api.dart",
+      "implemented": false,
+      "serverImplemented": false,
+      "serverOwner": "董欣毓（业务）/ 赵冠钧（客户端接线）",
+      "methodSource": "docs/stage2/members/zhaoguanjun/design/design.txt 第 7 节（方法签名保持一致）",
+      "methods": [
+        { "name": "createTask", "params": ["regionId", "requestId", "locationSource"], "returns": "Future<TaskSnapshot>" },
+        { "name": "uploadSample", "params": ["taskId", "sample"], "returns": "Future<TaskSnapshot>" },
+        { "name": "getCurrent", "params": [], "returns": "Future<TaskSnapshot?>" },
+        { "name": "endTask", "params": ["taskId", "requestId"], "returns": "Future<TaskSnapshot>" }
+      ]
+    },
+    {
+      "name": "CollectionApi",
+      "path": "client/lib/data/api/collection_api.dart",
+      "implemented": false,
+      "serverImplemented": true,
+      "methods": [
+        { "name": "summary", "params": [], "returns": "Future<CollectionSummary>" }
+      ]
+    },
+    {
+      "name": "DemoApi",
+      "path": "client/lib/data/api/demo_api.dart",
+      "implemented": false,
+      "serverImplemented": true,
+      "notes": "旧演示专用，X-Demo-Session；仅供旧页面与课堂演示，不作为正式成功证据"
+    }
+  ],
+  "httpEndpoints": [
+    {
+      "name": "auth.register",
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "owner": "闫昕",
+      "implementedOnServer": false,
+      "auth": false,
+      "request": { "username": "campus_demo", "password": "本地测试口令", "nickname": "校园同学" },
+      "responseData": { "userId": "<UUID>", "username": "campus_demo", "nickname": "校园同学" },
+      "errors": [40001, 40901, 50301]
+    },
+    {
+      "name": "auth.login",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "owner": "闫昕",
+      "implementedOnServer": false,
+      "auth": false,
+      "request": { "username": "campus_demo", "password": "本地测试口令" },
+      "responseData": { "token": "<43 chars>", "expiresAt": "2026-10-31T10:00:00Z", "user": { "userId": "<UUID>", "username": "campus_demo", "nickname": "校园同学" } },
+      "errors": [40001, 40101, 50301]
+    },
+    {
+      "name": "auth.logout",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "owner": "闫昕",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": null,
+      "responseData": {},
+      "errors": [40101, 50301]
+    },
+    {
+      "name": "users.me",
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "owner": "闫昕",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": null,
+      "responseData": { "userId": "<UUID>", "username": "campus_demo", "nickname": "校园同学" },
+      "errors": [40101, 50301]
+    },
+    {
+      "name": "capture.createDevSpawn",
+      "method": "POST",
+      "path": "/api/v1/dev/spawns",
+      "owner": "孙虹毅（装配：胡豪）",
+      "implementedOnServer": true,
+      "availability": "仅 dev/test 默认开放；其他环境 40301",
+      "auth": true,
+      "request": { "regionId": "library_entrance", "speciesId": "siege_lion" },
+      "responseData": { "spawnId": "<UUID>", "regionId": "library_entrance", "speciesId": "siege_lion", "sourceType": "DEV_SIMULATED", "expiresAt": "<UTC>" },
+      "errors": [40001, 40101, 40301]
+    },
+    {
+      "name": "capture.challenge",
+      "method": "POST",
+      "path": "/api/v1/capture/challenge",
+      "owner": "孙虹毅",
+      "implementedOnServer": true,
+      "auth": true,
+      "request": { "spawnId": "<UUID>" },
+      "responseData": { "challengeId": "<UUID>", "spawnId": "<UUID>", "speciesId": "siege_lion", "speciesName": "攻城狮", "questionId": "hello_world_001", "questionText": "执行 print(\"hello world\") 之后，控制台会输出什么？", "options": [{ "optionId": "A", "text": "hello world" }], "expiresAt": "<UTC>" },
+      "errors": [40101, 40401, 40903, 41001],
+      "security": "响应不得含 correctOptionId/answer；客户端解析时发现即 protocol"
+    },
+    {
+      "name": "capture.answer",
+      "method": "POST",
+      "path": "/api/v1/capture/answer",
+      "owner": "孙虹毅",
+      "implementedOnServer": true,
+      "auth": true,
+      "request": { "challengeId": "<UUID>", "requestId": "<UUID>", "optionId": "A" },
+      "responseData": { "challengeId": "<UUID>", "requestId": "<UUID>", "result": "CORRECT", "captureRecordId": "<UUID>", "speciesId": "siege_lion" },
+      "errors": [40001, 40101, 40401, 40902, 41001],
+      "invariant": "result=CORRECT 时 captureRecordId 必须非空，否则 protocol"
+    },
+    {
+      "name": "capture.status",
+      "method": "GET",
+      "path": "/api/v1/capture/challenges/{challengeId}",
+      "owner": "孙虹毅",
+      "implementedOnServer": true,
+      "auth": true,
+      "request": null,
+      "responseData": { "challengeId": "<UUID>", "status": "CAPTURED", "captureRecordId": "<UUID>", "expiresAt": "<UTC>", "lastAttempt": { "requestId": "<UUID>", "result": "CORRECT", "submittedAt": "<UTC>" } },
+      "errors": [40101, 40401]
+    },
+    {
+      "name": "collection.summary",
+      "method": "GET",
+      "path": "/api/v1/collection/summary",
+      "owner": "孙虹毅",
+      "implementedOnServer": true,
+      "auth": true,
+      "request": null,
+      "responseData": { "collectedSpeciesCount": 1, "totalSpeciesCount": 1, "captureCount": 1 },
+      "errors": [40101]
+    },
+    {
+      "name": "study.createTask",
+      "method": "POST",
+      "path": "/api/v1/study/tasks",
+      "owner": "董欣毓",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": { "regionId": "library_entrance", "requestId": "<UUID>", "locationSource": "SIMULATED" },
+      "responseData": { "taskId": "<UUID>", "regionId": "library_entrance", "status": "WAITING", "pauseReason": null, "effectiveSeconds": 0, "requiredSeconds": 600, "spawnId": null, "serverTime": "<UTC>" },
+      "errors": [40001, 40101, 40902, 50301]
+    },
+    {
+      "name": "study.uploadSample",
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/samples",
+      "owner": "董欣毓",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": { "sampleId": "<UUID>", "latitude": 39.9925, "longitude": 116.326, "accuracyMeters": 12.0, "sampledAt": "<UTC>", "coordinateSystem": "GCJ02", "source": "SIMULATED" },
+      "responseData": { "taskId": "<UUID>", "status": "DWELLING", "pauseReason": null, "effectiveSeconds": 20, "requiredSeconds": 600, "spawnId": null, "serverTime": "<UTC>", "sampleAccepted": true, "rejectionReason": null },
+      "errors": [40001, 40101, 40401]
+    },
+    {
+      "name": "study.current",
+      "method": "GET",
+      "path": "/api/v1/study/tasks/current",
+      "owner": "董欣毓",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": null,
+      "responseData": { "task": null },
+      "errors": [40101]
+    },
+    {
+      "name": "study.endTask",
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/end",
+      "owner": "董欣毓",
+      "implementedOnServer": false,
+      "auth": true,
+      "request": { "requestId": "<UUID>" },
+      "responseData": { "taskId": "<UUID>", "status": "ENDED", "pauseReason": null, "effectiveSeconds": 20, "requiredSeconds": 600, "spawnId": null, "serverTime": "<UTC>" },
+      "errors": [40001, 40101, 40401, 40902]
+    },
+    {
+      "name": "demo.session",
+      "method": "POST",
+      "path": "/api/v1/demo/sessions",
+      "owner": "孙虹毅（旧演示）",
+      "implementedOnServer": true,
+      "auth": false,
+      "request": {},
+      "responseData": { "sessionId": "<UUID>", "mode": "SIMULATED_CLASSROOM" }
+    },
+    {
+      "name": "demo.state",
+      "method": "GET",
+      "path": "/api/v1/demo/state",
+      "owner": "孙虹毅（旧演示）",
+      "implementedOnServer": true,
+      "auth": false,
+      "headers": "X-Demo-Session",
+      "responseData": { "nearby": true, "captured": false, "count": 0, "totalSpecies": 3 }
+    },
+    {
+      "name": "demo.capture.challenge",
+      "method": "POST",
+      "path": "/api/v1/demo/capture/challenge",
+      "owner": "孙虹毅（旧演示）",
+      "implementedOnServer": true,
+      "auth": false,
+      "headers": "X-Demo-Session",
+      "request": { "spawnId": "library-001" },
+      "responseData": { "challengeId": "<UUID>", "spawnId": "library-001", "name": "攻城狮", "question": "执行 print(\"hello world\") 之后，控制台会输出什么？", "options": [{ "id": "A", "text": "hello world" }], "source": "演示题：编程基础常识，非真实校史题" }
+    },
+    {
+      "name": "demo.capture.answer",
+      "method": "POST",
+      "path": "/api/v1/demo/capture/answer",
+      "owner": "孙虹毅（旧演示）",
+      "implementedOnServer": true,
+      "auth": false,
+      "headers": "X-Demo-Session",
+      "request": { "challengeId": "<UUID>", "optionId": "A" },
+      "responseData": { "success": true, "message": "攻城狮已收入图鉴", "count": 1 }
+    }
+  ],
+  "dtos": [
+    { "name": "UserView", "fields": ["userId", "username", "nickname"] },
+    { "name": "LoginResult", "fields": ["token", "expiresAt", "user"] },
+    { "name": "SpawnView", "fields": ["spawnId", "regionId", "speciesId", "sourceType", "expiresAt"] },
+    { "name": "ChallengeView", "fields": ["challengeId", "spawnId", "speciesId", "speciesName", "questionId", "questionText", "options", "expiresAt"], "nested": { "options": "List<OptionView>" } },
+    { "name": "OptionView", "fields": ["optionId", "text"] },
+    { "name": "CaptureResult", "fields": ["challengeId", "requestId", "result", "captureRecordId", "speciesId"] },
+    { "name": "ChallengeStatus", "fields": ["challengeId", "status", "captureRecordId", "expiresAt", "lastAttempt"], "nested": { "lastAttempt": "requestId, result, submittedAt" } },
+    { "name": "CollectionSummary", "fields": ["collectedSpeciesCount", "totalSpeciesCount", "captureCount"] },
+    { "name": "TaskSnapshot", "fields": ["taskId", "regionId", "status", "pauseReason", "effectiveSeconds", "requiredSeconds", "spawnId", "serverTime", "sampleAccepted", "rejectionReason"] },
+    { "name": "LocationSampleDto", "fields": ["sampleId", "latitude", "longitude", "accuracyMeters", "sampledAt", "coordinateSystem", "source"] }
+  ],
+  "legacyMapping": {
+    "challenge": { "name": "speciesName", "question": "questionText", "options[].id": "options[].optionId", "source": "sourceType=DEMO" },
+    "answer": { "success": "result(CORRECT|WRONG)", "message": "提示文案", "计数": "不从旧接口推断，成功以新接口 captureRecordId 为准" },
+    "note": "旧字段只在 DemoApi/LegacyMapper 转换一次；页面与控制器只用统一模型"
+  },
+  "dependencies": [
+    { "item": "认证 HTTP 与 token 契约", "owner": "闫昕", "status": "设计分支未合入 main；HTTP 未实现", "impact": "AuthApi 仅能按契约与 Fake 推进" },
+    { "item": "Study 四条路由", "owner": "董欣毓（业务）/赵冠钧（客户端）", "status": "设计态未实现", "impact": "HttpStudyApi 无法联调" },
+    { "item": "StudyApi/TaskSnapshot 路径归属", "owner": "赵冠钧", "status": "待对齐（design.txt 2.4）", "impact": "两处同名接口会重复实现" },
+    { "item": "TokenProvider 实现（SessionStore）", "owner": "余星晨", "status": "分析完成，接口未定稿", "impact": "网络层联调需要实现类" },
+    { "item": "RequestIdGenerator 默认实现", "owner": "余星晨", "status": "core/request_id.dart 未合入", "impact": "测试可注入固定序列，不阻塞单测" },
+    { "item": "入口接线 main.dart/HomeShell", "owner": "余星晨", "status": "未开始", "impact": "新页面无法从 App 进入" },
+    { "item": "Flutter/Dart SDK", "owner": "本人（版本由余星晨统一）", "status": "本机缺失", "impact": "无法编译/analyze/test" },
+    { "item": "持久化与事务", "owner": "胡豪", "status": "设计态", "impact": "重启后查询与并发唯一未验证" }
+  ],
+  "ownership": {
+    "ownerPaths": [
+      "client/lib/data/api/",
+      "client/lib/data/model/",
+      "client/lib/features/capture/",
+      "client/lib/features/collection/",
+      "client/lib/features/campus_home.dart",
+      "client/lib/features/capture_page.dart",
+      "client/test/data/",
+      "client/test/capture/",
+      "client/test/collection/",
+      "docs/stage2/members/ranxinlin/"
+    ],
+    "notModifiable": [
+      "client/lib/main.dart（余星晨接线）",
+      "client/pubspec.yaml 与 pubspec.lock（余星晨）",
+      "client/lib/features/home_shell.dart 以外的他人页面",
+      "client/lib/core/location*（赵冠钧）",
+      "server/（孙虹毅、胡豪、闫昕、董欣毓）"
+    ]
+  }
+}

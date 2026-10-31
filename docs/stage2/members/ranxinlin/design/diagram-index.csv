@@ -1,0 +1,6 @@
+图名,可编辑源文件,导出文件,说明
+客户端网络层设计类图,design/diagrams/客户端网络层设计类图.puml,design/diagrams/客户端网络层设计类图.png,design.txt 8.1 端口、实现与错误模型
+答题捕获设计顺序图,design/diagrams/答题捕获设计顺序图.puml,design/diagrams/答题捕获设计顺序图.png,design.txt 8.2 提交、超时恢复与代次校验
+捕获控制器设计状态图,design/diagrams/捕获控制器设计状态图.puml,design/diagrams/捕获控制器设计状态图.png,design.txt 8.3 控制器八态与监护条件
+客户端网络层包图,design/diagrams/客户端网络层包图.puml,design/diagrams/客户端网络层包图.png,design.txt 8.4 依赖方向与禁止项
+旧页面适配与迁移图,design/diagrams/旧页面适配与迁移图.puml,design/diagrams/旧页面适配与迁移图.png,design.txt 8.5 旧页面 F1-F3 迁移

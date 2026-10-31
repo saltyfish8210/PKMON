@@ -1,0 +1,46 @@
+状态：已执行静态校验；编译、单元测试与联调未执行
+源码提交号：eb86b64（main，2026-10-31 读取）
+读取的他人设计：
+  sunhongyi/design @ main（capture 五接口，2026-10-25 复测版本）
+  zhaoguanjun/design @ main（Study 四接口，设计态）
+  huhao/design @ main（模块与数据关系）
+  design/yanxin-auth-design @ 6991b1c（账号四接口契约，未合入 main）
+工具和系统版本：Windows 10.0.26300；Git 2.56.0.windows.3；JDK 17.0.10；Python 3.12.14；
+  PlantUML 1.2024.7；未安装 Flutter/Dart SDK 与 Maven
+执行目录：C:\Users\ranxi\Documents\dsharness\PKMon\PKMON
+准确命令（不含秘密）：
+  1) git rev-parse HEAD
+  2) git show upstream/design/yanxin-auth-design:docs/stage2/members/yanxin/design/interfaces.json
+  3) python validate_design.py <workspace>   （本人临时校验脚本，未入库）
+  4) java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -jar plantuml.jar -charset UTF-8 -tpng *.puml
+非敏感配置：baseUrl http://127.0.0.1:4180；业务前缀 /api/v1；无 token、无口令、无真实位置
+预期：
+  1) interfaces.json 可解析，端口与错误类别齐全；
+  2) 四份 CSV 的列数与表头一致，无错列；
+  3) 五张图源与导出图成对存在；
+  4) 客户端 DTO 字段与服务端 Java record 字段一致（capture 与 collection 四个响应）。
+实际：
+  1) interfaces.json: parse OK
+     clientPorts: TokenProvider, RequestIdGenerator, AuthApi, CaptureApi, StudyApi, CollectionApi, DemoApi
+     httpEndpoints: 17；failureKinds: 11
+  2) 五份 CSV 列数一致（含分析轮 questions.csv 的设计轮状态更新）：
+     analysis/questions.csv: rows=12 cols=6 badRows=none
+     test-cases.csv: rows=20 cols=8 badRows=none
+     analysis-to-design.csv: rows=16 cols=6 badRows=none
+     questions.csv: rows=12 cols=6 badRows=none
+     diagram-index.csv: rows=5 cols=4 badRows=none
+     测试编号 TC-R01～TC-R20 连续且唯一
+  3) 五张图成对存在；PlantUML 导出成功，逐张目视核对中文正常、无连线压字
+  4) capture.challenge: javaFields=8 clientFields=8 same=True
+     capture.answer: javaFields=5 clientFields=5 same=True
+     capture.status: javaFields=5 clientFields=5 same=True
+     collection.summary: javaFields=3 clientFields=3 same=True
+    校验脚本最终输出：RESULT: PASS
+通过/失败/未执行：
+  通过：接口契约 JSON 结构；错误类别覆盖；CSV 列一致性；DTO 与服务端字段一致；图源导出。
+  失败：无（首轮 CSV 发现 3 行因半角逗号错列，已修正后复检通过）。
+  未执行：dart test、flutter analyze、flutter test、mvn test、真实 HTTP 联调、Android 真机、
+    真实 token 与账号切换验证、Study 路由联调、重启后收录查询。
+缺项与直接责任人：
+  Flutter/Dart SDK（本人；版本由余星晨统一）；认证 HTTP（闫昕）；Study HTTP（董欣毓/赵冠钧）；
+  TokenProvider 实现与入口接线（余星晨）；持久化（胡豪）。

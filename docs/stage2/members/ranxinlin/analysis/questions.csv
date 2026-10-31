@@ -1,13 +1,13 @@
 问题,影响,直接责任人,建议,状态,结论或证据路径
-认证 token 的获取与 401 处理语义,取题与提交都需要正确身份；401 后若不清除会持续失败,闫昕,10/29 设计前给出本机获取 token 的步骤与失效后重新登录的语义,待闫昕设计交付,analysis.txt 5.2 S6 与第九节
-旧捕获路由已迁移而客户端未同步,旧演示取题/作答会命中新正式接口并失败,孙虹毅（接口来源）；冉昕霖（调用方）,演示走 /api/v1/demo/capture/*；正式流程走统一网络层,已定位，待设计轮修正,home_shell.dart:151；capture_page.dart:45；DemoController.java:19-20
-sourceType 取值 DEV 与 DEV_SIMULATED 不一致,客户端来源标注与 JSON 解析,孙虹毅,固定为 DEV_SIMULATED 并同步契约,待契约固定,interfaces.json；project/glossary.csv
-totalSpeciesCount 为替身目录条目数（实测 1）,收藏概览的比例与图鉴展示,孙虹毅（数据）；闫昕（范围）,接真实图鉴后给真值；本轮按服务端值显示,未解决,foundation 交接 四
-新增错误码 40101/40301/40903/50301/50302 的界面语义,错误提示与重试策略,孙虹毅,提供错误码到用户文案的对照表,待 10/29 设计确认,interfaces.json errorCodes
-status.lastAttempt 是否稳定包含 submittedAt,待确认状态恢复时的展示,孙虹毅,在接口样例中固定该字段,实现有，fixture 无,interfaces.json 与 fixtures/challenge-captured.json
-本机无 Flutter/Dart SDK,无法执行 flutter analyze/test 与页面验证,本人（环境）；余星晨（版本统一）,安装与锁文件一致的 SDK；本轮只交分析与静态核对,未执行,evidence/environment.txt
-本机无 Maven 与可运行后端包,无法做真实接口联调,胡豪,提供启动包、端口与启动说明,未执行,evidence/environment.txt
-main.dart 接线与 CapturePage 构造签名,10/31 骨架能否顺利接入,余星晨,10/29 前确认签名与接线位置,待确认,analysis.txt 7.2
-40902 的界面处理,同 requestId 不同内容属客户端缺陷,孙虹毅（语义）；冉昕霖（处理）,提示重新作答并生成新 requestId；同时作为缺陷记录,已给建议,analysis.txt 5.5
-Web 调试跨域来源 5173,浏览器调试与课堂演示,胡豪,开发配置放行 5173 与 Authorization/Content-Type,待确认,个人开发指南 环境页
-收藏概览的范围（仅概览或含列表）,决定本阶段页面数量与工作量,本人；闫昕（范围）,本阶段只做概览与刷新；列表与筛选后置,已决定，待确认,analysis.txt 3.6 与 7.2
+认证 token 的获取与 401 处理语义,取题与提交都需要正确身份；401 后若不清除会持续失败,闫昕,10/29 设计前给出本机获取 token 的步骤与失效后重新登录的语义,设计轮：闫昕分支已给四接口契约，HTTP 未实现,design/design.txt 6.1；design/yanxin-auth-design 分支
+旧捕获路由已迁移而客户端未同步,旧演示取题/作答会命中新正式接口并失败,孙虹毅（接口来源）；冉昕霖（调用方）,演示走 /api/v1/demo/capture/*；正式流程走统一网络层,设计轮：已设计 DemoApi 与三步迁移，待 foundation 实现,design/design.txt 8.5；design/interfaces.json 的 demo 端点
+sourceType 取值 DEV 与 DEV_SIMULATED 不一致,客户端来源标注与 JSON 解析,孙虹毅,固定为 DEV_SIMULATED 并同步契约,设计轮：按 DEV_SIMULATED 设计,design/interfaces.json capture.createDevSpawn
+totalSpeciesCount 为替身目录条目数（实测 1）,收藏概览的比例与图鉴展示,孙虹毅（数据）；闫昕（范围）,接真实图鉴后给真值；本轮按服务端值显示,设计轮：仍未解决，概览按服务端值显示,design/design.txt 5.1
+新增错误码 40101/40301/40903/50301/50302 的界面语义,错误提示与重试策略,孙虹毅,提供错误码到用户文案的对照表,设计轮：已给 kind 映射，待孙虹毅确认文案,design/design.txt 5.2；design/interfaces.json failureMapping
+status.lastAttempt 是否稳定包含 submittedAt,待确认状态恢复时的展示,孙虹毅,在接口样例中固定该字段,设计轮：DTO 允许可空，缺省不阻塞恢复,design/design.txt 5.1
+本机无 Flutter/Dart SDK,无法执行 flutter analyze/test 与页面验证,本人（环境）；余星晨（版本统一）,安装与锁文件一致的 SDK；本轮只交分析与静态核对,设计轮：仍未安装，未执行任何构建,evidence/design-validation.txt
+本机无 Maven 与可运行后端包,无法做真实接口联调,胡豪,提供启动包、端口与启动说明,设计轮：仍未安装，未联调,evidence/design-validation.txt
+main.dart 接线与 CapturePage 构造签名,10/31 骨架能否顺利接入,余星晨,10/29 前确认签名与接线位置,设计轮：已给 CapturePage（spawnId、controller）签名，待接线,design/design.txt 4.6
+40902 的界面处理,同 requestId 不同内容属客户端缺陷,孙虹毅（语义）；冉昕霖（处理）,提示重新作答并生成新 requestId；同时作为缺陷记录,设计轮：已落成 conflict 处理,design/design.txt 4.3
+Web 调试跨域来源 5173,浏览器调试与课堂演示,胡豪,开发配置放行 5173 与 Authorization/Content-Type,设计轮：仍待胡豪确认,个人开发指南 环境页
+收藏概览的范围（仅概览或含列表）,决定本阶段页面数量与工作量,本人；闫昕（范围）,本阶段只做概览与刷新；列表与筛选后置,设计轮：仅概览并已设计,design/design.txt 3.6

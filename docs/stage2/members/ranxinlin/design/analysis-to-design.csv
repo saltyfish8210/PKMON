@@ -1,0 +1,17 @@
+分析对象或规则,设计对象或方法,变化理由,图路径,代码路径,对应测试
+CR-01 客户端不发放精灵,CaptureController 成功判定 result+CORRECT 且 captureRecordId 非空,把业务红线落成代码分支条件,design/diagrams/答题捕获设计顺序图.png,client/lib/features/capture/capture_controller.dart,TC-R12 TC-R15
+CR-03 一次业务提交一个 requestId,CaptureController._requestId 与 newId(),requestId 由控制器生成、页面不可传入,design/diagrams/捕获控制器设计状态图.png,client/lib/features/capture/capture_controller.dart,TC-R16 TC-R17
+CR-06 超时不是失败,CaptureController.submit 捕获 timeout/network 后进入 recover(),把分析流程落成状态机分支,design/diagrams/捕获控制器设计状态图.png,client/lib/features/capture/capture_controller.dart,TC-R04 TC-R15 TC-R16
+CR-07 41001 表示过期,ApiFailure.kind=expired 与 CaptureExpired 状态,错误分类取代字符串匹配,design/diagrams/客户端网络层设计类图.png,client/lib/data/api/api_client.dart,TC-R02
+CR-08 40401 按不存在,ApiFailure.kind=notFound 与界面文案,统一错误映射避免泄露归属,design/diagrams/客户端网络层设计类图.png,client/lib/data/api/api_client.dart,TC-R02
+CR-09 提交期间禁用重复点击,CaptureController.sending 与 CapturePage PopScope,界面保护与服务端幂等分离,design/diagrams/捕获控制器设计状态图.png,client/lib/features/capture/capture_page.dart,TC-R18
+CR-10 旧字段只在适配层,DemoApi 与 LegacyMapper 转换,把差异收敛到 data/api 一处,design/diagrams/旧页面适配与迁移图.png,client/lib/data/api/demo_api.dart,TC-R19
+CR-11 token 只从会话端口读取,TokenProvider.current 与 ApiClient 注入 Authorization,网络层不依赖账号页面,design/diagrams/客户端网络层设计类图.png,client/lib/data/api/api_client.dart,TC-R07 TC-R08 TC-R09
+CR-12 收藏数量以服务端为准,CollectionApi.summary 与 refreshSummary,避免本地加一造成假数据,design/diagrams/答题捕获设计顺序图.png,client/lib/data/api/collection_api.dart,TC-R14
+CR-13 模拟来源必须标注,ChallengeView.sourceType 与页面标注,开发遭遇不得伪装真实到场,design/diagrams/答题捕获设计顺序图.png,client/lib/data/model/challenge_view.dart,TC-R20
+CR-14 账号切换隔离,CaptureController 与 ApiClient 的 generation 校验,迟到响应不得覆盖新账号界面,design/diagrams/客户端网络层设计类图.png,client/lib/data/api/api_client.dart,TC-R10
+CR-15 客户端不缓存答案,ChallengeView.fromJson 拒绝答案字段,契约违约要在解析层暴露,design/diagrams/客户端网络层设计类图.png,client/lib/data/model/challenge_view.dart,TC-R11
+分析 5.4 旧新接口差异,DemoApi 与 CaptureApi 分离、路径各自独立,避免旧演示与正式身份混用,design/diagrams/旧页面适配与迁移图.png,client/lib/data/api/demo_api.dart,TC-R19
+分析类图（客户端对象）,ApiClient/四端口/Http 实现/DTO,分析对象落成技术对象并明确依赖方向,design/diagrams/客户端网络层设计类图.png,client/lib/data/api/,TC-R01 至 TC-R14
+分析状态图（界面五态）,CaptureController 八态状态机,界面状态落成方法调用与监护条件,design/diagrams/捕获控制器设计状态图.png,client/lib/features/capture/capture_controller.dart,TC-R15 至 TC-R18 TC-R20
+分析包图（客服端分层）,features → data/api → data/model/core,把禁止反向依赖落成包图与代码路径,design/diagrams/客户端网络层包图.png,client/lib/data/api/,TC-R20

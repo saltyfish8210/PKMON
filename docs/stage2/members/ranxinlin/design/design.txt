@@ -1,0 +1,536 @@
+答题捕获与精灵收录（客户端）· 详细设计
+作者：冉昕霖
+阶段：第二阶段 10/25-10/28（阶段键 design）
+对应截止：2026-10-29 04:00（北京时间）
+实际交出：2026-10-31（晚交，原因、影响与补救见第十一节）
+状态：正文完成，待本人 10/31 自查后定稿
+所读源码提交号：eb86b64（main，2026-10-31 读取）
+所读他人设计：
+  sunhongyi/design（capture 五接口已实现，内存仓储 + 开发身份头）
+  zhaoguanjun/design（Study 四接口与 LocationProvider，设计态未实现）
+  huhao/design（模块划分、依赖与数据关系）
+  闫昕 design 分支 design/yanxin-auth-design（账号四接口契约，未合入 main）
+  yuxingchen/analysis（账号入口、SessionStore 与公共状态）
+
+====================================================================
+零、本阶段产出与图码对应
+====================================================================
+本文把分析阶段的客户端结论落成可执行设计：分层与依赖、Dart 方法签名、DTO 与 JSON 映射、
+错误码到界面行为的映射、超时恢复算法、requestId 与会话代次规则、测试设计与技术验证边界。
+
+图表索引（design/diagrams/，源文件 PlantUML，导出 PNG）：
+  图1 客户端网络层设计类图      源：客户端网络层设计类图.puml      说明见 8.1
+  图2 答题捕获设计顺序图        源：答题捕获设计顺序图.puml        说明见 8.2
+  图3 捕获控制器设计状态图      源：捕获控制器设计状态图.puml      说明见 8.3
+  图4 客户端网络层包图          源：客户端网络层包图.puml          说明见 8.4
+  图5 旧页面适配与迁移图        源：旧页面适配与迁移图.puml        说明见 8.5
+分析阶段的五张图仍保留在 analysis/diagrams/：分析图表达业务与界面，设计图表达技术与实现，
+两套图并存，不互相替代。
+
+本阶段明确的边界：
+- 设计只覆盖客户端网络层、答题捕获页面/控制、收藏概览与旧页面适配。
+- 不设计服务端判题、事务、数据库；服务端接口以孙虹毅 interfaces.json 与闫昕分支契约为输入。
+- 账号页面、登录门禁、公共组件属余星晨；位置采集与任务页面属赵冠钧。
+- 本阶段不写业务代码；最小骨架与可编译签名在 10/31 foundation 交付。
+
+====================================================================
+一、从分析到设计的变化总览
+====================================================================
+变化1 增加统一网络层 ApiClient，所有 HTTP 只经过一个入口。
+  分析只说了“统一网络层”，设计把它落成 ApiClient + 四个业务端口（AuthApi/CaptureApi/
+  StudyApi/CollectionApi）+ 一个旧演示适配 DemoApi。
+  理由：信封解析、Bearer 注入、超时与错误映射只应存在一处，页面不能各自拼 URL。
+
+变化2 错误从“Exception(message)”改为带类别与业务码的 ApiFailure。
+  分析要求区分超时、过期、冲突、无权限；设计用 kind + code + httpStatus 表达。
+  理由：界面行为由类别决定（超时进待确认、过期重新遭遇、401 回登录），只靠字符串无法可靠分流。
+
+变化3 增加会话代次 generation，用于丢弃上一代会话的迟到响应。
+  来源：闫昕设计第 8 节“账号切换增加本地会话代次标记；旧请求晚到的响应必须丢弃”。
+  理由：账号切换后旧请求返回，若直接渲染会把 A 的题目/结果显示在 B 的界面上。
+
+变化4 requestId 的生成与复用从“规则”落成“控制器的字段与不变式”。
+  控制器新作答生成新 UUID，恢复流程复用原 requestId + 原 optionId；页面无权传入 requestId。
+  理由：requestId 一旦由界面决定，重试语义会被误用（答错重试复用旧号 → 40902）。
+
+变化5 把“结果待确认”落成状态机：Submitting → Unknown →（Captured|Submitting|Expired）。
+  理由：分析只写了流程，设计必须给出每个状态的方法调用与退出条件，测试才能断言。
+
+变化6 明确 StudyApi/TaskSnapshot 的归属与路径：放在 data/api、data/model。
+  与赵冠钧 design.txt 暂放的 features/study/study_api.dart 不同，理由与协调见 2.4。
+  理由：网络端口若放在 feature 内，data/api 将反向依赖页面包，违反依赖方向。
+
+变化7 旧页面迁移从“改路径”落成三步迁移图与 DemoApi 适配层。
+  理由：旧页面仍在使用；一次性重写会中断课堂演示，分步迁移可以每步保持可运行。
+
+变化8 测试从“用例清单”落成可自动化的契约测试设计（MockClient + Fake 端口）。
+  理由：无 Flutter 环境时，网络层仍可在有 SDK 的机器上用纯 Dart 测；界面用 Fake 端口测状态。
+
+====================================================================
+二、问题域设计
+====================================================================
+2.1 职责分配
+  ApiClient：唯一 HTTP 入口。拼 URL、注入 Bearer、解析 {code,message,data}、超时、错误映射、
+    会话代次校验。不解释业务语义，不弹提示。
+  AuthApi / HttpAuthApi：账号四接口（register/login/logout/me）。登录成功后不写存储，
+    由调用方（AuthController + SessionStore）保存 token。
+  CaptureApi / HttpCaptureApi：开发遭遇、取题、作答、状态查询。
+  StudyApi / HttpStudyApi：自习任务四条路由（设计态，服务端未实现）。
+  CollectionApi / HttpCollectionApi：收藏概览。
+  DemoApi：旧演示六条路由，独立 X-Demo-Session，不与正式 Bearer 混用。
+  DTO（data/model）：UserView、LoginResult、SpawnView、ChallengeView、OptionView、
+    CaptureResult、ChallengeStatus、CollectionSummary、TaskSnapshot、LocationSampleDto。
+  CaptureController：一次答题的编排与状态机；持有 requestId 与 optionId 的原值。
+  CapturePage：渲染五种可见状态，转发用户操作，不直接调用网络。
+  CollectionPage：概览展示与刷新。
+  TokenProvider（core 端口）：向网络层提供 token 与代次；由账号侧实现。
+
+2.2 依赖方向
+  features/* → data/api → data/model 与 core。
+  禁止：data/api import features/*；页面拼 URL；页面读取 token；DemoApi 与正式接口共用一个会话。
+  包图见图4。
+
+2.3 错误分类（问题域规则）
+  badRequest（40001）：输入/选项不合法，界面提示并允许重选。
+  unauthorized（40101）：统一回调入口清会话；当前页面显示登录失效并退出。
+  notFound（40401）：按不存在处理，不提示“别人的”。
+  conflict（40902）：同 requestId 不同内容，按客户端缺陷提示重新作答。
+  expired（41001）：提示重新遭遇，不显示成功。
+  serviceUnavailable（50301/50302）：服务未就绪，保留凭据，给出重试。
+  timeout / network：写操作进入待确认，读操作提示重试。
+  staleSession：本地丢弃，不提示用户。
+  protocol：响应缺字段或含答案字段，按契约违约记录并提示重试。
+
+2.4 与赵冠钧设计的归属协调（需要对齐，不是既成事实）
+  赵冠钧 design.txt 第 7 节把 StudyApi 接口与 TaskSnapshot 放在 features/study/；
+  本人个人指南要求 StudyApi 与 DTO 放在 data/。本设计按 data/api、data/model 落位，
+  方法签名与赵冠钧设计的四个方法保持一致（createTask/uploadSample/getCurrent/endTask）。
+  协调方案（二选一，不双写实现）：
+    A（本设计推荐）：赵冠钧的 StudyController 直接 import data/api/study_api.dart，
+      由本人维护端口与 HttpStudyApi；features/study 不再定义同名接口。
+    B：若赵冠钧坚持在 features/study 定义接口，则本人只提供 ApiClient 与 DTO，
+      HttpStudyApi 移入 features/study 并由赵冠钧维护；data/api 不依赖 features。
+  该事项登记在 design/questions.csv Q04，10/31 foundation 前确认。
+
+====================================================================
+三、人机交互设计
+====================================================================
+3.1 页面与状态
+  CapturePage 只消费控制器状态，不自己判定业务：
+  | 状态 | 页面表现 | 可用操作 |
+  | CaptureLoading | 骨架占位 | 返回 |
+  | CaptureReady | 题干、选项、有效期 | 选择选项、返回 |
+  | CaptureSubmitting | 选项禁用、顶部进度 | 无（拦截返回） |
+  | CaptureUnknown | “结果待确认”与说明 | 重新确认、返回 |
+  | CaptureCaptured | 成功文案 + 真实收藏数量 | 返回地图 |
+  | CaptureExpired | 已过期说明 | 返回地图 |
+  | CaptureFailed | 原因 + 重试 | 重试、返回 |
+  提交中拦截系统返回（PopScope），避免半个请求离开页面。
+
+3.2 输入约束
+  - 选项只能来自服务端下发的 options.optionId，页面不得拼接或猜测。
+  - 一次作答只允许一次点击：控制器 sending 为真时 submit 直接返回。
+  - 重新作答必须由用户再次选择，不得自动重试新作答。
+  - 待确认状态的“重新确认”只允许查询或原请求重试，不允许换选项。
+
+3.3 输出字段（统一契约）
+  题目：challengeId、spawnId、speciesId、speciesName、questionId、questionText、
+    options[{optionId,text}]、expiresAt。
+  结果：challengeId、requestId、result（CORRECT/WRONG）、captureRecordId、speciesId。
+  状态：challengeId、status（OPEN/CAPTURED/EXPIRED）、captureRecordId、expiresAt、lastAttempt。
+  概览：collectedSpeciesCount、totalSpeciesCount、captureCount。
+  上述字段只出现于 data/model；页面与控制器不出现旧字段名。
+
+3.4 错误恢复的界面规则
+  - 40101：统一由 ApiClient 回调入口清会话；页面显示“登录已失效”，不显示业务成功。
+  - 50301/50302：显示“服务暂不可用”，保留当前题目，允许重试（不重新取题）。
+  - 超时/断网：进入待确认；查询 CAPTURED 显示成功、OPEN 用原请求重试、EXPIRED 显示过期。
+  - 40902：提示“本次提交标识冲突”，回到待作答并生成新 requestId；同时记录缺陷。
+  - 40401：提示资源不存在并返回，不解释归属。
+
+3.5 旧字段适配（只在 data/api 做一次）
+  旧演示 name → speciesName；question → questionText；options[].id → options[].optionId；
+  success → result（true=CORRECT，false=WRONG）；message 仅用于提示。
+  适配函数集中在 DemoApi/LegacyMapper，页面与控制器只接收统一模型。
+
+3.6 收藏概览
+  进入收藏页、答题成功返回、账号切换后刷新；失败时保留上次成功值并标注“未更新”，
+  不得用本地计数 +1 代替服务端结果。
+
+====================================================================
+四、控制驱动设计
+====================================================================
+4.1 请求路径
+  CapturePage → CaptureController → CaptureApi（端口）→ HttpCaptureApi → ApiClient → HTTP。
+  页面不持有 ApiClient；控制器不持有 BuildContext；网络层不回调页面。
+
+4.2 提交与恢复的次序（不得改动）
+  第一步 入口校验：challenge 非空、optionId 属于当前 options、sending=false。
+  第二步 提交：requestId = newId()；记录 optionId；state=submitting；调用 answer。
+  第三步 分流：
+    - code=0 且 result=CORRECT 且 captureRecordId 非空 → 刷新概览 → captured；
+    - code=0 且 result=WRONG → ready（允许新作答）；
+    - 41001 → expired；40101 → 由 ApiClient 回调入口，页面退出；
+    - 40001/40902 → ready + 错误提示；
+    - timeout/network → unknown，进入第四步。
+  第四步 恢复：调用 status(challengeId)：
+    - CAPTURED → captured（使用服务端 captureRecordId，不重复发奖）；
+    - OPEN 且原 optionId 已知 → 用原 requestId + 原 optionId 重试 answer（幂等回放）；
+    - OPEN 且原内容不可恢复 → ready，按新作答处理；
+    - EXPIRED → expired；
+    - 查询本身失败 → 保持 unknown，保留 requestId 与 optionId 供手动重试。
+  为什么次序不能改：
+    先判失败会误报（服务端可能已成功）；先本地加一会重复计数；
+    先换新 requestId 重试会在服务端留下两次业务记录，且界面无法确认首次结果。
+
+4.3 requestId 与 optionId 的不变式
+  - 控制器生成 requestId，页面无法传入。
+  - 同一次提交的所有网络重试必须复用同一 requestId 与同一 optionId。
+  - 用户重新选择选项时，必须 newId()，且清空旧的 optionId 记录。
+  - 40902 出现即表示上述不变式被破坏，按缺陷处理而不是静默重试。
+
+4.4 会话代次与 401
+  ApiClient 在请求前读取 SessionToken(value, generation)，响应到达后再读一次：
+    - generation 变化 → 抛 staleSession，调用方丢弃结果；
+    - 40101 → 先调用 onUnauthorized（入口负责清 SessionStore 与业务缓存），再抛 unauthorized。
+  控制器对 unauthorized 只做“停止并显示”，不做跳转；跳转由入口统一处理，避免多处重复。
+
+4.5 超时与并发
+  - 默认超时 10 秒，可注入；超时抛 timeout，不自动重试写操作。
+  - 读操作（status/summary/me）允许由用户手动重试。
+  - 同一控制器同一时刻只允许一个进行中的提交；sending 标志只保护界面，
+    真正的幂等由服务端唯一约束保证（见孙虹毅设计 4.3）。
+  - 控制器 dispose 后不再 setState/notify；进行中的请求结果被丢弃。
+
+4.6 生命周期与接线
+  - ApiClient 在应用级创建一次，由入口持有；CaptureController 每次进入答题页创建，退出时 dispose。
+  - CapturePage 构造签名：CapturePage({required String spawnId, required CaptureController controller})。
+  - 入口接线由余星晨完成（main.dart/HomeShell）；本人只提供签名与示例，不直接改入口。
+  - 旧页面迁移三步见 8.5：F1 新增层 → F2 旧页改调 DemoApi → F3 新页替换并删旧层。
+
+====================================================================
+五、数据管理设计
+====================================================================
+5.1 DTO 与 JSON 映射
+  规则：lowerCamelCase；时间为 UTC ISO 8601（界面转北京时间）；枚举字符串大写；
+  缺失必填字段 → protocol；多余字段忽略（向前兼容）；UTF-8 解码失败 → protocol。
+
+  ChallengeView.fromJson(Map json)：
+    challengeId:String 必填；spawnId:String 必填；speciesId:String 必填；
+    speciesName:String 必填；questionId:String 必填；questionText:String 必填；
+    options:List 必填（2..4 项，每项 optionId/text 必填）；expiresAt:DateTime 必填。
+    安全检查：若 json 含 correctOptionId/answer/correctAnswer 任一字段 → protocol（契约违约）。
+  OptionView：optionId、text。
+  CaptureResult.fromJson：challengeId、requestId、result（CORRECT|WRONG）、captureRecordId（可空）、
+    speciesId。约束：result=CORRECT 时 captureRecordId 必须非空，否则 protocol。
+  ChallengeStatus.fromJson：challengeId、status（OPEN|CAPTURED|EXPIRED）、captureRecordId（可空）、
+    expiresAt、lastAttempt（可空；{requestId,result,submittedAt}）。
+  CollectionSummary.fromJson：三个整数字段必填且非负。
+  UserView.fromJson：userId、username、nickname。
+  LoginResult.fromJson：token（非空）、expiresAt、user(UserView)。
+  TaskSnapshot.fromJson：taskId、regionId、status（五态）、pauseReason（可空）、
+    effectiveSeconds、requiredSeconds、spawnId（可空）、serverTime；样本响应另含
+    sampleAccepted（可空布尔）与 rejectionReason（可空）。
+
+5.2 错误码到 kind 的映射
+  | HTTP | code | kind | 客户端行为 |
+  | 200 | 0 | — | 继续解析 data |
+  | 400 | 40001 | badRequest | 提示输入/选项错误，允许重选 |
+  | 401 | 40101 | unauthorized | 回调入口清会话，页面退出 |
+  | 404 | 40401 | notFound | 按不存在提示并返回 |
+  | 409 | 40901 | conflict | 注册用户名已存在，转登录 |
+  | 409 | 40902 | conflict | requestId 内容冲突，提示重新作答 |
+  | 409 | 40903 | conflict | 已收录，提示返回 |
+  | 409 | 40904 | conflict | 任务冷却，提示剩余时间 |
+  | 410 | 41001 | expired | 提示重新遭遇 |
+  | 503 | 50301 | serviceUnavailable | 服务未就绪，保留凭据，可重试 |
+  | 503 | 50302 | serviceUnavailable | 题库不可用，可重试 |
+  | 500 | 50001 | server | 服务错误，可重试 |
+  | — | — | timeout | 写操作进待确认；读操作提示重试 |
+  | — | — | network | 同上 |
+  | — | — | staleSession | 丢弃响应，不提示 |
+  | — | — | protocol | 契约违约，提示重试并记录缺陷 |
+  说明：HTTP 非 2xx 但能解析出信封时以 code 为准；无法解析时按 HTTP 状态兜底。
+
+5.3 token 与账号隔离
+  - token 只在 ApiClient 的请求头出现；不写入日志、不放进页面状态、不出现在截图。
+  - SessionStore 的持久化属账号侧（余星晨），网络层只读 TokenProvider。
+  - 账号切换由入口 generation+1 并清缓存；旧请求结果因代次不同被丢弃。
+  - DemoApi 的 X-Demo-Session 与 Bearer 完全隔离，禁止在同一请求混用。
+
+5.4 缓存与不落盘
+  网络层不缓存业务数据；页面只在内存中保留当前题目与最近一次概览。
+  token 的保存方式由账号侧决定（Android 安全存储；Web 只存内存），本层不引入存储依赖。
+
+5.5 旧演示字段映射
+  LegacyChallenge：{challengeId, spawnId, name, question, options[{id,text}], source}
+    → ChallengeView：speciesName=name，questionText=question，optionId=id，sourceType=DEMO。
+  LegacyAnswer：{success, message, count}
+    → CaptureResult：result = success ? CORRECT : WRONG；该适配结果只用于旧演示页，
+    不得用于正式捕获成功判定（旧接口没有 captureRecordId）。
+
+====================================================================
+六、接口设计
+====================================================================
+完整机器可读定义见 design/interfaces.json。本节给客户端端口签名与关键约束。
+所有正式接口前缀 /api/v1；成功 {"code":0,"message":"ok","data":{...}}；
+失败 data=null。身份只走 Authorization: Bearer <token>，不接受请求体 userId。
+
+6.1 AuthApi（服务端未实现，按闫昕分支契约设计）
+  register(username, password, nickname) → UserView
+    POST /api/v1/auth/register；成功后不返回 token，界面进入登录页（不自动登录）。
+    错误：40001 参数、40901 用户名已存在、50301 认证未装配。
+  login(username, password) → LoginResult（token、expiresAt、user）
+    POST /api/v1/auth/login；错误：40001、40101（统一“用户名或密码错误”）、50301。
+  logout() → void
+    POST /api/v1/auth/logout（带 token）；已知会话重复退出视为成功；未知 token 401。
+  me() → UserView
+    GET /api/v1/users/me（带 token）；40101 表示会话失效。
+  客户端校验：用户名 3..24 ASCII 字母/数字/下划线；密码 12..64 码点且 UTF-8 ≤72 字节；
+  昵称去首尾空格后 1..20 码点。客户端校验只做提示，服务端为最终裁决者。
+
+6.2 CaptureApi（服务端已实现，内存仓储）
+  createDevSpawn(regionId, speciesId) → SpawnView
+    POST /api/v1/dev/spawns；仅 dev/test 默认开放，其他环境 40301。
+  challenge(spawnId) → ChallengeView
+    POST /api/v1/capture/challenge；错误 40401、41001、40903。
+  answer(challengeId, requestId, optionId) → CaptureResult
+    POST /api/v1/capture/answer；错误 40001、40401、40902、41001。
+  status(challengeId) → ChallengeStatus
+    GET /api/v1/capture/challenges/{challengeId}；错误 40401。
+  约束：题目响应不得含答案字段；CORRECT 必须带 captureRecordId。
+
+6.3 CollectionApi（服务端已实现）
+  summary() → CollectionSummary：GET /api/v1/collection/summary。
+
+6.4 StudyApi（服务端未实现，设计态）
+  createTask(regionId, requestId, locationSource) → TaskSnapshot
+    POST /api/v1/study/tasks。
+  uploadSample(taskId, sample) → TaskSnapshot
+    POST /api/v1/study/tasks/{taskId}/samples；样本含 sampleId、经纬度、accuracyMeters、
+    sampledAt、coordinateSystem=GCJ02、source。
+  getCurrent() → TaskSnapshot?
+    GET /api/v1/study/tasks/current；data.task 可为 null。
+  endTask(taskId, requestId) → TaskSnapshot
+    POST /api/v1/study/tasks/{taskId}/end。
+  约束：任务状态只能由服务端返回；客户端不得本地改为 TRIGGERED；结束任务后由调用方停止定位。
+
+6.5 DemoApi（旧演示，独立会话）
+  connect() POST /api/v1/demo/sessions；state/explore/reset；
+  challenge(spawnId) POST /api/v1/demo/capture/challenge；
+  answer(challengeId, optionId) POST /api/v1/demo/capture/answer。
+  说明：旧路由已迁移，旧客户端当前仍调用 /capture/*（见 analysis 5.4），
+  F2 迁移时统一改为 /demo/capture/*，且界面标注“模拟遇见攻城狮”。
+
+6.6 样例
+  题目、作答、状态、概览的样例沿用配套 fixtures（07/08/09/10），
+  字段与本设计一致；测试数据放 client/test/fixtures/，不引用外部路径。
+
+====================================================================
+七、类与方法签名清单
+====================================================================
+以下为 Dart 签名（实现见 foundation 与 11/01-11/05）：
+
+// client/lib/data/api/api_client.dart
+enum FailureKind { badRequest, unauthorized, notFound, conflict, expired,
+  serviceUnavailable, timeout, network, staleSession, protocol, server }
+class ApiFailure implements Exception {
+  final FailureKind kind; final int? code; final String message; final int? httpStatus;
+}
+class SessionToken { final String value; final int generation; }
+abstract interface class TokenProvider { Future<SessionToken?> current(); }
+typedef HeaderProvider = Map<String, String> Function();
+class ApiClient {
+  ApiClient({required Uri baseUrl, required TokenProvider tokens,
+    http.Client? httpClient, Duration timeout = const Duration(seconds: 10),
+    void Function()? onUnauthorized, HeaderProvider? extraHeaders});
+  Future<Map<String, dynamic>> get(String path, {bool authenticated = true});
+  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body,
+    bool authenticated = true});
+  void close();
+}
+
+// client/lib/data/api/auth_api.dart
+abstract interface class AuthApi {
+  Future<UserView> register({required String username, required String password, required String nickname});
+  Future<LoginResult> login({required String username, required String password});
+  Future<void> logout();
+  Future<UserView> me();
+}
+
+// client/lib/data/api/capture_api.dart
+abstract interface class CaptureApi {
+  Future<SpawnView> createDevSpawn({required String regionId, required String speciesId});
+  Future<ChallengeView> challenge({required String spawnId});
+  Future<CaptureResult> answer({required String challengeId, required String requestId, required String optionId});
+  Future<ChallengeStatus> status({required String challengeId});
+}
+
+// client/lib/data/api/study_api.dart
+abstract interface class StudyApi {
+  Future<TaskSnapshot> createTask({required String regionId, required String requestId, required String locationSource});
+  Future<TaskSnapshot> uploadSample({required String taskId, required LocationSampleDto sample});
+  Future<TaskSnapshot?> getCurrent();
+  Future<TaskSnapshot> endTask({required String taskId, required String requestId});
+}
+
+// client/lib/data/api/collection_api.dart
+abstract interface class CollectionApi { Future<CollectionSummary> summary(); }
+
+// client/lib/data/api/ports.dart
+typedef RequestIdGenerator = String Function();
+
+// client/lib/features/capture/capture_controller.dart
+class CaptureController {
+  CaptureController({required CaptureApi captureApi, required CollectionApi collectionApi,
+    required RequestIdGenerator newRequestId});
+  ValueListenable<CaptureUiState> get state;
+  Future<void> load(String spawnId);
+  Future<void> submit(String optionId);
+  Future<void> retry();          // 仅 Unknown 状态：查询或原请求重试
+  Future<CollectionSummary?> refreshSummary();
+  void dispose();
+}
+
+// client/lib/features/capture/capture_page.dart
+class CapturePage extends StatefulWidget {
+  const CapturePage({super.key, required this.spawnId, required this.controller});
+  final String spawnId;
+  final CaptureController controller;
+}
+
+// client/lib/features/collection/collection_page.dart
+class CollectionPage extends StatefulWidget {
+  const CollectionPage({super.key, required CollectionApi api});
+}
+
+// client/lib/data/api/demo_api.dart
+class DemoApi {
+  DemoApi({required ApiClient client});
+  Future<void> connect();
+  Future<DemoState> state();
+  Future<DemoState> explore();
+  Future<DemoState> reset();
+  Future<LegacyChallenge> challenge(String spawnId);
+  Future<LegacyAnswer> answer(String challengeId, String optionId);
+}
+
+关键不变式（实现时不得违反）：
+  I1 页面不构造 requestId；I2 同一次提交的重试复用 requestId + optionId；
+  I3 CORRECT 且 captureRecordId 非空才显示成功；I4 响应代次变化即丢弃；
+  I5 题目响应含答案字段即 protocol；I6 DemoApi 与 Bearer 不混用。
+
+====================================================================
+八、设计图说明
+====================================================================
+8.1 图1 客户端网络层设计类图
+  上排是 data/api：四个端口（AuthApi/CaptureApi/StudyApi/CollectionApi）与 Http 实现，
+  以及 ApiClient 与 DemoApi；下排是 core：TokenProvider、SessionToken、ApiFailure 与 FailureKind。
+  Http 实现只负责路径、请求体与 DTO 映射，全部经 ApiClient；DemoApi 用独立演示会话头。
+  图注写明网络层只做四件事，且不 import features。
+  省略 Fake 与 DTO 类：Fake 实现同一端口（设计见 test/），DTO 字段见 interfaces.json。
+
+8.2 图2 答题捕获设计顺序图
+  从玩家选择选项开始，到控制器生成 requestId、ApiClient 读取 token、提交、代次校验、
+  正常/超时两条分支、状态查询与幂等重试、CORRECT/WRONG 分流、概览刷新。
+  图中 alt 明确 generation 未变/已变；底部注说明旧字段只在适配层转换。
+
+8.3 图3 捕获控制器设计状态图
+  八个状态与迁移：Idle/Loading/Ready/Submitting/Unknown/Captured/Expired/Failed。
+  每次迁移写明方法调用与监护条件（sending、CORRECT 且记录非空、OPEN 且原内容已知）。
+  40101 不画入本图：由 ApiClient 回调入口统一处理，避免控制器与入口重复跳转。
+  图注强调 sending 只是界面保护，幂等靠 requestId + 服务端唯一约束。
+
+8.4 图4 客户端网络层包图
+  消费者 features/capture、features/collection、features/auth、features/study；
+  提供者 data/api 与 data/model；共享 core；测试替身 test。
+  依赖方向单向；auth 实现 TokenProvider；禁止 data/api 反向 import features。
+
+8.5 图5 旧页面适配与迁移图
+  左（目标）：新 CapturePage → CaptureController → CaptureApi/CollectionApi → ApiClient → 正式接口。
+  右（现状）：main.dart → HomeShell → 旧 CapturePage 与 core/api.dart → 旧演示接口。
+  迁移三步：F1 新增层不动旧页；F2 旧页改调 DemoApi（/demo/capture/*）；F3 新页替换，
+  main.dart 由余星晨切换，确认无第二入口后删除 core/api.dart。
+
+====================================================================
+九、测试设计
+====================================================================
+9.1 测试层次
+  单元（纯 Dart，不依赖 Flutter）：ApiClient 用 package:http/testing 的 MockClient 注入响应；
+    DTO 解析用固定 JSON；端口实现用 Fake。
+  组件（flutter_test）：CapturePage/CollectionPage 注入 FakeCaptureApi/FakeCollectionApi，
+    断言状态与文案；不需要真实后端。
+  联调（手工/脚本）：真实服务 + 真实 token；本轮未执行（无 Flutter/Maven）。
+
+9.2 用例清单（详见 design/test-cases.csv，TC-R01～TC-R20）
+  信封与错误：TC-R01 成功解析；TC-R02 业务码映射；TC-R03 HTTP 状态兜底；
+  TC-R04 超时；TC-R05 网络异常；TC-R06 中文 UTF-8。
+  身份与代次：TC-R07 Bearer 注入；TC-R08 无 token；TC-R09 401 回调；TC-R10 代次变化丢弃。
+  捕获契约：TC-R11 题目解析与答案泄露拒绝；TC-R12 CORRECT 必须有记录号；
+  TC-R13 状态含 lastAttempt/null；TC-R14 概览解析。
+  控制器：TC-R15 超时恢复 CAPTURED；TC-R16 超时恢复 OPEN 复用原 requestId；
+  TC-R17 答错后新 requestId；TC-R18 提交中重复点击被忽略。
+  旧演示与页面：TC-R19 旧字段适配；TC-R20 页面七态渲染。
+  每个用例按指南六步记录：源码提交号、独立数据、输入、预期、实际、通过/失败/未执行。
+
+9.3 固定数据
+  client/test/fixtures/ 放 07/08/09/10 的等价 JSON（字段与配套样例一致），
+  不使用真实 token；样例 token 只用于单元测试。
+
+9.4 未执行声明
+  本机无 Flutter/Dart SDK，9.1 的自动化用例全部未执行；本轮只做静态校验与图导出，
+  见 evidence/design-validation.txt。后续安装 SDK 后先跑网络层单测，再跑组件测试。
+
+====================================================================
+十、真实/模拟/未实现标注
+====================================================================
+真实（已由他人实现，本人静态核对）：
+  capture 四接口 + 概览（孙虹毅，内存仓储、开发身份头；2026-10-25 复测）。
+  demo 六接口（旧演示，独立会话）。
+设计态（服务端未实现）：
+  auth 四接口（闫昕分支契约，未合入 main；HTTP 未实现）。
+  study 四接口（赵冠钧/董欣毓设计，未实现）。
+客户端（本人）：
+  本轮全部为设计，没有可运行代码；foundation 交付骨架与签名，11/01-11/05 交付实现与自测。
+模拟：
+  开发遭遇必须标注“模拟遇见攻城狮”；Fake 只用于测试与独立开发，不冒充真实到场。
+未执行：
+  真实登录联调、真实 token、持久化与重启查询、Android 真机、课堂演示包验证。
+
+====================================================================
+十一、缺项、晚交说明与下一步
+====================================================================
+11.1 晚交说明（如实）
+  设计阶段对应截止为 2026-10-29 04:00，实际交出 2026-10-31。
+  原因：本机无 Flutter/Dart 与 Maven 环境，前期在补环境与依赖核对；本轮先保证设计结论完整。
+  影响：10/29 依赖本设计的调用方（余星晨的入口、赵冠钧的 Study 接线）未能按期读取；
+    10/31 foundation 与设计同日进行，需按下列顺序压缩。
+  补救：本文与 interfaces.json 于 10/31 当日推送并开 PR；10/31 晚至 11/01 04:00 前补
+    foundation 骨架（可编译签名 + Fake + JSON 样例），并在交接记录写明实际状态。
+
+11.2 缺项与依赖
+  1) Flutter/Dart SDK 缺失（本人环境）：无法编译、analyze、test；责任人本人，依赖版本由余星晨统一。
+  2) 认证 HTTP 未实现（闫昕）：AuthApi 只能按契约 + Fake 推进，真实登录联调未执行。
+  3) Study HTTP 未实现（董欣毓/赵冠钧）：HttpStudyApi 无法联调。
+  4) 事务与持久化（胡豪）：收录重启后仍可查、并发唯一未验证；不影响客户端字段设计。
+  5) 入口接线（余星晨）：main.dart/HomeShell 由他改；本人提供 CapturePage/CollectionPage 签名。
+  6) 依赖新增：若需要 UUID 生成器或安全存储插件，由余星晨统一改 pubspec 与锁文件；
+     本设计用注入的 RequestIdGenerator 避免新增依赖。
+  7) StudyApi 路径归属（赵冠钧）：见 2.4，10/31 前对齐。
+
+11.3 下一步（foundation 10/31，截止 11/01 04:00）
+  - 新增 data/api、data/model 与四个 Http 实现、ApiFailure、ApiClient；DemoApi 适配旧演示。
+  - 新增 Fake 四件套与 fixtures；新增 CaptureController 与页面骨架，未实现路径返回明确错误。
+  - 旧页面保持可运行；core/api.dart 暂不删除。
+  - 可编译性以有 SDK 的机器验证；本机只做静态检查，不写“已编译”。
+
+====================================================================
+十二、技术验证记录摘要
+====================================================================
+本轮实际执行（详见 evidence/design-validation.txt）：
+  1) 读取并核对 main@eb86b64 的 capture 实现与 DemoController 路由；
+  2) 用脚本校验 interfaces.json 可解析、引用路径存在、错误码覆盖 40001/40101/40301/40401/
+     40902/40903/41001/50301/50302；
+  3) 校验 test-cases.csv 与 analysis-to-design.csv 列数一致、用例编号唯一；
+  4) PlantUML 导出 5 张设计图，中文正常、无连线压字（逐张目视）。
+未执行：flutter analyze/test、dart test、mvn test、真实 HTTP 联调、Android 真机。
