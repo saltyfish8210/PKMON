@@ -1,0 +1,32 @@
+@startuml 客户端网络适配包图
+' 冉昕霖 · 第二阶段分析 · 客户端包图
+' 只表达包与依赖方向，包内类见 analysis.txt 与类图
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam package {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F3D57
+}
+left to right direction
+
+package "features/capture\n答题捕获界面与控制\n（本人）" as Capture
+package "features/collection\n收藏概览\n（本人）" as Collection
+package "data/api\n网络适配\n（本人）" as Api
+package "data/model\n传输模型/DTO\n（本人）" as Model
+package "core\n会话端口与错误模型\n（共享）" as Core
+
+Capture ..> Api : 调用
+Collection ..> Api : 调用
+Api ..> Model : 映射
+Api ..> Core : 读取 token
+
+note bottom of Api
+  网络适配层只做四件事：
+  拼请求、解信封、映射 DTO、抛出带 code 的 ApiFailure。
+  页面不得自己拼 URL，网络层不得反向依赖页面。
+end note
+@enduml
