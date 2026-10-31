@@ -48,3 +48,6 @@ application-local.yml
 # 安装包
 *.apk
 *.aab
+
+# 本地开发数据库（H2 文件库，dev profile 生成）
+server/data/
