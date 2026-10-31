@@ -1,0 +1,46 @@
+交接记录：公共模块骨架与数据库环境（foundation）
+阶段，作者：foundation，胡豪 | 日期：2026-10-31
+
+本人分支与完整提交号：
+- 分支 chore/huhao-foundation
+- 成果提交（代码）：5d39f98e370a98bc419da658dc1db6b748e9d3f3
+- 成果提交（文档与证据）：5dfc0130743a6a9bb4651cb7d6fd1b7e1f976999
+
+状态：已合入 main
+
+主线合并提交号：快进发布，main 现位于 5dfc0130743a6a9bb4651cb7d6fd1b7e1f976999
+（已用 git merge-base --is-ancestor 确认 origin/main 包含上述成果提交）
+
+文件路径与运行步骤：
+- 公共模块：server/src/main/java/edu/pkmon/common/（ApiResponse、GlobalExceptionHandler、
+  CommonConfig 提供可注入 Clock、StartupCheckRunner 启动检查）
+- 数据库配置：server/src/main/resources/application.properties（默认内存库）、
+  application-dev.properties（文件库）、application-test.properties（独立测试库）
+- 迁移：server/src/main/resources/db/migration/V1__init_schema.sql（8 表 + 7 项唯一约束）
+- 接口与端口说明：docs/stage2/members/huhao/design/interfaces.json
+- 环境说明：docs/stage2/baselines/environment.txt（全组）；本目录 evidence/environment.txt
+- 运行：mvn -f server/pom.xml test；启动 mvn -f server/pom.xml spring-boot:run
+  （dev 文件库加 -Dspring-boot.run.profiles=dev）
+
+所用依赖提交号：origin/main 9e84480d1949663bfdcb3b05a0eafc9e348a9343（本次工作起点）
+
+本人测试：mvn test 44 条全部通过（新增 common 10 条：空库迁移、独立测试库、
+UTC 时钟注入、username/requestId/(userId,spawnId) 唯一约束、信封形状、404/500 统一信封）；
+真实启动冒烟：空库自动应用 V1、/test/hello 200、未知路径 404 统一信封。
+详见 evidence/foundation.txt（含实际命令与输出）。
+
+真实 / 模拟 / 未执行：本轮全部真实执行。
+
+缺项、影响及后续处理：
+- 业务 Repository 持久化替换（capture 内存替身 → 真库）：11/01-11/05 实现轮，
+  接口不变，与孙虹毅配合；spring-tx 已就绪可加事务。
+- 题库/图鉴种子内容：待孙虹毅提供后本人以增量迁移装载。
+- study_tasks/location_samples：待董欣毓、赵冠钧字段定稿后走 V2 迁移。
+- 本人 analysis/ 目录与包图等图示仍缺，设计补充与 docs 补齐在 11/05 前完成。
+
+请以下成员按依赖读取：
+- 孙虹毅：spring-jdbc/spring-tx/H2/Flyway 已就绪（pom.xml），V1 表与唯一约束见
+  interfaces.json「migrations」；repository 接口不变，下一轮替换实现。
+- 闫昕：users/auth_sessions 表已按草案落 V1；字段变化请告知本人走 V2。
+- 董欣毓、赵冠钧：驻留表字段定稿后本人建 V2。
+- 李宗晏：interfaces.json 唯一约束清单可直接转化为持久化验收用例。
