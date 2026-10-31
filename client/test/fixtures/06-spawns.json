@@ -1,0 +1,11 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "spawnId": "00000000-0000-4000-8000-000000000002",
+    "regionId": "library_entrance",
+    "speciesId": "siege_lion",
+    "sourceType": "DEV",
+    "expiresAt": "2026-10-19T02:15:00Z"
+  }
+}

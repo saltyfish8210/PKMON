@@ -1,0 +1,113 @@
+@startuml 客户端网络层设计类图
+' 冉昕霖 · 第二阶段设计 · 统一网络层核心类
+' DTO 字段见 design/interfaces.json；Fake 实现同一端口，图中省略
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 60
+skinparam class {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F2A37
+  ArrowColor #5B6B7C
+}
+
+package "data/api" {
+  interface AuthApi {
+    + register(username, password, nickname) : UserView
+    + login(username, password) : LoginResult
+    + logout() : void
+    + me() : UserView
+  }
+  class HttpAuthApi
+  interface CaptureApi {
+    + createDevSpawn(regionId, speciesId) : SpawnView
+    + challenge(spawnId) : ChallengeView
+    + answer(challengeId, requestId, optionId) : CaptureResult
+    + status(challengeId) : ChallengeStatus
+  }
+  class HttpCaptureApi
+  interface StudyApi {
+    + createTask(regionId, requestId, source) : TaskSnapshot
+    + uploadSample(taskId, sample) : TaskSnapshot
+    + getCurrent() : TaskSnapshot?
+    + endTask(taskId, requestId) : TaskSnapshot
+  }
+  class HttpStudyApi
+  interface CollectionApi {
+    + summary() : CollectionSummary
+  }
+  class HttpCollectionApi
+  class DemoApi {
+    + connect() : void
+    + challenge(spawnId) : LegacyChallenge
+    + answer(challengeId, optionId) : LegacyAnswer
+  }
+  class ApiClient {
+    - baseUrl : Uri
+    - timeout : Duration
+    - tokens : TokenProvider
+    + get(path, {authenticated}) : Map
+    + post(path, body, {authenticated}) : Map
+    - decodeEnvelope(bytes) : Map
+    - mapFailure(status, code) : ApiFailure
+  }
+}
+
+package "core" {
+  interface TokenProvider {
+    + current() : SessionToken?
+  }
+  class SessionToken {
+    + value : String
+    + generation : int
+  }
+  class ApiFailure {
+    + kind : FailureKind
+    + code : int?
+    + message : String
+    + httpStatus : int?
+  }
+  enum FailureKind {
+    badRequest
+    unauthorized
+    notFound
+    conflict
+    expired
+    serviceUnavailable
+    timeout
+    network
+    staleSession
+    protocol
+    server
+  }
+}
+
+HttpAuthApi ..|> AuthApi
+HttpCaptureApi ..|> CaptureApi
+HttpStudyApi ..|> StudyApi
+HttpCollectionApi ..|> CollectionApi
+
+HttpAuthApi --> ApiClient
+HttpCaptureApi --> ApiClient
+HttpStudyApi --> ApiClient
+HttpCollectionApi --> ApiClient
+DemoApi --> ApiClient : 独立演示会话头
+
+ApiClient --> TokenProvider : 读取 token 与代次
+ApiClient ..> ApiFailure : 抛出
+
+note right of ApiClient
+  统一网络层只做四件事：
+  拼请求、解信封、映射 DTO、把错误统一成 ApiFailure。
+  不 import features/*；不打印 token、Authorization 或请求体。
+end note
+
+note bottom of SessionToken
+  generation 用于丢弃上一代会话的迟到响应：
+  请求发出前记录，响应到达后比较；不同则抛 staleSession。
+end note
+@enduml

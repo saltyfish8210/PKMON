@@ -1,0 +1,21 @@
+测试名称,前置条件,输入,操作,预期结果,自动或手工,所需依赖,证据路径
+TC-R01 成功信封解析,构造 ApiClient 与 MockClient,"HTTP 200 响应 {code:0,data:{challengeId:...}}",调用 get,返回 data Map 且 code 校验通过,自动,MockClient（package:http/testing）,待执行
+TC-R02 业务错误码映射,同上,code=40001/40902/41001/50301 四种响应,调用 get,分别映射 badRequest/conflict/expired/serviceUnavailable,自动,MockClient,待执行
+TC-R03 HTTP 非 2xx 兜底,同上,HTTP 500 且响应体非信封,调用 get,kind=server 且 httpStatus=500,自动,MockClient,待执行
+TC-R04 超时,timeout 设为 1ms,响应延迟 50ms,调用 get,kind=timeout 且不自动重试,自动,MockClient,待执行
+TC-R05 网络异常,同上,MockClient 抛 ClientException,调用 get,kind=network 且保留原始信息不泄露 token,自动,MockClient,待执行
+TC-R06 中文 UTF-8,同上,题干为中文的 UTF-8 字节,解析 ChallengeView,questionText 与源一致,自动,MockClient,待执行
+TC-R07 Bearer 注入,TokenProvider 返回 token 与 generation=1,任意受保护请求,调用 post,请求头只有一个 Authorization: Bearer,自动,FakeTokenProvider + MockClient,待执行
+TC-R08 无 token,TokenProvider 返回 null,任意受保护请求,调用 post,不发 HTTP 直接抛 unauthorized,自动,FakeTokenProvider,待执行
+TC-R09 401 回调,onUnauthorized 计数器,HTTP 401 且 code=40101,调用 post,回调一次且抛 unauthorized,自动,MockClient,待执行
+TC-R10 会话代次变化,请求期间 generation 由 1 变 2,200 正常响应,调用 post,抛 staleSession 且不返回数据,自动,FakeTokenProvider + MockClient,待执行
+TC-R11 题目解析与答案泄露,fixtures 07 等价 JSON 与含 correctOptionId 的变体,challenge(spawnId),调用 HttpCaptureApi,正常解析；变体抛 protocol,自动,MockClient,待执行
+TC-R12 CORRECT 缺记录号,响应 result=CORRECT 且 captureRecordId=null,answer(...),调用 HttpCaptureApi,抛 protocol,自动,MockClient,待执行
+TC-R13 状态与 lastAttempt,fixtures 09 等价 JSON 与 lastAttempt=null 变体,status(challengeId),调用 HttpCaptureApi,CAPTURED/OPEN 与空值均正确映射,自动,MockClient,待执行
+TC-R14 概览解析,fixtures 10 等价 JSON,summary(),调用 HttpCollectionApi,三字段为整数且非负,自动,MockClient,待执行
+TC-R15 超时恢复为已捕获,FakeCaptureApi 首次 answer 超时且 status=CAPTURED,optionId=A,controller.submit(A),state=captured 且不重发 answer,自动,FakeCaptureApi + FakeCollectionApi,待执行
+TC-R16 超时恢复复用原 requestId,FakeCaptureApi 首次超时且 status=OPEN,optionId=A,controller.submit(A),answer 调用两次且 requestId 与 optionId 相同,自动,FakeCaptureApi,待执行
+TC-R17 答错后新 requestId,FakeCaptureApi 首次 WRONG 后 CORRECT,optionId 先 B 后 A,连续两次 submit,两次 requestId 不同且第二次为新作答,自动,FakeCaptureApi,待执行
+TC-R18 提交中重复点击,FakeCaptureApi 延迟返回,同一 optionId,连续两次 submit,answer 仅调用一次,自动,FakeCaptureApi,待执行
+TC-R19 旧演示字段适配,旧 demo challenge/answer JSON,legacy 响应,DemoApi 映射,统一模型字段正确且成功不算正式收录,自动,MockClient,待执行
+TC-R20 页面状态渲染,Fake API 覆盖 loading/ready/submitting/unknown/captured/expired/failed,无,widget test,各状态文案与禁用规则符合 design.txt 3.1,自动,flutter_test + Fake 端口,待执行

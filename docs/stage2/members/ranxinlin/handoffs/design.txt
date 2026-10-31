@@ -1,0 +1,99 @@
+阶段：design（2026-10-25 至 10-28）
+作者：冉昕霖
+对应截止：2026-10-29 04:00（北京时间）
+实际交出：2026-10-31（晚交，原因与影响见第七节；接收方 10/31 当天读取）
+状态：仅个人分支 design/ranxinlin-stage2（待推送）；推送后由本人开 PR，尚未合入 main
+任务分支：design/ranxinlin-stage2
+设计成果提交号（完整）：4840a7b8e4ac202322c9983b59322fd28fb0c050
+main 成果合入提交号：（合入后回填）
+所用输入源码提交：eb86b64（main，2026-10-31）
+所读他人设计：sunhongyi/design、zhaoguanjun/design、huhao/design、yuxingchen/analysis、
+  闫昕 design/yanxin-auth-design 分支 @ 6991b1c（未合入 main）
+
+一、本次交付（19 个文件，1409 行）
+  docs/stage2/members/ranxinlin/design/design.txt             正文（12 节）
+  docs/stage2/members/ranxinlin/design/interfaces.json        客户端端口、17 条消费端点、错误映射
+  docs/stage2/members/ranxinlin/design/analysis-to-design.csv 16 条分析到设计追踪
+  docs/stage2/members/ranxinlin/design/test-cases.csv         TC-R01～TC-R20（全部待执行）
+  docs/stage2/members/ranxinlin/design/questions.csv          12 条问题与依赖
+  docs/stage2/members/ranxinlin/design/diagram-index.csv      图索引
+  docs/stage2/members/ranxinlin/design/diagrams/              5 张图源 .puml + 5 张 PNG
+  docs/stage2/members/ranxinlin/evidence/design-validation.txt 实际校验记录
+  docs/stage2/members/ranxinlin/ai/设计轮使用记录.txt          AI 使用记录（待本人复核）
+  docs/stage2/members/ranxinlin/analysis/questions.csv        回填设计轮状态（12 行）
+
+二、阅读步骤
+  1) design.txt 第一节“从分析到设计的变化总览”（8 条变化与理由）；
+  2) 第 2.4 节 StudyApi 归属协调、第 4 节控制驱动（恢复次序与 requestId 不变式）；
+  3) 第 5 节 DTO 字段与错误码映射；第 6 节端口签名；
+  4) 第 7 节 Dart 签名；第 8 节五张图的说明；第 9 节测试设计；
+  5) 机器可读契约看 design/interfaces.json；实测结论看 evidence/design-validation.txt。
+
+三、本人测试与校验（真实执行）
+  输入 1：interfaces.json + 四份设计 CSV + 分析轮 questions.csv
+  预期 1：JSON 可解析；端口与错误类别齐全；CSV 列数一致；测试编号连续
+  实际 1：clientPorts 7 个；httpEndpoints 17 条；failureKinds 11 类；
+    test-cases 20 行、analysis-to-design 16 行、questions 12 行、diagram-index 5 行，badRows=none；
+    TC-R01～TC-R20 唯一；RESULT: PASS
+  输入 2：客户端 DTO 字段 vs server/src/main/java/edu/pkmon/capture/dto/CaptureDtos.java
+  预期 2：capture 四类响应字段一致
+  实际 2：challenge 8/8、answer 5/5、status 5/5、summary 3/3，same=True
+  输入 3：5 张 .puml 导出 PNG
+  预期 3：中文正常、无连线压字
+  实际 3：全部成功，逐张目视核对
+  输入 4（2026-10-31 补装工具链后）：Maven 3.9.9 + Flutter 3.47.6
+  预期 4：后端现有测试与客户端静态检查/组件测试可运行
+  实际 4：server mvn test 34/34 通过（含 6 个 HTTP 测试，需 -Djdk.attach.allowAttachSelf=true）；
+    client flutter analyze 无问题；flutter test 8/8 通过。详见 evidence/toolchain.txt。
+  未执行：本设计 TC-R01～TC-R20（待 foundation 实现后编写）、真实 HTTP 联调、Android 真机、
+    真实 token 与账号切换验证、Study 路由联调、重启后收录查询。
+
+四、真实／模拟／未实现
+  真实：capture 与 collection 服务端已实现（孙虹毅，内存仓储 + 开发身份头，2026-10-25 复测）。
+  模拟：开发遭遇须标注“模拟遇见攻城狮”；Fake 仅用于测试与独立开发。
+  未实现：auth 四接口（闫昕分支契约、HTTP 未实现）；study 四接口（设计态）；
+    本人全部客户端代码（foundation 起实现）。
+  未执行：真实登录、Study 联调、持久化重启查询、账号切换真实验证。
+
+五、关键设计结论（调用方必须遵守）
+  1) 统一网络层：页面不得拼 URL、解析信封或读 token；全部经 data/api。
+  2) TokenProvider 接口（current() 返回 token 与 generation）由账号侧实现；
+     网络层在响应后比较 generation，不同则丢弃并抛 staleSession。
+  3) requestId 由 CaptureController 生成；同一次提交的重试必须复用
+     requestId + optionId；重新作答必须新 UUID；40902 表示不变式被破坏。
+  4) 成功只认 result=CORRECT 且 captureRecordId 非空；超时先查 status，
+     CAPTURED 显示成功、OPEN 用原请求重试、EXPIRED 提示重新遭遇。
+  5) CapturePage 构造签名：CapturePage(spawnId: ..., controller: ...)；
+     CollectionPage(api: ...)。main.dart/HomeShell 接线由余星晨完成。
+  6) StudyApi 与 TaskSnapshot 按本人指南放 data/api、data/model，方法签名采用赵冠钧
+     设计的四个方法；与赵冠钧 features/study/study_api.dart 的二选一协调见 design 2.4（Q04）。
+  7) DemoApi 使用独立 X-Demo-Session，与 Bearer 不混用；旧路由为 /api/v1/demo/capture/*。
+  8) 旧页面迁移三步（F1 新增层、F2 旧页改调 DemoApi、F3 新页替换后再删 core/api.dart）。
+
+六、缺项、影响与后续
+  1) Flutter/Dart 与 Maven 已在工作区便携安装（3.47.6/3.13.5、3.9.9），analyze 与现有测试已执行；
+     限制：本机沙箱运行 Flutter 需完整权限、未装 Android SDK；TC-R01～TC-R20 仍未编写/执行。
+     建议：foundation 先写网络层单测（MockClient + Fake），再跑 analyze/test。
+  2) 认证 HTTP（闫昕）：AuthApi 只能按契约与 Fake 推进；真实登录联调未执行。
+  3) Study HTTP（董欣毓/赵冠钧）：HttpStudyApi 无法联调。
+  4) TokenProvider/RequestIdGenerator/入口接线（余星晨）：网络层与页面暂以注入端口推进。
+  5) 持久化与事务（胡豪）：重启后查询与并发唯一未验证。
+  6) totalSpeciesCount 真值（孙虹毅）：概览比例暂按服务端返回值显示。
+  以上缺项不阻塞设计结论；凡未执行项不写成通过。
+
+七、晚交说明
+  对应截止 2026-10-29 04:00，实际交出 2026-10-31。原因：本机此前无 Flutter/Dart 与 Maven，
+  前期在补环境与依赖核对；设计结论本身未缩减。（工具链已于 10/31 当天补装并验证。）
+  影响：余星晨的入口接线与赵冠钧的 Study 接线未能按 10/29 读取；10/31 与 foundation 同日，
+  需压缩：10/31 当晚至 11/01 04:00 前补 foundation 骨架（可编译签名 + Fake + JSON 样例）。
+  新读出日期：2026-10-31 当天；foundation 交接按 11/01 04:00。
+
+八、下一步（foundation，截止 11/01 04:00）
+  新增 client/lib/data/api 与 data/model：ApiClient、ApiFailure、四端口与 Http 实现、DemoApi、
+  DTO、Fake 与 fixtures；新增 CaptureController/CapturePage/CollectionPage 骨架，
+  未实现路径返回明确错误；旧页面保持可运行；本机只做静态检查，不写“已编译”。
+
+九、交接读取方式
+  更新到含本记录的提交后，先读 design.txt 第 1、2.4、4、5、7 节与 interfaces.json，
+  再按依赖读 diagrams/ 与 test-cases.csv。本记录引用成果提交 4840a7b8；本记录自身的
+  提交号以 Git 历史为准，不循环填写。
