@@ -1,5 +1,5 @@
 阶段与作者：foundation / 余星晨
-本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号「待回填，见本次提交后补」
+本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号 5361c05993de0f7e431cdd9abf0bab2e701a0dd6
 状态：本地已提交，未推送
 主线合并提交号（已合入才填）：无（由本人推送后补）
 文件路径与运行方式：
