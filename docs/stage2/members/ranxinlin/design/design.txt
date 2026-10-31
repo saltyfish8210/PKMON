@@ -477,9 +477,14 @@ class DemoApi {
   client/test/fixtures/ 放 07/08/09/10 的等价 JSON（字段与配套样例一致），
   不使用真实 token；样例 token 只用于单元测试。
 
-9.4 未执行声明
-  本机无 Flutter/Dart SDK，9.1 的自动化用例全部未执行；本轮只做静态校验与图导出，
-  见 evidence/design-validation.txt。后续安装 SDK 后先跑网络层单测，再跑组件测试。
+9.4 执行状态（2026-10-31 补记）
+  已在工作区便携安装 Flutter 3.47.6 / Dart 3.13.5 与 Maven 3.9.9，并实际执行：
+    flutter analyze -> No issues found!；
+    flutter test -> 8/8 通过（现有组件测试）；
+    mvn test（server）-> 34/34 通过。
+  9.1 设计的 TC-R01～TC-R20 仍需在 foundation 实现后用 MockClient/Fake 补齐；
+  本次执行的是现有 8 个组件测试与后端 34 个测试，不等于本设计用例已通过。
+  过程、环境与锁文件观察见 evidence/toolchain.txt。
 
 ====================================================================
 十、真实/模拟/未实现标注
@@ -502,14 +507,16 @@ class DemoApi {
 ====================================================================
 11.1 晚交说明（如实）
   设计阶段对应截止为 2026-10-29 04:00，实际交出 2026-10-31。
-  原因：本机无 Flutter/Dart 与 Maven 环境，前期在补环境与依赖核对；本轮先保证设计结论完整。
+  原因：本机此前无 Flutter/Dart 与 Maven 环境，前期在补环境与依赖核对；本轮先保证设计结论完整。
+  （工具链已于 10/31 当天在工作区便携补装，analyze/test 结果见 9.4 与 evidence/toolchain.txt。）
   影响：10/29 依赖本设计的调用方（余星晨的入口、赵冠钧的 Study 接线）未能按期读取；
     10/31 foundation 与设计同日进行，需按下列顺序压缩。
   补救：本文与 interfaces.json 于 10/31 当日推送并开 PR；10/31 晚至 11/01 04:00 前补
     foundation 骨架（可编译签名 + Fake + JSON 样例），并在交接记录写明实际状态。
 
 11.2 缺项与依赖
-  1) Flutter/Dart SDK 缺失（本人环境）：无法编译、analyze、test；责任人本人，依赖版本由余星晨统一。
+  1) Flutter/Dart 与 Maven 已在本机工作区便携安装（Flutter 3.47.6 / Dart 3.13.5、Maven 3.9.9），
+     analyze/test 与后端测试已执行；限制是本机沙箱需要用完整权限运行 Flutter，且未装 Android SDK。
   2) 认证 HTTP 未实现（闫昕）：AuthApi 只能按契约 + Fake 推进，真实登录联调未执行。
   3) Study HTTP 未实现（董欣毓/赵冠钧）：HttpStudyApi 无法联调。
   4) 事务与持久化（胡豪）：收录重启后仍可查、并发唯一未验证；不影响客户端字段设计。
@@ -527,10 +534,13 @@ class DemoApi {
 ====================================================================
 十二、技术验证记录摘要
 ====================================================================
-本轮实际执行（详见 evidence/design-validation.txt）：
+本轮实际执行（详见 evidence/design-validation.txt 与 evidence/toolchain.txt）：
   1) 读取并核对 main@eb86b64 的 capture 实现与 DemoController 路由；
   2) 用脚本校验 interfaces.json 可解析、引用路径存在、错误码覆盖 40001/40101/40301/40401/
      40902/40903/41001/50301/50302；
   3) 校验 test-cases.csv 与 analysis-to-design.csv 列数一致、用例编号唯一；
-  4) PlantUML 导出 5 张设计图，中文正常、无连线压字（逐张目视）。
-未执行：flutter analyze/test、dart test、mvn test、真实 HTTP 联调、Android 真机。
+  4) PlantUML 导出 5 张设计图，中文正常、无连线压字（逐张目视）；
+  5) 2026-10-31 补装并向导：Maven 3.9.9 执行 server 测试 34/34 通过；
+     Flutter 3.47.6 执行 flutter analyze 无问题、flutter test 8/8 通过。
+未执行：本设计 TC-R01～TC-R20 的自动化用例（待 foundation 实现后编写）、
+  真实 HTTP 联调、Android 真机、真实 token 与账号切换验证、Study 路由联调、重启后收录查询。

@@ -41,7 +41,12 @@ main 成果合入提交号：（合入后回填）
   输入 3：5 张 .puml 导出 PNG
   预期 3：中文正常、无连线压字
   实际 3：全部成功，逐张目视核对
-  未执行：dart test、flutter analyze/test、mvn test、真实 HTTP 联调、Android 真机、真实 token。
+  输入 4（2026-10-31 补装工具链后）：Maven 3.9.9 + Flutter 3.47.6
+  预期 4：后端现有测试与客户端静态检查/组件测试可运行
+  实际 4：server mvn test 34/34 通过（含 6 个 HTTP 测试，需 -Djdk.attach.allowAttachSelf=true）；
+    client flutter analyze 无问题；flutter test 8/8 通过。详见 evidence/toolchain.txt。
+  未执行：本设计 TC-R01～TC-R20（待 foundation 实现后编写）、真实 HTTP 联调、Android 真机、
+    真实 token 与账号切换验证、Study 路由联调、重启后收录查询。
 
 四、真实／模拟／未实现
   真实：capture 与 collection 服务端已实现（孙虹毅，内存仓储 + 开发身份头，2026-10-25 复测）。
@@ -66,8 +71,9 @@ main 成果合入提交号：（合入后回填）
   8) 旧页面迁移三步（F1 新增层、F2 旧页改调 DemoApi、F3 新页替换后再删 core/api.dart）。
 
 六、缺项、影响与后续
-  1) Flutter/Dart SDK 缺失（本人）：无法编译/analyze/test；影响 TC-R01～TC-R20 全部未执行。
-     建议：10/31 晚或 11/01 安装与锁文件一致的 SDK，先跑纯 Dart 网络层单测。
+  1) Flutter/Dart 与 Maven 已在工作区便携安装（3.47.6/3.13.5、3.9.9），analyze 与现有测试已执行；
+     限制：本机沙箱运行 Flutter 需完整权限、未装 Android SDK；TC-R01～TC-R20 仍未编写/执行。
+     建议：foundation 先写网络层单测（MockClient + Fake），再跑 analyze/test。
   2) 认证 HTTP（闫昕）：AuthApi 只能按契约与 Fake 推进；真实登录联调未执行。
   3) Study HTTP（董欣毓/赵冠钧）：HttpStudyApi 无法联调。
   4) TokenProvider/RequestIdGenerator/入口接线（余星晨）：网络层与页面暂以注入端口推进。
@@ -76,8 +82,8 @@ main 成果合入提交号：（合入后回填）
   以上缺项不阻塞设计结论；凡未执行项不写成通过。
 
 七、晚交说明
-  对应截止 2026-10-29 04:00，实际交出 2026-10-31。原因：本机无 Flutter/Dart 与 Maven，
-  前期在补环境与依赖核对；设计结论本身未缩减。
+  对应截止 2026-10-29 04:00，实际交出 2026-10-31。原因：本机此前无 Flutter/Dart 与 Maven，
+  前期在补环境与依赖核对；设计结论本身未缩减。（工具链已于 10/31 当天补装并验证。）
   影响：余星晨的入口接线与赵冠钧的 Study 接线未能按 10/29 读取；10/31 与 foundation 同日，
   需压缩：10/31 当晚至 11/01 04:00 前补 foundation 骨架（可编译签名 + Fake + JSON 样例）。
   新读出日期：2026-10-31 当天；foundation 交接按 11/01 04:00。

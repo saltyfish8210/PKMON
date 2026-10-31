@@ -39,8 +39,10 @@
 通过/失败/未执行：
   通过：接口契约 JSON 结构；错误类别覆盖；CSV 列一致性；DTO 与服务端字段一致；图源导出。
   失败：无（首轮 CSV 发现 3 行因半角逗号错列，已修正后复检通过）。
-  未执行：dart test、flutter analyze、flutter test、mvn test、真实 HTTP 联调、Android 真机、
-    真实 token 与账号切换验证、Study 路由联调、重启后收录查询。
+  未执行：本设计 test-cases 的 TC-R01～TC-R20（待 foundation 实现后编写并执行）、
+    真实 HTTP 联调、Android 真机、真实 token 与账号切换验证、Study 路由联调、重启后收录查询。
+  补充（2026-10-31）：工具链安装后已执行现有测试：server mvn test 34/34 通过、
+    client flutter analyze 无问题、flutter test 8/8 通过；详见 evidence/toolchain.txt。
 缺项与直接责任人：
   Flutter/Dart SDK（本人；版本由余星晨统一）；认证 HTTP（闫昕）；Study HTTP（董欣毓/赵冠钧）；
   TokenProvider 实现与入口接线（余星晨）；持久化（胡豪）。
