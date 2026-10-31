@@ -1,0 +1,11 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "challengeId": "00000000-0000-4000-8000-000000000003",
+    "status": "EXPIRED",
+    "captureRecordId": null,
+    "expiresAt": "2026-10-19T02:05:00Z",
+    "lastAttempt": null
+  }
+}
