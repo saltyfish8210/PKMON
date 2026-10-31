@@ -1,7 +1,7 @@
 阶段与作者：analysis / 余星晨
-本人分支与完整提交号：design/yuxingchen-stage2（最终修正见 feature 分支）；支撑文件提交号 7f10fd4aa45d789539dfba5bc866418daf2c876c
+本人分支与完整提交号：design/yuxingchen-stage2（最终修正见 feature 分支）；支撑文件提交号 68bf65706cf03f26ff396ee346ba65d7b956bc06
 状态：分析正文与 7 张 PNG 已于 10/25 合入 main（530f54b、fb8761a）；questions.csv、.puml 图源、evidence 与本记录于 10/31 补交（迟于 10/25 04:00）。已推送到 main。
-主线合并提交号（已合入才填）：正文与 PNG 见 fb8761a；支撑文件合并号 177472c86533300e83e1a6bfc9160e11cc97f4f2
+主线合并提交号（已合入才填）：正文与 PNG 见 fb8761a；支撑文件合并号 68bf65706cf03f26ff396ee346ba65d7b956bc06
 文件路径与运行方式：
   docs/stage2/members/yuxingchen/analysis/analysis.txt
   docs/stage2/members/yuxingchen/analysis/questions.csv
