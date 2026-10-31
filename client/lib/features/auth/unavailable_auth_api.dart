@@ -15,30 +15,26 @@ class UnavailableAuthApi implements AuthApi {
     code: 50301,
   );
 
+  Never _unavailable() => throw _failure;
+
   @override
   Future<UserView> register({
     required String username,
     required String password,
     required String nickname,
-  }) async {
-    throw _failure;
-  }
+  }) async =>
+      _unavailable();
 
   @override
   Future<LoginResult> login({
     required String username,
     required String password,
-  }) async {
-    throw _failure;
-  }
+  }) async =>
+      _unavailable();
 
   @override
-  Future<void> logout() async {
-    throw _failure;
-  }
+  Future<void> logout() async => _unavailable();
 
   @override
-  Future<UserView> me() async {
-    throw _failure;
-  }
+  Future<UserView> me() async => _unavailable();
 }

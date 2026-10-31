@@ -17,9 +17,9 @@ T01 骨架编译与静态分析
 T02 全量测试回归
   前置与数据：client 工作区；FakeAuthApi、InMemorySessionStore、固定 UTC 时钟；不连服务端。
   准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter test
-  输入：原有 51 个测试 + 本次新增 39 个。
+  输入：原有 51 个测试 + 本次新增 50 个。
   预期：全部通过，原有 8 个组件测试不因入口改动失效。
-  实际：00:02 +90: All tests passed!。
+  实际：00:03 +101: All tests passed!。
   通过/失败/未执行：通过。
   真实/模拟：真实执行；账号流程使用测试替身（模拟依赖）。
   证据路径：本文件 T02；终端输出。
@@ -144,7 +144,7 @@ T13 真实账号联调（未执行）
   通过/失败/未执行：未执行。
   真实/模拟：未执行。
   证据路径：本文件 T13；design/interfaces.json 的 endpoints（implemented=false）。
-  缺陷与处理：依赖闫昕/冉昕霖落地服务端账号接口；客户端 HttpAuthApi 与 SessionTokenProvider 已就绪。
+  缺陷与处理：依赖服务端账号接口实现；客户端 HttpAuthApi 与 SessionTokenProvider 已就绪。
 
 T14 Android APK 构建与定位依赖
   前置与数据：Android SDK 已配置；AGP 9.1.0；项目 compileSdk 36；permission_handler 12.0.1；尝试 geolocator 14.1.2。
@@ -157,10 +157,39 @@ T14 Android APK 构建与定位依赖
   通过/失败/未执行：APK 构建通过（不含 geolocator）；geolocator 未合入。
   真实/模拟：真实执行。
   证据路径：本文件 T14；android/gradle.properties（未修改）；pubspec.lock。
-  缺陷与处理：geolocator 经 geolocator_linux 引入 package_info_plus，本机 Windows 需关闭 Kotlin 增量编译；该配置主责胡豪，未擅自修改。permission_handler 降级到 12.0.1 后 APK 可构建；RealLocationProvider 仍未实现，需赵冠钧/胡豪确认后再加 geolocator。
+  缺陷与处理：geolocator 经 geolocator_linux 引入 package_info_plus，本机 Windows 需关闭 Kotlin 增量编译；该文件属于共享构建配置，本模块未修改。permission_handler 降级到 12.0.1 后 APK 可构建；RealLocationProvider 未实现，geolocator 暂未合入。
+
+T15 输入校验与错误映射
+  前置与数据：纯函数测试；无网络、无存储依赖。
+  准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter test test/features/auth/auth_input_test.dart test/features/auth/auth_error_messages_test.dart
+  输入：空用户名/空密码/超长用户名；空昵称/超长昵称；40101、40901、超时、50301。
+  预期：校验文案正确；40101 统一为「用户名或密码错误」；40901 为「用户名已被占用」；50301 保留明确提示。
+  实际：11 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：真实执行（纯单元测试）。
+  证据路径：client/test/features/auth/auth_input_test.dart、auth_error_messages_test.dart；本文件 T15。
+  缺陷与处理：无。
+
+T16 安卓模拟器实际运行
+  前置与数据：AVD PKMon_Pixel7（Android 17）；app-debug.apk；演示后端 127.0.0.1:4180 已启动。
+  准确目录和命令：
+    adb install -r client/build/app/outputs/flutter-apk/app-debug.apk
+    adb shell am start -n edu.pkmon.pkmon_app/.MainActivity
+    adb shell input tap 540 1180        # 空输入点登录
+    adb shell input tap 540 774 / input text campus_demo / input text secret / keyevent 66
+    adb shell input tap 540 1472        # 进入演示
+    adb exec-out screencap -p > evidence/screenshots/xxx.png
+  输入：空输入；campus_demo/secret；点击「进入演示（不登录）」；后端启动后点「重试」。
+  预期：登录页显示；空输入提示「请输入用户名」；真实登录提示「账号接口未接入（骨架）」；演示进入地图页；后端连通后提示 hello world。
+  实际：四项均符合；应用进程存活，topResumedActivity 为 edu.pkmon.pkmon_app/.MainActivity。
+  通过/失败/未执行：通过。
+  真实/模拟：真实设备（Android 模拟器）实际运行；账号接口仍为骨架替身。
+  证据路径：evidence/screenshots/01-登录页.png、02-空输入提示.png、03-账号接口未接入.png、04-演示入口地图页.png；本文件 T16。
+  缺陷与处理：无。
+
 文档校验
   命令：python 读取 interfaces.json；csv.reader 校验两个 CSV 表头与列宽。
-  实际：json-ok；analysis-to-design 6 列 12 行；test-cases 8 列 21 行。
+  实际：json-ok；analysis-to-design 6 列 12 行；test-cases 8 列 23 行。
   判定：通过。
 依赖变更
   命令：git diff -- client/pubspec.yaml client/pubspec.lock

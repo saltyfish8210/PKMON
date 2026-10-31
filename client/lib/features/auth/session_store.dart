@@ -1,4 +1,3 @@
-import '../../data/api/token_provider.dart';
 import '../../data/model/auth_models.dart';
 
 /// 本机会话存储端口。
@@ -42,22 +41,5 @@ class InMemorySessionStore implements SessionStore {
   Future<void> clear() async {
     _session = null;
     _generation++;
-  }
-}
-
-/// 把 [SessionStore] 适配成网络层需要的 [TokenProvider]。
-class SessionTokenProvider implements TokenProvider {
-  SessionTokenProvider(this._store);
-
-  final SessionStore _store;
-
-  @override
-  Future<SessionToken?> current() async {
-    final session = await _store.load();
-    if (session == null || session.token.isEmpty) return null;
-    return SessionToken(
-      value: session.token,
-      generation: _store.generation,
-    );
   }
 }

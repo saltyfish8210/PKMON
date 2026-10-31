@@ -1,12 +1,12 @@
 {
-  "status": "foundation 骨架已实现（本地提交，未推送）；AuthApi 的 HTTP 适配已由冉昕霖实现，但服务端账号接口不存在，真实登录未联调；SessionStore 仅内存实现，不持久化。",
+  "status": "foundation 骨架已实现（本地提交，未推送）；AuthApi 的 HTTP 适配已在 data/api 实现，但服务端账号接口不存在，真实登录未联调；SessionStore 仅内存实现，不持久化。",
   "owner": "余星晨",
   "sourceCommit": "b28bbebba7eb0069bca9faf3a5e96638807afc15",
   "ports": [
     {
       "name": "AuthApi",
       "path": "client/lib/data/api/auth_api.dart",
-      "owner": "冉昕霖（实现）/ 闫昕（契约）",
+      "owner": "网络层（data/api）",
       "implemented": true,
       "serverImplemented": false,
       "methods": [
@@ -34,7 +34,7 @@
     },
     {
       "name": "SessionTokenProvider",
-      "path": "client/lib/features/auth/session_store.dart",
+      "path": "client/lib/features/auth/session_token_provider.dart",
       "owner": "余星晨",
       "implemented": true,
       "methods": [
@@ -52,7 +52,7 @@
         {"name": "RequestIdTracker.value", "signature": "String get value"},
         {"name": "RequestIdTracker.reset", "signature": "void reset()"}
       ],
-      "notes": "UUID v4，无第三方依赖；一次业务操作只生成一次，重试复用。注意与 client/lib/data/api/request_id.dart 的 defaultRequestIdGenerator 并存，待接口负责人统一为一处。"
+      "notes": "UUID v4，无第三方依赖；一次业务操作只生成一次，重试复用。目前与 client/lib/data/api/request_id.dart 的 defaultRequestIdGenerator 并存，尚未统一。"
     },
     {
       "name": "AuthController",
@@ -95,7 +95,7 @@
       "auth": false,
       "request": ["username", "password", "nickname"],
       "responseData": ["userId", "username", "nickname"],
-      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "owner": "账号契约 / 客户端网络层",
       "implemented": false,
       "clientStatus": "implemented-not-integrated",
       "notes": "重名返回 40901。"
@@ -106,7 +106,7 @@
       "auth": false,
       "request": ["username", "password"],
       "responseData": ["token", "expiresAt", "user{userId,username,nickname}"],
-      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "owner": "账号契约 / 客户端网络层",
       "implemented": false,
       "clientStatus": "implemented-not-integrated",
       "notes": "账号不存在与口令错误统一 40101。"
@@ -117,7 +117,7 @@
       "auth": true,
       "request": [],
       "responseData": [],
-      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "owner": "账号契约 / 客户端网络层",
       "implemented": false,
       "clientStatus": "implemented-not-integrated",
       "notes": "Bearer 鉴权；重复退出视为成功。"
@@ -128,7 +128,7 @@
       "auth": true,
       "request": [],
       "responseData": ["userId", "username", "nickname"],
-      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "owner": "账号契约 / 客户端网络层",
       "implemented": false,
       "clientStatus": "implemented-not-integrated",
       "notes": "身份只从 token 取得，不接受请求体 userId。"

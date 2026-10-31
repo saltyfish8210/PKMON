@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pkmon_app/features/auth/session_store.dart';
+import 'package:pkmon_app/features/auth/session_token_provider.dart';
 
 import '../../support/auth_test_helpers.dart';
 

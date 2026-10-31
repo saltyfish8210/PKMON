@@ -1,4 +1,4 @@
-状态：设计逾期补交（原定 2026-10-29 04:00，实际 2026-10-31）；同日完成 foundation 骨架。设计基于 main b28bbeb（冉昕霖网络层已合入）。真实账号接口与服务端实现均未完成，本设计不写成已联调。
+状态：设计逾期补交（原定 2026-10-29 04:00，实际 2026-10-31）；同日完成 foundation 骨架。设计基于 main b28bbeb（统一网络层已合入）。真实账号接口与服务端实现均未完成，本设计不写成已联调。
 
 分析到设计的变化：
 1. 入口新增 AppGate：冷启动恢复到登录页或主界面；演示只切换本地标志，不创建 Session。
@@ -11,13 +11,13 @@
 8. 注册页后置到下一阶段；LoginPage 显示「注册页待接入」，不放无效按钮。
 
 问题域：
-- UserView：服务端返回的用户公开资料（userId/username/nickname），主责闫昕契约。
-- LoginResult：一次登录结果（token/expiresAt/user），主责冉昕霖网络层。
-- AuthApi：账号网络端口（register/login/logout/me），HTTP 实现主责冉昕霖。
-- SessionStore：本机会话读写与代次，主责余星晨。
-- AuthController：登录/注册/退出/恢复的编排与状态，主责余星晨。
-- LoginPage/AppGate：输入、校验、展示与入口门禁，主责余星晨。
-- LoadingView/ErrorView/EmptyView：纯展示，主责余星晨。
+- UserView：服务端返回的用户公开资料（userId/username/nickname），来自账号接口契约。
+- LoginResult：一次登录结果（token/expiresAt/user），来自网络层。
+- AuthApi：账号网络端口（register/login/logout/me），HTTP 实现位于 data/api。
+- SessionStore：本机会话读写与代次。
+- AuthController：登录/注册/退出/恢复的编排与状态。
+- LoginPage/AppGate：输入、校验、展示与入口门禁。
+- LoadingView/ErrorView/EmptyView：纯展示。
 - 业务页面不 import features/auth；只有 AppGate/main.dart 负责接线。
 
 人机交互：
@@ -64,7 +64,7 @@
 - class LoadingView extends StatelessWidget { const LoadingView({super.key, String message = '正在加载…'}); }
 - class ErrorView extends StatelessWidget { const ErrorView({super.key, required String message, VoidCallback? onRetry, String retryLabel = '重试', bool compact = false}); }
 - class EmptyView extends StatelessWidget { const EmptyView({super.key, required String title, String? message, IconData icon = Icons.inbox_outlined, String? actionLabel, VoidCallback? onAction}); }
-代码位置：client/lib/core/request_id.dart、client/lib/widgets/{loading,error,empty}_view.dart、client/lib/features/auth/{session_store,unavailable_auth_api,auth_controller,login_page,app_gate}.dart、client/lib/main.dart。
+代码位置：client/lib/core/request_id.dart、client/lib/widgets/{loading,error,empty}_view.dart、client/lib/features/auth/{auth_input,auth_error_messages,session_store,session_token_provider,unavailable_auth_api,auth_controller,login_page,app_gate}.dart、client/lib/main.dart。
 
 接口与错误：
 - POST /api/v1/auth/register：username,password,nickname → userId,username,nickname；重名 40901。
@@ -77,7 +77,7 @@
 
 规则边界：
 - R-01 无会话不得进入业务，唯一例外是明确标注的演示态。
-- R-02 用户名非空且 ≤24 字符；昵称非空且 ≤20 个 Unicode 字符；密码非空（最小长度待闫昕确认）。
+- R-02 用户名非空且 ≤24 字符；昵称非空且 ≤20 个 Unicode 字符；密码非空（最小长度尚未确定）。
 - R-03 busy 期间重复点击只产生一次请求。
 - R-04 登录失败不保存会话；错误提示不区分账号不存在与口令错误。
 - R-05 退出必须清本地会话和缓存，远端失败只记录，不回滚本地退出。
@@ -93,7 +93,7 @@
 - 仓库：E:/GAMES/APP/PKMON；客户端：E:/GAMES/APP/PKMON/client。
 - 基线：main b28bbebba7eb0069bca9faf3a5e96638807afc15。
 - Flutter 3.47.6 stable（5fc346839b）/ Dart 3.13.5；http 1.6.0；flutter_lints 6.0.0。
-- 本次合入定位依赖：permission_handler 12.0.1（赵冠钧需求；当前无代码调用）。geolocator 14.1.2 暂未合入：它经 geolocator_linux 引入 package_info_plus，在本机 Windows 触发 Kotlin 增量缓存无法关闭；需要 android/gradle.properties 增加 kotlin.incremental=false，而该构建配置主责胡豪，未擅自修改。详见 evidence/foundation.txt T14。
+- 本次合入定位依赖：permission_handler 12.0.1（当前无代码调用）。geolocator 14.1.2 暂未合入：它经 geolocator_linux 引入 package_info_plus，在本机 Windows 触发 Kotlin 增量缓存无法关闭；修复点在 android/gradle.properties 的 kotlin.incremental 配置，该文件属于共享构建配置，本模块未修改。详见 evidence/foundation.txt T14。
 - 未新增 uuid 依赖：RequestId 用 Random.secure() 实现 UUID v4。
 - pubspec.yaml / pubspec.lock 已更新并提交，其他依赖未升级。
 
@@ -107,7 +107,7 @@
 
 技术探路的实际命令与结果：
 - 目录 E:/GAMES/APP/PKMON/client；flutter analyze → No issues found!
-- flutter test → 86/86 All tests passed!（设计探路时点：原有 51 + 当时新增 35；补 4 个测试后最终 90/90，见 evidence/foundation.txt T02）。
+- flutter test → 101/101 All tests passed!（原有 51 + 本次新增 50，见 evidence/foundation.txt T02）。
 - flutter build web --release → ✓ Built build\web（编译通过）。
 - flutter build apk --debug → ✓ Built build\app\outputs\flutter-apk\app-debug.apk（含 permission_handler 12.0.1）。
 - flutter pub add permission_handler → 12.0.1（13.0.2 要求 compileSdk 37，项目为 36，故降级）。

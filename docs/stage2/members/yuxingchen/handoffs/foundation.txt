@@ -1,41 +1,43 @@
 阶段与作者：foundation / 余星晨
-本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号 5361c05993de0f7e431cdd9abf0bab2e701a0dd6
+本人分支与完整提交号：feature/yuxingchen-account-ui；成果提交号「待回填」
 状态：本地已提交，未推送
 主线合并提交号（已合入才填）：无（由本人推送后补）
 文件路径与运行方式：
   代码：client/lib/core/request_id.dart
         client/lib/widgets/{loading,error,empty}_view.dart
-        client/lib/features/auth/{session_store,unavailable_auth_api,auth_controller,login_page,app_gate}.dart
+        client/lib/features/auth/{auth_input,auth_error_messages,session_store,session_token_provider,unavailable_auth_api,auth_controller,login_page,app_gate}.dart
         client/lib/main.dart（home 改为 AppGate）
         client/pubspec.yaml、client/pubspec.lock（新增 permission_handler 12.0.1；geolocator 因构建阻塞暂缓）
   测试：client/test/core/request_id_test.dart
-        client/test/features/auth/{auth_controller,login_page,app_gate,session_store}_test.dart
+        client/test/features/auth/{auth_controller,login_page,app_gate,session_store,auth_input,auth_error_messages}_test.dart
         client/test/widgets/state_views_test.dart
         client/test/app_smoke_test.dart
         client/test/support/auth_test_helpers.dart
   证据：docs/stage2/members/yuxingchen/evidence/foundation.txt
+        docs/stage2/members/yuxingchen/evidence/screenshots/（模拟器截图）
   运行：cd E:/GAMES/APP/PKMON/client
         flutter pub get
         flutter analyze
         flutter test
         flutter run -d chrome --web-port=5173 --dart-define=API_BASE=http://127.0.0.1:4180
   入口行为：启动停在登录页；真实登录会得到「账号接口未接入（骨架）」；点「进入演示（不登录）」进入现有 HomeShell 演示。
-使用的依赖提交号：基线 b28bbebba7eb0069bca9faf3a5e96638807afc15；复用冉昕霖 data/api 的 AuthApi、LoginResult、UserView、TokenProvider。
+使用的依赖提交号：基线 b28bbebba7eb0069bca9faf3a5e96638807afc15；复用 data/api 的 AuthApi、LoginResult、UserView、TokenProvider。
 本人测试：
   输入 1：flutter analyze；预期：无问题；实际：No issues found!。
-  输入 2：flutter test；预期：原有 51 + 新增 39 全部通过；实际：90/90 All tests passed!。
+  输入 2：flutter test；预期：原有 51 + 新增 50 全部通过；实际：101/101 All tests passed!。
   输入 3：flutter build web --release；预期：编译产出 build/web；实际：Built build\web。
   输入 4：flutter build apk --debug；预期：产出安卓 APK；实际：Built app-debug.apk。
-  证据：evidence/foundation.txt 的 T01-T12。
+  输入 5：安卓模拟器安装并启动；预期：登录页可操作；实际：登录页、空输入提示、真实登录错误提示、演示入口地图页均正常，截图见 evidence/screenshots/。
+  证据：evidence/foundation.txt 的 T01-T16。
 真实/模拟/未执行：
-  真实：组件、控制器、入口门禁、单元/组件测试、Web 构建均真实执行；
+  真实：组件、控制器、入口门禁、单元/组件测试、Web 构建、安卓 APK 与模拟器实际运行；
   模拟：SessionStore 为内存替身；AuthApi 流程使用 Fake/Blocking 替身；演示入口走旧 HomeShell 演示；
   未执行：真实注册/登录/退出/me（服务端无 /auth 与 /users/me）；持久化会话；定位插件调用。
 缺项、影响、下一步：
-  1. 真实账号接口未实现：登录只能显式报错；下一步由闫昕/冉昕霖落地后，用 HttpAuthApi + SessionTokenProvider 联调。
+  1. 真实账号接口未实现：登录只能显式报错；接口就绪后用 HttpAuthApi + SessionTokenProvider 联调。
   2. SessionStore 不持久化：重启丢失登录态；下一步确定安全存储方案后再实现。
   3. 注册页后置：登录页只有说明；下一步 11/01-11/05 补 RegisterPage 与 40901 界面。
   4. HomeShell 仍走旧 core/api.dart：登录成功不会自动给业务请求注入 Bearer；下一步 11/06 接线时替换旧层。
-  5. 定位依赖部分完成：permission_handler 12.0.1 已合入但未调用；geolocator 14.1.2 因 package_info_plus 的 Kotlin 增量缓存阻塞，未合入，需胡豪确认是否在 android/gradle.properties 关闭 kotlin.incremental 后再加；RealLocationProvider 待赵冠钧实现。详见 evidence/foundation.txt T14。
+  5. 定位依赖部分完成：permission_handler 12.0.1 已合入但未调用；geolocator 14.1.2 因 package_info_plus 的 Kotlin 增量缓存阻塞，未合入；android/gradle.properties 的 kotlin.incremental 是否调整尚未确定；RealLocationProvider 未实现。详见 evidence/foundation.txt T14。
   6. 仅本地提交：推送命令由本人执行；推送后补主线合并号。
-  7. RequestId 目前有两份实现：client/lib/core/request_id.dart（本模块，UUID v4）与 client/lib/data/api/request_id.dart（defaultRequestIdGenerator，CaptureController 使用）。本阶段未改冉昕霖负责的文件；建议 11/06 由接口负责人统一为一处，避免同一次重试出现两种 id 语义。
+  7. RequestId 目前有两份实现：client/lib/core/request_id.dart（本模块，UUID v4）与 client/lib/data/api/request_id.dart（defaultRequestIdGenerator，CaptureController 使用）；本阶段未改 data/api 文件，两份实现尚未统一。

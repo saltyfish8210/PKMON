@@ -1,11 +1,10 @@
-// 依赖字段保持私有，避免页面绕过控制器直接调用网络或存储。
-// ignore_for_file: prefer_initializing_formals
-
 import 'package:flutter/foundation.dart';
 
 import '../../data/api/api_failure.dart';
 import '../../data/api/auth_api.dart';
 import '../../data/model/auth_models.dart';
+import 'auth_error_messages.dart';
+import 'auth_input.dart';
 import 'session_store.dart';
 
 enum AuthStatus { unknown, restoring, signedOut, signedIn }
@@ -22,13 +21,14 @@ class AuthController extends ChangeNotifier {
     required SessionStore store,
     DateTime Function()? clock,
     Future<void> Function()? onClearCache,
-  })  : _api = api,
-        _store = store,
-        _clock = clock ?? DateTime.now,
-        _onClearCache = onClearCache;
+  }) : this._(api, store, clock ?? DateTime.now, onClearCache);
 
-  static const int usernameMaxLength = 24;
-  static const int nicknameMaxLength = 20;
+  AuthController._(
+    this._api,
+    this._store,
+    this._clock,
+    this._onClearCache,
+  );
 
   final AuthApi _api;
   final SessionStore _store;
@@ -84,7 +84,7 @@ class AuthController extends ChangeNotifier {
     if (_busy) return false;
 
     final name = username.trim();
-    final inputError = _validateLoginInput(name, password);
+    final inputError = validateLoginInput(name, password);
     if (inputError != null) {
       _error = inputError;
       _emit();
@@ -104,7 +104,7 @@ class AuthController extends ChangeNotifier {
       _status = AuthStatus.signedIn;
       return true;
     } on ApiFailure catch (failure) {
-      _error = _messageFor(failure);
+      _error = authFailureMessage(failure);
       if (_status != AuthStatus.signedIn) _status = AuthStatus.signedOut;
       return false;
     } catch (_) {
@@ -127,7 +127,7 @@ class AuthController extends ChangeNotifier {
 
     final name = username.trim();
     final nick = nickname.trim();
-    final inputError = _validateRegisterInput(name, password, nick);
+    final inputError = validateRegisterInput(name, password, nick);
     if (inputError != null) {
       _error = inputError;
       _emit();
@@ -148,7 +148,7 @@ class AuthController extends ChangeNotifier {
       _notice = '注册成功，请登录';
       return user;
     } on ApiFailure catch (failure) {
-      _error = _messageFor(failure);
+      _error = authFailureMessage(failure);
       return null;
     } catch (_) {
       _error = '账号服务暂不可用';
@@ -208,42 +208,6 @@ class AuthController extends ChangeNotifier {
       // 缓存清理失败不阻断退出；下一次进入业务页会重新拉取。
     }
   }
-
-  String? _validateLoginInput(String username, String password) {
-    if (username.isEmpty) return '请输入用户名';
-    if (username.runes.length > usernameMaxLength) return '用户名不能超过 24 个字符';
-    if (password.isEmpty) return '请输入密码';
-    return null;
-  }
-
-  String? _validateRegisterInput(
-    String username,
-    String password,
-    String nickname,
-  ) {
-    if (username.isEmpty) return '请输入用户名';
-    if (username.runes.length > usernameMaxLength) return '用户名不能超过 24 个字符';
-    if (password.isEmpty) return '请输入密码';
-    if (nickname.isEmpty) return '请输入昵称';
-    if (nickname.runes.length > nicknameMaxLength) return '昵称不能超过 20 个字符';
-    return null;
-  }
-
-  String _messageFor(ApiFailure failure) => switch (failure.kind) {
-        FailureKind.badRequest => '输入内容不正确',
-        FailureKind.unauthorized => '用户名或密码错误',
-        FailureKind.notFound => '账号操作未完成，请重试',
-        FailureKind.conflict => '用户名已被占用',
-        FailureKind.expired => '操作已过期，请重试',
-        FailureKind.serviceUnavailable =>
-          failure.message.isEmpty ? '账号服务暂不可用' : failure.message,
-        FailureKind.timeout ||
-        FailureKind.network =>
-          '网络异常，请检查网络后重试',
-        FailureKind.staleSession => '会话已切换，请重试',
-        FailureKind.protocol => '服务返回异常，请稍后重试',
-        FailureKind.server => '账号服务暂不可用',
-      };
 
   void _emit() {
     if (_disposed) return;

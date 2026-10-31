@@ -59,14 +59,14 @@ Maven：未安装（mvn 不在 PATH）；仓库有 server/mvnw 和 server/mvnw.c
 
 1. 未取得 10/19 上传源码的完整提交号和启动说明；本地仓库有 README，但未核对上传记录。
    影响：不能确认本地 main 与课程指定上传源码完全一致。
-   处理：在交接记录中标注；请闫昕/胡豪确认 GitHub main 与上传提交号。
+   处理：在交接记录中标注；GitHub main 与上传提交号的核对尚未完成。
 
-2. 未创建个人分支、未提交、未合并 main。
-   影响：本交付只是材料包，不是“已合入主线”的成果。
-   处理：复制到仓库 docs/stage2/members/yuxingchen/ 后，按指南创建 design/yuxingchen-stage2、提交并合并；补全 handoffs/analysis.txt 的真实 SHA。
+2. 分析材料起初只在本地材料包中。
+   影响：当时不能称为“已合入主线”。
+   处理：10/31 已补交到仓库并提交；当前状态见 handoffs/analysis.txt。
 
 3. 账号接口未实现，真实登录未联调。
-   影响：本阶段只能做分析；设计阶段需闫昕/冉昕霖给出真实契约。
+   影响：本阶段只能做分析；真实契约尚未提供。
    处理：在 questions.csv 登记；设计阶段用 Fake AuthApi 先做组件测试。
 
 六、结论
@@ -80,10 +80,11 @@ Maven：未安装（mvn 不在 PATH）；仓库有 server/mvnw 和 server/mvnw.c
 Flutter：3.47.6（stable，5fc346839b）；Dart 3.13.5；PUB_CACHE=D:\Android\pub-cache。
 命令与结果（目录 E:/GAMES/APP/PKMON/client）：
   flutter analyze        -> No issues found!
-  flutter test           -> 86/86 All tests passed!（当时：原 51 + 新增 35；补 4 个测试后最终 90/90，见 foundation.txt T02）
+  flutter test           -> 101/101 All tests passed!（原 51 + 新增 50，见 foundation.txt T02）
   flutter build web --release -> Built build\web
   flutter build apk --debug -> Built app-debug.apk（含 permission_handler 12.0.1）
   flutter pub add permission_handler -> 12.0.1（13.0.2 要求 compileSdk 37，项目为 36）
-  geolocator 14.1.2 试装失败 -> package_info_plus Kotlin 增量缓存报错；已移除，需胡豪确认 android/gradle.properties
+  geolocator 14.1.2 试装失败 -> package_info_plus Kotlin 增量缓存报错；已移除；android/gradle.properties 是否调整尚未确定
   python 校验 interfaces.json / 两个 CSV 表头 -> 见 evidence/foundation.txt
+  模拟器 PKMon_Pixel7（Android 17）-> 安装 app-debug.apk 并启动；登录页、空输入提示、真实登录错误提示、演示入口地图页均正常；截图见 evidence/screenshots/
 账号接口：服务端仍无 /auth/register、/auth/login、/auth/logout、/users/me；真实登录未执行。

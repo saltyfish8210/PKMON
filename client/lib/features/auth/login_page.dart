@@ -4,6 +4,7 @@ import '../../core/tokens.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/error_view.dart';
 import 'auth_controller.dart';
+import 'auth_input.dart';
 
 /// 登录页骨架。
 ///
@@ -44,12 +45,9 @@ class _LoginPageState extends State<LoginPage> {
     final username = _username.text;
     final password = _password.text;
 
-    if (username.trim().isEmpty) {
-      setState(() => _localError = '请输入用户名');
-      return;
-    }
-    if (password.isEmpty) {
-      setState(() => _localError = '请输入密码');
+    final inputError = validateLoginInput(username, password);
+    if (inputError != null) {
+      setState(() => _localError = inputError);
       return;
     }
 
