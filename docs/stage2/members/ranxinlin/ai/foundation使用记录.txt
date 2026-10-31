@@ -1,0 +1,41 @@
+工具与可见版本：DeepSeek Harness 中的 deepseek-flash 模型，版本号未提供；辅助工具
+  Flutter 3.47.6 / Dart 3.13.5（真实运行 analyze/test）、PlantUML 1.2024.7（图源导出）。
+任务场景、阶段、目标与验收标准：
+  foundation（10/31，截止 11/01 04:00）。目标：交付 ApiClient、AuthApi/StudyApi/CaptureApi/
+  CollectionApi、DTO、Fake 与页面骨架；可编译、未实现处明确标识；交出路径、签名与运行方式。
+提供的上下文及裁剪理由：
+  design/design.txt、design/interfaces.json、test-cases.csv；孙虹毅 design/interfaces.json；
+  赵冠钧 design 的 Study 契约；闫昕 design/yanxin-auth-design 分支的账号契约；
+  配套 fixtures 07/08/09/10；现有 core/tokens.dart 与既有页面风格。
+  未提供：token、口令、真实位置、他人未提交代码。
+初始提示词、原输出附件：
+  提示词（2026-10-31）：实现“骨架”部分。
+  原输出：client/lib/data 全量、features/capture 与 collection 骨架、43 个新增测试、
+  test/fixtures、evidence/foundation.txt、handoffs/foundation.txt。
+本人发现的问题（AI 自检，非本人结论）：
+  1) 首轮 analyze 报 5 条 prefer_initializing_formals，已改为公有 final 字段/初始化形参；
+  2) 测试首轮有 7 处编译错误（envelope 的 Object 不允许 null、capture_models 未导入、
+     collection 负数误用 StateError），已修正；
+  3) study 测试的集合 if 触发 use_null_aware_elements，改为函数内显式赋值；
+  4) pub get 会改写 pubspec.lock（28 项），仍不提交、已还原，留给余星晨决定。
+修订提示与每轮结果：
+  第 1 轮：数据层与模型 → analyze 5 条 info；
+  第 2 轮：修 lint + 写测试 → analyze 7 个 error；
+  第 3 轮：修测试 → analyze 无问题、test 51/51 通过。
+采纳/修改后采纳/拒绝及理由：
+  采纳：统一 ApiClient + 四端口 + DemoApi 分层；ApiFailure 分类；generation 丢弃迟到响应；
+    Fake 可排队失败/结果；控制器状态机。
+  拒绝：不在页面里直接拼 URL/读 token；不用 Fake 冒充真实登录；不修改 main.dart 与锁文件。
+人工检查人（本人）、方法与结果：
+  检查人：冉昕霖。状态：待本人复核。建议先看 api_client.dart 的错误映射与代次校验，
+  再看 capture_controller.dart 的恢复分支与对应测试。
+验证结果与证据：
+  flutter analyze: No issues found!；flutter test: +51 All tests passed!；
+  server mvn test: 34/34；详见 evidence/foundation.txt 与 toolchain.txt。
+上下文/生成/本人检查/返工耗时：
+  上下文约 15 分钟；实现与返工约 70 分钟；本人检查耗时待本人填写。
+实际费用或Token：未取得。
+质量、效率、问题、诚信与后续改进：
+  优点：网络层与状态机可独立测试，未接后端也能验证；不足：页面仅骨架、无 widget 测试、
+  未联调。诚信：未实现与未执行项均已标注，未把 Mock 测试写成联调通过。
+  后续：11/01 起接真实 capture 接口并补 widget 测试，补 Auth/Study 联调。
