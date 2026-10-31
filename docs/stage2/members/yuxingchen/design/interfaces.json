@@ -1,0 +1,158 @@
+{
+  "status": "foundation 骨架已实现（本地提交，未推送）；AuthApi 的 HTTP 适配已由冉昕霖实现，但服务端账号接口不存在，真实登录未联调；SessionStore 仅内存实现，不持久化。",
+  "owner": "余星晨",
+  "sourceCommit": "b28bbebba7eb0069bca9faf3a5e96638807afc15",
+  "ports": [
+    {
+      "name": "AuthApi",
+      "path": "client/lib/data/api/auth_api.dart",
+      "owner": "冉昕霖（实现）/ 闫昕（契约）",
+      "implemented": true,
+      "serverImplemented": false,
+      "methods": [
+        {"name": "register", "signature": "Future<UserView> register({required String username, required String password, required String nickname})"},
+        {"name": "login", "signature": "Future<LoginResult> login({required String username, required String password})"},
+        {"name": "logout", "signature": "Future<void> logout()"},
+        {"name": "me", "signature": "Future<UserView> me()"}
+      ],
+      "notes": "HttpAuthApi 已按候选契约实现路径与 DTO；服务端未实现，禁止写成已联调。"
+    },
+    {
+      "name": "SessionStore",
+      "path": "client/lib/features/auth/session_store.dart",
+      "owner": "余星晨",
+      "implemented": true,
+      "persistent": false,
+      "simulated": true,
+      "methods": [
+        {"name": "load", "signature": "Future<LoginResult?> load()"},
+        {"name": "save", "signature": "Future<void> save(LoginResult session)"},
+        {"name": "clear", "signature": "Future<void> clear()"},
+        {"name": "generation", "signature": "int get generation"}
+      ],
+      "notes": "InMemorySessionStore 为骨架/测试替身，重启丢失；持久化与安全存储方式待定。"
+    },
+    {
+      "name": "SessionTokenProvider",
+      "path": "client/lib/features/auth/session_store.dart",
+      "owner": "余星晨",
+      "implemented": true,
+      "methods": [
+        {"name": "current", "signature": "Future<SessionToken?> current()"}
+      ],
+      "notes": "把 SessionStore 适配成网络层 TokenProvider，返回 token 与 generation。"
+    },
+    {
+      "name": "RequestId",
+      "path": "client/lib/core/request_id.dart",
+      "owner": "余星晨",
+      "implemented": true,
+      "methods": [
+        {"name": "generate", "signature": "static String generate()"},
+        {"name": "RequestIdTracker.value", "signature": "String get value"},
+        {"name": "RequestIdTracker.reset", "signature": "void reset()"}
+      ],
+      "notes": "UUID v4，无第三方依赖；一次业务操作只生成一次，重试复用。"
+    },
+    {
+      "name": "AuthController",
+      "path": "client/lib/features/auth/auth_controller.dart",
+      "owner": "余星晨",
+      "implemented": true,
+      "methods": [
+        {"name": "restore", "signature": "Future<void> restore()"},
+        {"name": "login", "signature": "Future<bool> login(String username, String password)"},
+        {"name": "register", "signature": "Future<UserView?> register(String username, String password, String nickname)"},
+        {"name": "logout", "signature": "Future<void> logout()"},
+        {"name": "handleUnauthorized", "signature": "Future<void> handleUnauthorized({String message = '登录已过期，请重新登录'})"}
+      ],
+      "notes": "只依赖注入的 AuthApi；错误统一映射；退出远端失败仍清本地。"
+    },
+    {
+      "name": "AppGate / LoginPage",
+      "path": "client/lib/features/auth/app_gate.dart; client/lib/features/auth/login_page.dart",
+      "owner": "余星晨",
+      "implemented": true,
+      "methods": [
+        {"name": "AppGate", "signature": "const AppGate({super.key, AuthController? controller, WidgetBuilder? homeBuilder})"},
+        {"name": "LoginPage", "signature": "const LoginPage({super.key, required AuthController controller, required VoidCallback onEnterDemo})"}
+      ],
+      "notes": "入口门禁；演示态只置本地标志，不创建或不保存 Session。"
+    },
+    {
+      "name": "RegisterPage",
+      "path": "未创建",
+      "owner": "余星晨",
+      "implemented": false,
+      "methods": [],
+      "notes": "本阶段后置；登录页显示「注册页待接入」，不放无效按钮。"
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "auth": false,
+      "request": ["username", "password", "nickname"],
+      "responseData": ["userId", "username", "nickname"],
+      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "implemented": false,
+      "clientStatus": "implemented-not-integrated",
+      "notes": "重名返回 40901。"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "auth": false,
+      "request": ["username", "password"],
+      "responseData": ["token", "expiresAt", "user{userId,username,nickname}"],
+      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "implemented": false,
+      "clientStatus": "implemented-not-integrated",
+      "notes": "账号不存在与口令错误统一 40101。"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "auth": true,
+      "request": [],
+      "responseData": [],
+      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "implemented": false,
+      "clientStatus": "implemented-not-integrated",
+      "notes": "Bearer 鉴权；重复退出视为成功。"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "auth": true,
+      "request": [],
+      "responseData": ["userId", "username", "nickname"],
+      "owner": "闫昕（契约）/ 冉昕霖（客户端适配）",
+      "implemented": false,
+      "clientStatus": "implemented-not-integrated",
+      "notes": "身份只从 token 取得，不接受请求体 userId。"
+    }
+  ],
+  "errors": [
+    {"code": 40001, "httpStatus": 400, "meaning": "参数错误"},
+    {"code": 40101, "httpStatus": 401, "meaning": "登录失败或凭证/会话无效"},
+    {"code": 40401, "httpStatus": 404, "meaning": "资源不存在或不属于当前用户"},
+    {"code": 40901, "httpStatus": 409, "meaning": "用户名已存在"},
+    {"code": 50001, "httpStatus": 500, "meaning": "服务错误"}
+  ],
+  "examples": [
+    {
+      "name": "登录成功",
+      "response": {"code": 0, "message": "ok", "data": {"token": "<opaque-token>", "expiresAt": "2030-01-01T00:00:00Z", "user": {"userId": "11111111-1111-4111-8111-111111111111", "username": "campus_demo", "nickname": "校园同学"}}}
+    },
+    {
+      "name": "登录失败",
+      "response": {"code": 40101, "message": "用户名或密码错误", "data": null}
+    },
+    {
+      "name": "注册重名",
+      "response": {"code": 40901, "message": "用户名已存在", "data": null}
+    }
+  ]
+}

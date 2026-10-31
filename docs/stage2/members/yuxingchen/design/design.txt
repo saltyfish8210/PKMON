@@ -1,0 +1,115 @@
+状态：设计逾期补交（原定 2026-10-29 04:00，实际 2026-10-31）；同日完成 foundation 骨架。设计基于 main b28bbeb（冉昕霖网络层已合入）。真实账号接口与服务端实现均未完成，本设计不写成已联调。
+
+分析到设计的变化：
+1. 入口新增 AppGate：冷启动恢复到登录页或主界面；演示只切换本地标志，不创建 Session。
+2. 会话对象复用网络层 LoginResult（token/expiresAt/user），当前用户复用 UserView；不另造 Session/User 类。
+3. 新增 SessionStore 端口 + InMemorySessionStore 替身；持久化方式未定，明确标注重启丢失。
+4. 新增 SessionTokenProvider，把 SessionStore 适配成网络层 TokenProvider（token + generation）。
+5. AuthController 只依赖注入的 AuthApi，不自己发 HTTP；错误统一映射为中文提示。
+6. RequestId 放在 core/request_id.dart：UUID v4 + 重试跟踪器；不引入第三方依赖。
+7. 新增统一 LoadingView/ErrorView/EmptyView，页面只显示状态，不判断业务规则。
+8. 注册页后置到下一阶段；LoginPage 显示「注册页待接入」，不放无效按钮。
+
+问题域：
+- UserView：服务端返回的用户公开资料（userId/username/nickname），主责闫昕契约。
+- LoginResult：一次登录结果（token/expiresAt/user），主责冉昕霖网络层。
+- AuthApi：账号网络端口（register/login/logout/me），HTTP 实现主责冉昕霖。
+- SessionStore：本机会话读写与代次，主责余星晨。
+- AuthController：登录/注册/退出/恢复的编排与状态，主责余星晨。
+- LoginPage/AppGate：输入、校验、展示与入口门禁，主责余星晨。
+- LoadingView/ErrorView/EmptyView：纯展示，主责余星晨。
+- 业务页面不 import features/auth；只有 AppGate/main.dart 负责接线。
+
+人机交互：
+- 冷启动：unknown/restoring 显示「正在恢复登录状态…」；无会话或过期进登录页；有效会话进主界面。
+- 登录页：用户名、密码两个输入；非空与长度校验在客户端先做；提交时禁用输入和按钮，按钮显示「登录中…」。
+- 失败：统一显示「用户名或密码错误」，保留输入；网络/服务错误显示对应中文提示。
+- 骨架说明：明确显示「账号接口未接入（骨架）…本页不会伪造登录成功」；次按钮「进入演示（不登录）」。
+- 注册：显示「注册页待接入（下一阶段）；注册接口契约已在设计中定义」，不提供死按钮。
+- 布局：SafeArea + 可滚动表单，适配 360×800 与 412×915；键盘弹出不遮挡提交按钮。
+- 退出/401：回到登录页并清空业务缓存；退出成功或远端失败都不停留在已登录态。
+
+控制驱动：
+- 状态机：unknown → restoring → signedOut | signedIn；登录成功 signedIn；退出/401/过期 signedOut。
+- 点击登录：busy 时直接返回，保证一次提交只有一次请求；输入校验不通过不发请求。
+- 恢复：只做本地 expiresAt 判断（expiresAt <= now 算过期）；服务端有效性以 40101 为准。
+- 退出：先尽力调用远端 logout，无论成功失败都清本地会话与缓存；失败置 logoutRemoteFailed。
+- 401：统一走 handleUnauthorized，清会话与缓存并提示「登录已过期，请重新登录」。
+- 演示：AppGate 的本地 _demo 标志，不写 SessionStore，不参与网络鉴权。
+- 网络层重试沿用同一 requestId；新操作才 reset 生成新 id。
+
+数据管理：
+- LoginResult：token（不透明字符串）、expiresAt（UTC）、user{userId,username,nickname}。
+- 会话清除触发：主动退出、本地过期、401/会话失效、切换账号、读取失败。
+- InMemorySessionStore：仅骨架/测试替身，不持久化，重启即丢失；generation 在 save/clear 时自增。
+- SessionTokenProvider：只有存在非空 token 才返回 SessionToken；网络层用 generation 丢弃旧会话迟到响应。
+- 不保存明文口令；token 不进入日志、截图或交接文件。
+
+类与方法签名：
+- class RequestId { static String generate(); }
+- class RequestIdTracker { RequestIdTracker({String Function()? generate}); String get value; void reset(); }
+- abstract interface class SessionStore { int get generation; Future<LoginResult?> load(); Future<void> save(LoginResult session); Future<void> clear(); }
+- class InMemorySessionStore implements SessionStore { InMemorySessionStore({LoginResult? initial}); }
+- class SessionTokenProvider implements TokenProvider { SessionTokenProvider(SessionStore store); Future<SessionToken?> current(); }
+- class UnavailableAuthApi implements AuthApi { const UnavailableAuthApi(); }  // 全部抛 50301「账号接口未接入（骨架）」
+- class AuthController extends ChangeNotifier {
+    AuthController({required AuthApi api, required SessionStore store, DateTime Function()? clock, Future<void> Function()? onClearCache});
+    AuthStatus get status; LoginResult? get session; String? get error; String? get notice; bool get busy; bool get logoutRemoteFailed;
+    Future<void> restore(); Future<bool> login(String username, String password);
+    Future<UserView?> register(String username, String password, String nickname);
+    Future<void> logout(); Future<void> handleUnauthorized({String message = '登录已过期，请重新登录'}); void clearError();
+  }
+- class LoginPage extends StatefulWidget { const LoginPage({super.key, required AuthController controller, required VoidCallback onEnterDemo}); }
+- class AppGate extends StatefulWidget { const AppGate({super.key, AuthController? controller, WidgetBuilder? homeBuilder}); }
+- class LoadingView extends StatelessWidget { const LoadingView({super.key, String message = '正在加载…'}); }
+- class ErrorView extends StatelessWidget { const ErrorView({super.key, required String message, VoidCallback? onRetry, String retryLabel = '重试', bool compact = false}); }
+- class EmptyView extends StatelessWidget { const EmptyView({super.key, required String title, String? message, IconData icon = Icons.inbox_outlined, String? actionLabel, VoidCallback? onAction}); }
+代码位置：client/lib/core/request_id.dart、client/lib/widgets/{loading,error,empty}_view.dart、client/lib/features/auth/{session_store,unavailable_auth_api,auth_controller,login_page,app_gate}.dart、client/lib/main.dart。
+
+接口与错误：
+- POST /api/v1/auth/register：username,password,nickname → userId,username,nickname；重名 40901。
+- POST /api/v1/auth/login：username,password → token,expiresAt,user；失败统一 40101。
+- POST /api/v1/auth/logout：Bearer，空请求体 → {}；重复退出视为成功。
+- GET /api/v1/users/me：Bearer → userId,username,nickname。
+- 以上服务端均未实现；客户端 HttpAuthApi 已按契约写好，但未联调。
+- 统一信封 {code,message,data}；错误码 40001 参数错误、40101 凭证/会话无效、40401 不存在或不属于当前用户、40901 用户名已存在、50001 服务错误。
+- 客户端映射：40101→「用户名或密码错误」；40901→「用户名已被占用」；超时/断网→「网络异常，请检查网络后重试」；50301→原始明确提示。
+
+规则边界：
+- R-01 无会话不得进入业务，唯一例外是明确标注的演示态。
+- R-02 用户名非空且 ≤24 字符；昵称非空且 ≤20 个 Unicode 字符；密码非空（最小长度待闫昕确认）。
+- R-03 busy 期间重复点击只产生一次请求。
+- R-04 登录失败不保存会话；错误提示不区分账号不存在与口令错误。
+- R-05 退出必须清本地会话和缓存，远端失败只记录，不回滚本地退出。
+- R-06 本地过期或 401 必须清会话并回登录页。
+- R-07 演示态不创建、不保存 Session，也不冒充真实身份。
+- R-08 未接入接口必须显式报错，不得返回假成功。
+- R-09 业务页面不得依赖 features/auth 内部；入口只由 AppGate/main.dart 接线。
+- R-10 客户端 expiresAt 只是提前判断，服务端 401 才是权威。
+- R-11 InMemorySessionStore 不是生产存储；持久化与安全存储待定。
+- R-12 注册页本阶段不实现，只保留契约与说明。
+
+依赖版本和实际路径：
+- 仓库：E:/GAMES/APP/PKMON；客户端：E:/GAMES/APP/PKMON/client。
+- 基线：main b28bbebba7eb0069bca9faf3a5e96638807afc15。
+- Flutter 3.47.6 stable（5fc346839b）/ Dart 3.13.5；http 1.6.0；flutter_lints 6.0.0。
+- 本次合入定位依赖：geolocator ^14.1.2、permission_handler ^13.0.2（赵冠钧需求；当前无代码调用，RealLocationProvider 未实现）。
+- 未新增 uuid 依赖：RequestId 用 Random.secure() 实现 UUID v4。
+- pubspec.yaml / pubspec.lock 已更新并提交，其他依赖未升级。
+
+图索引：
+- ../analysis/diagrams/03-账号与公共入口-用例图.png/.puml：参与者与账号用况边界。
+- ../analysis/diagrams/04-账号会话-状态图.png/.puml：会话状态与过期/退出转换。
+- ../analysis/diagrams/05-登录-顺序图.png/.puml：LoginPage→AuthController→AuthApi→SessionStore 的消息顺序。
+- ../analysis/diagrams/06-账号与公共入口-类图.png/.puml：对象职责与关系，对应本文件「类与方法签名」。
+- ../analysis/diagrams/07-客户端公共入口-包图.png/.puml：main/core/features/auth/features 业务包的依赖方向。
+- 为避免重复版本，本阶段不新增 design/diagrams；设计变化以本文件与 analysis-to-design.csv 为准。
+
+技术探路的实际命令与结果：
+- 目录 E:/GAMES/APP/PKMON/client；flutter analyze → No issues found!
+- flutter test → 86/86 All tests passed!（含原有 51 与新增 35）。
+- flutter build web --release → ✓ Built build\web（编译通过）。
+- flutter pub add geolocator permission_handler → geolocator 14.1.2、permission_handler 13.0.2。
+- grep -rn "auth/login|auth/register|auth/logout|users/me" server/src/main/java → 无结果，确认服务端账号接口未实现。
+- python 校验 interfaces.json（json-ok）、analysis-to-design.csv（6 列）、test-cases.csv（8 列）→ 见 evidence/foundation.txt。
+- 未执行：真实注册/登录/退出/me；服务端 mvn test 与联调。

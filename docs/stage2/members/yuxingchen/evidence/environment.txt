@@ -1,0 +1,87 @@
+阶段：analysis（第二阶段 10/20-10/24 需求与对象分析）
+作者：余星晨
+检查时间：2026-10-25 16:20-16:25（北京时间）
+检查目录：E:/GAMES/APP/PKMON
+
+一、源码基线
+
+分支：main
+提交：d847572
+提交说明：docs: 添加高德地图 SDK 接入指南
+远端：origin https://github.com/saltyfish8210/PKMON.git
+工作区状态：main...origin/main，无已跟踪文件改动（检查时）
+
+二、工具版本
+
+系统：Windows 11 Home China 10.0.26200
+Flutter：3.47.6（stable，framework revision 5fc346839b，2026-09-30）
+Dart：3.13.5
+Java：本机存在 JDK 21（E:/java/21）；服务端要求 JDK 17，未用 JDK 21 验证服务端
+Maven：未安装（mvn 不在 PATH）；仓库有 server/mvnw 和 server/mvnw.cmd，但未执行下载/构建
+
+三、实际执行的命令与结果
+
+1. cd E:/GAMES/APP/PKMON/client
+   flutter analyze
+   结果：No issues found! (ran in 35.1s)
+
+2. cd E:/GAMES/APP/PKMON/client
+   flutter test
+   结果：8 个测试全部通过（00:00 +8: All tests passed!）
+   测试内容：地图页三种形态、图鉴页未捕获/已捕获、背包页空态/有数据，共 8 个组件测试。
+
+3. 未执行：
+   - mvn test（本机未配置 Maven；服务端未运行）
+   - flutter run（分析阶段不需要；账号接口尚未实现）
+   - 真实注册/登录/退出/切换账号（服务端没有 /auth/register、/auth/login、/auth/logout、/users/me）
+
+四、源码检查要点
+
+1. client/lib/main.dart
+   直接 home: HomeShell；没有登录页、注册页、会话门禁。
+
+2. client/lib/core/api.dart
+   使用 X-Demo-Session 请求头和 /api/v1/demo/sessions；没有 Bearer token 和账号接口调用。
+
+3. client/lib/features/profile_page.dart
+   显示“第一阶段体验账号”，并明确写“本阶段尚未接入账号登录、真实 GPS、高德地图、后台定位与数据库”。
+
+4. server/src/main/java/edu/pkmon/demo/DemoController.java
+   只有 /test/hello、/api/v1/demo/sessions、/api/v1/demo/state、/api/v1/demo/explore、/api/v1/demo/reset、/api/v1/capture/challenge、/api/v1/capture/answer；没有账号接口。
+
+5. client/pubspec.yaml
+   仅 cupertino_icons 和 http；没有安全存储、状态管理库、UUID 依赖。
+
+6. 公共界面
+   已有 core/theme.dart、core/tokens.dart、widgets/error_banner.dart；没有独立的 LoadingView、ErrorView、EmptyView 类。
+
+五、缺项与影响
+
+1. 未取得 10/19 上传源码的完整提交号和启动说明；本地仓库有 README，但未核对上传记录。
+   影响：不能确认本地 main 与课程指定上传源码完全一致。
+   处理：在交接记录中标注；请闫昕/胡豪确认 GitHub main 与上传提交号。
+
+2. 未创建个人分支、未提交、未合并 main。
+   影响：本交付只是材料包，不是“已合入主线”的成果。
+   处理：复制到仓库 docs/stage2/members/yuxingchen/ 后，按指南创建 design/yuxingchen-stage2、提交并合并；补全 handoffs/analysis.txt 的真实 SHA。
+
+3. 账号接口未实现，真实登录未联调。
+   影响：本阶段只能做分析；设计阶段需闫昕/冉昕霖给出真实契约。
+   处理：在 questions.csv 登记；设计阶段用 Fake AuthApi 先做组件测试。
+
+六、结论
+
+现有源码可分析、现有客户端测试可运行；账号功能尚未实现。本分析不把候选接口写成已实现，也不把未执行的服务端测试写成通过。
+
+七、2026-10-31 foundation 前复核
+
+分支/提交：main b28bbeb（已快进到 origin/main）
+工作区：设计分支 design/yuxingchen-stage2；客户端改动见 foundation 交接。
+Flutter：3.47.6（stable，5fc346839b）；Dart 3.13.5；PUB_CACHE=D:\Android\pub-cache。
+命令与结果（目录 E:/GAMES/APP/PKMON/client）：
+  flutter analyze        -> No issues found!
+  flutter test           -> 86/86 All tests passed!（原 51 + 本次新增 35）
+  flutter build web --release -> Built build\web
+  flutter pub add geolocator permission_handler -> geolocator 14.1.2、permission_handler 13.0.2
+  python 校验 interfaces.json / 两个 CSV 表头 -> 见 evidence/foundation.txt
+账号接口：服务端仍无 /auth/register、/auth/login、/auth/logout、/users/me；真实登录未执行。

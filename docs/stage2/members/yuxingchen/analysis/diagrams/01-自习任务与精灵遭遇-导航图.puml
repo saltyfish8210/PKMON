@@ -1,0 +1,71 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam activityBackgroundColor #F7F8FA
+skinparam activityBorderColor #2C7A6B
+skinparam activityDiamondBackgroundColor #E6F2EF
+skinparam activityDiamondBorderColor #2C7A6B
+title 自习任务与精灵遭遇 · 低保真导航图
+
+start
+:打开 App;
+:入口检查 SessionStore;
+if (会话有效？) then (是)
+  :地图主界面;
+else (否)
+  :登录页;
+  :输入用户名/密码;
+  if (登录成功？) then (是)
+    :保存 Session;
+    :地图主界面;
+  else (否)
+    :统一错误提示\n保留输入;
+    stop
+  endif
+endif
+
+:点击“开启任务模式”;
+:选择 自习 / 跑步;
+if (定位与通知权限？) then (允许)
+  :启动前台服务\n显示常驻通知;
+  :地图顶部显示任务状态条;
+  :持续上报位置;
+  if (进入围栏？) then (是)
+    :开始驻留计时;
+    :心跳周期 3–5 分钟;
+    if (达到驻留时长？) then (是)
+      :地图出现精灵;
+      :点击精灵;
+      :进入“答题捕获与精灵收录”流程;
+    else (否)
+      :继续计时;
+    endif
+  else (否)
+    :不开始/暂停计时;
+  endif
+else (拒绝)
+  :权限说明与设置引导;
+  :返回地图;
+  stop
+endif
+
+note right
+  任意业务页面收到 401/会话过期：
+  清 SessionStore 与业务缓存 → 登录页
+end note
+
+:任务结束;
+:停止前台服务;
+:返回地图;
+:用户退出或切换账号？;
+if (是) then (是)
+  :清理会话与业务缓存;
+  :回登录页;
+else (否)
+  :继续使用;
+endif
+stop
+
+@enduml

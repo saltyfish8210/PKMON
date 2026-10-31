@@ -1,0 +1,25 @@
+阶段与作者：analysis / 余星晨
+本人分支与完整提交号：design/yuxingchen-stage2；支撑文件提交号「待回填，见本次提交」
+状态：分析正文与 7 张 PNG 已于 10/25 合入 main（530f54b、fb8761a）；questions.csv、.puml 图源、evidence、ai、本记录于 10/31 补交（迟于 10/25 04:00）。本次仅本地提交，尚未推送。
+主线合并提交号（已合入才填）：正文与 PNG 见 fb8761a；支撑文件合并号待推送后补
+文件路径与运行方式：
+  docs/stage2/members/yuxingchen/analysis/analysis.txt
+  docs/stage2/members/yuxingchen/analysis/questions.csv
+  docs/stage2/members/yuxingchen/analysis/diagrams/*.puml + 同名 .png + 说明.txt
+  docs/stage2/members/yuxingchen/evidence/environment.txt
+  docs/stage2/members/yuxingchen/ai/使用记录.txt
+  阅读：直接打开 analysis.txt；PNG 可直接阅读；.puml 用 PlantUML 插件重新导出。
+使用的依赖提交号：main b28bbeb（2026-10-31 复核；分析初稿基于 d847572，差异见 environment.txt）
+本人测试：
+  输入：E:/GAMES/APP/PKMON/client；命令 flutter analyze、flutter test；
+  预期：静态分析无问题、现有组件测试通过；
+  实际：10/25 分析时 8/8 通过；10/31 基线复核 86/86 通过，analyze 无问题；
+  证据：evidence/environment.txt。
+真实/模拟/未执行：
+  真实：客户端静态分析、组件测试、10/31 基线测试；
+  模拟：无（分析阶段未实现账号流程）；
+  未执行：真实注册/登录/退出/切换账号；服务端 mvn test；与后端联调。
+缺项、影响、下一步：
+  1. 支撑文件迟交；影响：10/25 后读分析的人缺少问题清单与图源；下一步：本次已补齐，后续按图纸接续。
+  2. 账号接口未实现；影响：登录/退出只能按契约设计，不能写已联调；下一步：等闫昕/冉昕霖接口，再用 Fake 做组件测试。
+  3. 会话过期 code、token 存储、演示模式边界仍未定；影响：设计与测试用例；下一步：按 questions.csv 逐项确认并回填。

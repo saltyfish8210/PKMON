@@ -1,0 +1,60 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam activityBackgroundColor #F7F8FA
+skinparam activityBorderColor #2C7A6B
+skinparam activityDiamondBackgroundColor #E6F2EF
+skinparam activityDiamondBorderColor #2C7A6B
+title 答题捕获与精灵收录 · 低保真导航图
+
+start
+:地图主界面\n精灵已出现;
+:点击精灵;
+:抓捕页（全屏）;
+:请求题目;
+
+if (题目请求成功？) then (是)
+  :展示题干与 2–4 个选项;
+  :选择选项并提交;
+  if (提交结果已知？) then (是)
+    if (答案正确？) then (是)
+      :捕获成功动效;
+      :写入图鉴/背包;
+      :返回地图;
+    else (否)
+      :精灵逃跑/冷却提示;
+      :返回地图;
+    endif
+  else (超时/断网)
+    :结果待确认;
+    :同一 requestId 查询挑战状态;
+    if (查询到已结算？) then (是)
+      :按真实结果显示;
+    else (否)
+      :提示重试，不重复结算;
+    endif
+    :返回地图或留在抓捕页;
+  endif
+else (否)
+  :错误提示 + 重试/返回;
+endif
+
+:图鉴 / 我的精灵;
+if (有数据？) then (是)
+  :显示列表/详情;
+else (否)
+  :空状态引导;
+endif
+
+note right
+  任意页面收到 401/会话过期：
+  清业务缓存 → 登录页
+  当前 Demo 的遭遇/题目为模拟；
+  第二阶段按真实接口实现
+end note
+
+stop
+
+@enduml

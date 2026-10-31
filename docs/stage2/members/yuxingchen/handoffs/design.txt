@@ -1,0 +1,25 @@
+阶段与作者：design / 余星晨
+本人分支与完整提交号：design/yuxingchen-stage2；成果提交号「待回填」
+状态：本地已提交，未推送（设计原定 10/29 04:00，实际 10/31 补交）
+主线合并提交号（已合入才填）：无（由本人推送后补）
+文件路径与运行方式：
+  docs/stage2/members/yuxingchen/design/design.txt
+  docs/stage2/members/yuxingchen/design/interfaces.json
+  docs/stage2/members/yuxingchen/design/analysis-to-design.csv
+  docs/stage2/members/yuxingchen/design/test-cases.csv
+  图复用 docs/stage2/members/yuxingchen/analysis/diagrams/03-07（不新增重复设计图）
+  阅读：直接打开 design.txt；JSON/CSV 用普通编辑器查看。
+使用的依赖提交号：main b28bbebba7eb0069bca9faf3a5e96638807afc15
+本人测试：
+  输入：E:/GAMES/APP/PKMON/client；命令 flutter analyze、flutter test、flutter build web --release；
+  预期：静态分析无问题、全部测试通过、Web 编译成功；
+  实际：No issues found!；90/90 All tests passed!；Built build\web；
+  证据：evidence/environment.txt 与 evidence/foundation.txt。
+真实/模拟/未执行：
+  真实：设计文档、接口契约核对、客户端静态分析、测试与构建；
+  模拟：SessionStore 为内存替身；AuthApi 未接真实服务端；
+  未执行：真实注册/登录/退出/me；服务端 mvn test 与联调。
+缺项、影响、下一步：
+  1. 设计迟交；影响：设计阶段材料未按 10/29 审阅；下一步：本次补交后由读取人按 11/01 白天读取。
+  2. 账号接口未实现；影响：只能验证契约与 Fake 流程；下一步：闫昕/冉昕霖落地接口后联调。
+  3. 会话持久化、用户名/口令规则、会话过期 code 未定；影响：存储与边界测试；下一步：按 questions.csv 回填结论。

@@ -1,0 +1,78 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam packageStyle rectangle
+skinparam componentBackgroundColor #F7F8FA
+skinparam componentBorderColor #2C7A6B
+title 客户端公共入口 · 包图
+
+package "client/lib" {
+  [main.dart\n入口 / 登录门禁] as MAIN
+
+  package "core" {
+    [theme.dart] as THEME
+    [tokens.dart] as TOKENS
+    [request_id.dart] as RID
+    [api.dart\n统一 ApiClient] as API
+  }
+
+  package "features/auth" {
+    [LoginPage / RegisterPage] as LOGIN
+    [AuthController] as AC
+    [SessionStore] as SS
+  }
+
+  package "features/profile" {
+    [个人中心入口 / 占位] as PROFILE
+  }
+
+  package "widgets" {
+    [LoadingView / ErrorView / EmptyView] as STATE
+    [公共按钮 / 输入 / 容器] as COMMON
+  }
+
+  package "features · 其他页面" {
+    [地图 / 任务页\n赵冠钧] as MAP
+    [抓捕页\n冉昕霖] as CAP
+    [图鉴 / 背包] as DEX
+  }
+}
+
+MAIN --> LOGIN : 未登录先登录
+MAIN --> MAP : 登录后进入
+MAIN --> CAP : 接线
+MAIN --> DEX : 接线
+MAIN --> THEME : 应用主题
+MAIN --> API : 注入/共享
+
+LOGIN --> AC
+AC --> API : 调用
+AC --> SS : 保存/读取/清除
+AC --> RID : 生成 requestId
+LOGIN --> STATE : 加载/错误
+MAP --> STATE
+CAP --> STATE
+DEX --> STATE
+PROFILE --> COMMON
+STATE --> TOKENS
+COMMON --> TOKENS
+THEME --> TOKENS
+
+note bottom of MAIN
+  余星晨维护：
+  登录门禁、主入口接线、依赖与锁文件。
+end note
+
+note bottom of API
+  统一网络层由冉昕霖维护；
+  本人不另写 HTTP 客户端。
+end note
+
+note bottom of STATE
+  公共状态组件只显示状态，
+  不承担登录/权限/结算规则。
+end note
+
+@enduml
