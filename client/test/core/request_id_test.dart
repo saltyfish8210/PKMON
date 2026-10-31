@@ -3,16 +3,12 @@ import 'package:pkmon_app/core/request_id.dart';
 
 void main() {
   group('RequestId', () {
-    test('生成小写 UUID v4', () {
+    test('复用网络层生成格式', () {
       final id = RequestId.generate();
 
-      expect(
-        RegExp(
-          r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
-        ).hasMatch(id),
-        isTrue,
-        reason: id,
-      );
+      // 网络层 defaultRequestIdGenerator：十六进制时间戳 + '-' + 48 位十六进制随机串。
+      expect(RegExp(r'^[0-9a-f]+-[0-9a-f]{48}$').hasMatch(id), isTrue,
+          reason: id);
       expect(id, id.toLowerCase());
     });
 

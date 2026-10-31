@@ -6,7 +6,7 @@
 3. 新增 SessionStore 端口 + InMemorySessionStore 替身；持久化方式未定，明确标注重启丢失。
 4. 新增 SessionTokenProvider，把 SessionStore 适配成网络层 TokenProvider（token + generation）。
 5. AuthController 只依赖注入的 AuthApi，不自己发 HTTP；错误统一映射为中文提示。
-6. RequestId 放在 core/request_id.dart：UUID v4 + 重试跟踪器；不引入第三方依赖。
+6. RequestId 统一复用网络层 defaultRequestIdGenerator；core/request_id.dart 只做重试跟踪，不再生成第二套 id。
 7. 新增统一 LoadingView/ErrorView/EmptyView，页面只显示状态，不判断业务规则。
 8. 注册页后置到下一阶段；LoginPage 显示「注册页待接入」，不放无效按钮。
 
@@ -94,7 +94,7 @@
 - 基线：main b28bbebba7eb0069bca9faf3a5e96638807afc15。
 - Flutter 3.47.6 stable（5fc346839b）/ Dart 3.13.5；http 1.6.0；flutter_lints 6.0.0。
 - 本次合入定位依赖：permission_handler 12.0.1（当前无代码调用）。geolocator 14.1.2 暂未合入：它经 geolocator_linux 引入 package_info_plus，在本机 Windows 触发 Kotlin 增量缓存无法关闭；修复点在 android/gradle.properties 的 kotlin.incremental 配置，该文件属于共享构建配置，本模块未修改。详见 evidence/foundation.txt T14。
-- 未新增 uuid 依赖：RequestId 用 Random.secure() 实现 UUID v4。
+- 未新增 uuid 依赖：RequestId 直接委托 data/api 的 defaultRequestIdGenerator。
 - pubspec.yaml / pubspec.lock 已更新并提交，其他依赖未升级。
 
 图索引：

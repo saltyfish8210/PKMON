@@ -5,7 +5,7 @@
 "退出与 401（控制器）","会话已恢复；FakeAuthApi 可抛网络错误","调用 logout / handleUnauthorized","await 对应方法","退出成功清会话与缓存；远端失败仍清并置标记；401 清会话回登录态","自动","FakeAuthApi","evidence/foundation.txt#T07（已通过）"
 "会话恢复（控制器）","store 预置有效/过期会话；固定时钟","restore()","await restore()","有效→signedIn；空→signedOut；到期时刻即过期并清缓存","自动","InMemorySessionStore、固定时钟","evidence/foundation.txt#T07（已通过）"
 "注册规则（控制器）","FakeAuthApi；冲突时可注入 40901","合法输入；重名；昵称 21 字；用户名 25 字","controller.register(...)","成功不自动登录并提示；冲突提示已占用；超长不发请求","自动","FakeAuthApi","evidence/foundation.txt#T08（已通过）"
-"RequestId 格式与唯一性","无","生成 1 个和 1000 个 id","RequestId.generate()","符合小写 UUID v4；1000 个不重复","自动","无","evidence/foundation.txt#T04（已通过）"
+"RequestId 格式与唯一性","无","生成 1 个和 1000 个 id","RequestId.generate()","符合网络层生成格式；1000 个不重复","自动","无","evidence/foundation.txt#T04（已通过）"
 "RequestId 重试复用","无","连续读取 Tracker；reset 后再读","value / reset / value","重试复用同一 id；reset 后生成新 id","自动","无","evidence/foundation.txt#T04（已通过）"
 "会话存储与 TokenProvider","InMemorySessionStore","保存、读取、清除；provider.current()","调用 store 与 provider","token 与代次正确；清除后 provider 返回 null","自动","InMemorySessionStore","evidence/foundation.txt#T05（已通过）"
 "公共状态组件","无","Loading/Error/Empty 各状态","pump 组件并点击","文案正确；有回调才显示重试；动作回调一次","自动","flutter_test","evidence/foundation.txt#T09（已通过）"

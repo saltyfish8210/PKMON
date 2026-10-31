@@ -115,8 +115,8 @@ AuthApi
 
 RequestId
 - 含义：业务重试的请求唯一标识；
-- 职责：首次点击时生成 UUID；网络重试必须复用同一个 requestId，不得在重试中偷偷重新生成；
-- 归属：生成器位于 client/lib/core/request_id.dart；是否用于登录/注册待确认。
+- 职责：首次点击时生成请求 id（复用网络层生成器）；网络重试必须复用同一个 requestId，不得在重试中偷偷重新生成；
+- 归属：生成器位于 client/lib/data/api/request_id.dart；client/lib/core/request_id.dart 只做重试跟踪；是否用于登录/注册待确认。
 
 LoginPage / RegisterPage
 - 含义：账号入口页面；

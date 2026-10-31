@@ -40,7 +40,7 @@ T04 RequestId
   前置与数据：无外部依赖；随机生成 1000 个 id。
   准确目录和命令：flutter test test/core/request_id_test.dart
   输入：RequestId.generate()；RequestIdTracker 连续读取与 reset；注入固定生成器。
-  预期：满足小写 UUID v4；1000 个不重复；重试复用；reset 后换新。
+  预期：符合网络层生成格式；1000 个不重复；重试复用；reset 后换新。
   实际：5 个测试全部通过。
   通过/失败/未执行：通过。
   真实/模拟：真实执行（纯单元测试）。

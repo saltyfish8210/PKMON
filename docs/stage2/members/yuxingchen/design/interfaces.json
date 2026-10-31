@@ -52,7 +52,7 @@
         {"name": "RequestIdTracker.value", "signature": "String get value"},
         {"name": "RequestIdTracker.reset", "signature": "void reset()"}
       ],
-      "notes": "UUID v4，无第三方依赖；一次业务操作只生成一次，重试复用。目前与 client/lib/data/api/request_id.dart 的 defaultRequestIdGenerator 并存，尚未统一。"
+      "notes": "生成器复用 data/api 的 defaultRequestIdGenerator；本文件只提供重试跟踪，不重复实现生成器。"
     },
     {
       "name": "AuthController",
