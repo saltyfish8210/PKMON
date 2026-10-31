@@ -1,0 +1,156 @@
+阶段：foundation（10/31 本人模块骨架；11/01 04:00 前提交）
+源码提交号与依赖版本：基线 b28bbebba7eb0069bca9faf3a5e96638807afc15 + 本次工作区改动（成果 SHA 见 handoffs/foundation.txt）；Flutter 3.47.6 / Dart 3.13.5；http 1.6.0；geolocator 14.1.2；permission_handler 13.0.2。
+运行环境：Windows 11 Home China 10.0.26200；工作目录 E:/GAMES/APP/PKMON/client；PUB_CACHE=D:\Android\pub-cache。
+说明：以下每组按「前置与数据 / 目录和命令 / 输入 / 预期 / 实际 / 判定 / 真实或模拟 / 证据 / 缺陷」记录；未执行项单独标注，不写成通过。
+
+T01 骨架编译与静态分析
+  前置与数据：client 工作区，已 flutter pub get；无服务端依赖。
+  准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter analyze
+  输入：无。
+  预期：无 error/warning/info。
+  实际：No issues found!（5.1s）。
+  通过/失败/未执行：通过。
+  真实/模拟：真实执行。
+  证据路径：本文件 T01；终端输出。
+  缺陷与处理：无。
+
+T02 全量测试回归
+  前置与数据：client 工作区；FakeAuthApi、InMemorySessionStore、固定 UTC 时钟；不连服务端。
+  准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter test
+  输入：原有 51 个测试 + 本次新增 39 个。
+  预期：全部通过，原有 8 个组件测试不因入口改动失效。
+  实际：00:02 +90: All tests passed!。
+  通过/失败/未执行：通过。
+  真实/模拟：真实执行；账号流程使用测试替身（模拟依赖）。
+  证据路径：本文件 T02；终端输出。
+  缺陷与处理：无。
+
+T03 Web 构建
+  前置与数据：client 工作区；已安装 Web 工具链。
+  准确目录和命令：cd E:/GAMES/APP/PKMON/client；flutter build web --release
+  输入：无。
+  预期：Dart 编译通过并产出 build/web。
+  实际：✓ Built build\web（45.8s）。
+  通过/失败/未执行：通过。
+  真实/模拟：真实执行。
+  证据路径：本文件 T03；build/web 产物（未提交）。
+  缺陷与处理：无。
+
+T04 RequestId
+  前置与数据：无外部依赖；随机生成 1000 个 id。
+  准确目录和命令：flutter test test/core/request_id_test.dart
+  输入：RequestId.generate()；RequestIdTracker 连续读取与 reset；注入固定生成器。
+  预期：满足小写 UUID v4；1000 个不重复；重试复用；reset 后换新。
+  实际：5 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：真实执行（纯单元测试）。
+  证据路径：client/test/core/request_id_test.dart；本文件 T04。
+  缺陷与处理：无。
+
+T05 会话存储与 TokenProvider
+  前置与数据：InMemorySessionStore；预置 LoginResult。
+  准确目录和命令：flutter test test/features/auth/session_store_test.dart
+  输入：save/load/clear；SessionTokenProvider.current()。
+  预期：token 与 generation 正确；清除后返回 null。
+  实际：3 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟存储替身。
+  证据路径：client/test/features/auth/session_store_test.dart；本文件 T05。
+  缺陷与处理：无。
+
+T06 AuthController 登录
+  前置与数据：FakeAuthApi、BlockingAuthApi、UnavailableAuthApi；空 store。
+  准确目录和命令：flutter test test/features/auth/auth_controller_test.dart
+  输入：正确口令；40101；空输入；并发两次 login；不可用端口。
+  预期：成功存会话并 signedIn；失败统一提示且不存；空输入不发请求；并发只发一次；不可用显式报错。
+  实际：5 个登录相关测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟（Fake/替身端口，无真实 HTTP）。
+  证据路径：client/test/features/auth/auth_controller_test.dart；本文件 T06。
+  缺陷与处理：初版登录失败后状态停留 unknown，已改为 signedOut；复测通过。
+
+T07 会话恢复 / 退出 / 401
+  前置与数据：store 预置有效或过期会话；固定时钟 2026-10-31T12:00Z；FakeAuthApi 可抛网络错误。
+  准确目录和命令：flutter test test/features/auth/auth_controller_test.dart
+  输入：restore；logout（成功/远端失败）；handleUnauthorized。
+  预期：有效→signedIn；空/过期→signedOut；退出与 401 清会话和缓存。
+  实际：6 个相关测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟（内存存储 + Fake 端口）。
+  证据路径：client/test/features/auth/auth_controller_test.dart；本文件 T07。
+  缺陷与处理：无。
+
+T08 注册规则
+  前置与数据：FakeAuthApi；可注入 40901；昵称 21 字、用户名 25 字。
+  准确目录和命令：flutter test test/features/auth/auth_controller_test.dart
+  输入：合法注册；重名；超长昵称；超长用户名。
+  预期：成功不自动登录并提示；冲突提示占用；超长不发请求。
+  实际：4 个相关测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟（无注册页面、无真实接口）。
+  证据路径：client/test/features/auth/auth_controller_test.dart；本文件 T08。
+  缺陷与处理：无。
+
+T09 公共状态组件
+  前置与数据：LoadingView / ErrorView / EmptyView。
+  准确目录和命令：flutter test test/widgets/state_views_test.dart
+  输入：加载文案；有/无重试回调；空态动作。
+  预期：文案正确；仅在有回调时显示重试；动作回调一次。
+  实际：4 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：真实组件渲染。
+  证据路径：client/test/widgets/state_views_test.dart；本文件 T09。
+  缺陷与处理：无。
+
+T10 LoginPage
+  前置与数据：LoginPage + FakeAuthApi/BlockingAuthApi；360×800 视口。
+  准确目录和命令：flutter test test/features/auth/login_page_test.dart
+  输入：骨架文案检查；空输入；错误口令；提交中；小屏滚动；演示按钮。
+  预期：说明齐全；空输入不发请求；错误统一提示；提交禁用；无溢出；演示回调一次。
+  实际：6 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟账号端口；页面真实渲染。
+  证据路径：client/test/features/auth/login_page_test.dart；本文件 T10。
+  缺陷与处理：无。
+
+T11 AppGate
+  前置与数据：注入测试控制器与 homeBuilder（Text('HOME')），避免 HomeShell 联网。
+  准确目录和命令：flutter test test/features/auth/app_gate_test.dart
+  输入：冷启动；演示；登录成功；过期会话；401。
+  预期：首帧恢复中；无会话进登录；演示不写 store；登录进 HOME；过期/401 回登录。
+  实际：5 个测试全部通过。
+  通过/失败/未执行：通过。
+  真实/模拟：模拟（Fake 端口 + 替身首页）。
+  证据路径：client/test/features/auth/app_gate_test.dart；本文件 T11。
+  缺陷与处理：无。
+
+T12 App 冒烟
+  前置与数据：const PkmonApp()；默认 UnavailableAuthApi + 空 store。
+  准确目录和命令：flutter test test/app_smoke_test.dart
+  输入：启动 App 并 settle。
+  预期：停在登录页，显示骨架说明，不联网。
+  实际：1 个测试通过。
+  通过/失败/未执行：通过。
+  真实/模拟：真实入口组件；账号端口为不可用替身。
+  证据路径：client/test/app_smoke_test.dart；本文件 T12。
+  缺陷与处理：无。
+
+T13 真实账号联调（未执行）
+  前置与数据：需要服务端 /api/v1/auth/register、login、logout 与 /users/me。
+  准确目录和命令：未执行（grep server/src/main/java 无上述路径）。
+  输入：无。
+  预期：按接口契约完成真实注册/登录/退出/me。
+  实际：服务端接口不存在，未发起真实请求。
+  通过/失败/未执行：未执行。
+  真实/模拟：未执行。
+  证据路径：本文件 T13；design/interfaces.json 的 endpoints（implemented=false）。
+  缺陷与处理：依赖闫昕/冉昕霖落地服务端账号接口；客户端 HttpAuthApi 与 SessionTokenProvider 已就绪。
+
+文档校验
+  命令：python 读取 interfaces.json；csv.reader 校验两个 CSV 表头与列宽。
+  实际：json-ok；analysis-to-design 6 列 12 行；test-cases 8 列 20 行。
+  判定：通过。
+依赖变更
+  命令：git diff -- client/pubspec.yaml client/pubspec.lock
+  实际：新增 geolocator ^14.1.2、permission_handler ^13.0.2；无其他直接依赖升级。
+  判定：符合赵冠钧的依赖需求；代码尚未调用定位插件，RealLocationProvider 未实现。

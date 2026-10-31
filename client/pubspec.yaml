@@ -37,6 +37,8 @@ dependencies:
 
   # 调后端接口用（Demo 后端是本地的 Spring Boot 服务）
   http: ^1.5.0
+  geolocator: ^14.1.2
+  permission_handler: ^13.0.2
 
 dev_dependencies:
   flutter_test:
