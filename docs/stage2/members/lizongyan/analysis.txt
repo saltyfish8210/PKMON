@@ -1,43 +1,59 @@
-状态：完善
+状态：已填写
 作者：李宗晏
-目标与范围：覆盖两个核心功能中第二项“答题捕获与精灵收录”的需求到测试对应关系，优先分析其真实完整流程：开发遭遇 → 发起挑战 → 答题 → 判题结算 → 捕获记录持久化 → 收藏/图鉴查询。遭遇部分允许明确模拟，判题、结算、存储、查询按真实实现分析。
+目标与范围：
+本文件覆盖第二阶段两项核心功能的分析：①自习任务与精灵遭遇；②答题捕获与精灵收录。本人负责测试视角：需求到测试的对应关系、自动测试与完整功能测试。本阶段优先分析第二项“答题捕获与精灵收录”的真实完整流程；范围不含全面性能压测。
 
 当前源码与实际能力：
+已核对：通过阅读 README 与源码目录，确认存在 client/（Flutter前端）、server/（Spring Boot后端）、scripts/（一键构建脚本）。
+实际运行与能力边界：
 1. 环境配置：本机已成功配置 Java 17.0.20.1 与 Flutter 3.35.5。
 2. 后端启动：在 server 目录下使用 Maven 打包并运行 java -jar，成功启动服务，监听 4180 端口。
-3. 接口连通性：GET /test/hello 返回 "hello world"；POST /api/v1/demo/sessions 和 /explore 成功建立会话并返回 nearby=True，证明服务端真实可用。
-4. 核心能力缺陷：尝试获取题目 POST /api/v1/capture/challenge 时，服务端返回 401 未经授权。说明演示版接口（可能依赖 Bearer Token）与演示用 X-Demo-Session 鉴权机制不兼容。
-5. 前端构建能力：一键构建脚本失败，因为前端 pubspec.yaml 限制 Dart SDK ^3.13.5，当前环境（3.9.2）无法满足。
+3. 接口连通性：GET /test/hello 返回 "hello world"；POST /api/v1/demo/sessions 和 /explore 成功建立会话并返回 nearby=True。
+4. 核心能力缺陷：前端 pubspec.yaml 限制 Dart SDK ^3.13.5，本地环境无法一键构建前端；官方 README 缺失取题接口的 `/demo` 层级路径，导致测试初期返回 401 未经授权（查源码后已修正并跑通）。
 
-参与者和业务对象：参与者：User（userld）、客户端、CaptureController/CaptureService（捕获规则、接口、存储与查询）、Challenge/AnswerAttempt/CaptureRecord、Species（业务键 siege_lion）、Spawn（允许模拟）。
-业务对象与统一名称：Challenge/challenged、AnswerAttempt/requestld、CaptureRecord/captureRecordld、Species/speciesld、Spawn/spawnld、User/userld。
-正常流程：注册/登录取得 token（POST /api/v1/auth/register、/login）；
-开发遭遇创建（POST /api/v1/dev/spawns，regionId、speciesId）；
-发起挑战（POST /api/v1/capture/challenge，spawnId）→ 返回 challenged、题目与选项（选项只含 optionId/text，不含 correctOptionId）；
-提交作答（POST /api/v1/capture/answer，challenged、requestId、optionId）→ 返回 result、captureRecordId；
-状态查询（GET /api/v1/capture/challenges/{challenged}）确认 CAPTURED；
-收藏/图鉴查询（GET /api/v1/collection/summary、/api/v1/dex、/api/v1/species/{speciesId}、/api/v1/captures）确认收录；
-重启后再次查询，捕获记录仍只有一条。
+参与者和业务对象：
+参与者：测试用户（通过 X-Demo-Session 模拟）。
+业务对象：Session（演示会话）、Spawn（遭遇，如 library-001）、Challenge（题目）、CaptureRecord（捕获结果）。
+状态：Challenge（OPEN/CAPTURED）、Demo State（count、captured、nearby）。
 
-异常流程：
-1. 鉴权异常（已实测）：
-   - 动作：仅携带演示会话 X-Demo-Session 请求 POST /api/v1/capture/challenge。
-   - 实际结果：HTTP 401 未经授权。
-   - 分析：导致答题主流程中断，无法获取 challengeId。
-2. 答错题异常（未实测，因主流程被阻断）：
-   - 预期：提交错误选项后，状态 captured 应为 False，count 应为 0，允许重新挑战。
-3. 越权访问（未实测，因无多用户环境）：
-   - 预期：使用用户 A 的 Session 去查询用户 B 的状态或题目，应被拒绝。
-4. 参数缺失（未实测）：
-   - 预期：不传 spawnId 或 optionId 直接请求，服务端应返回 400 参数错误。
+正常流程（已实测跑通）：
+建立会话（POST /api/v1/demo/sessions）→ 探索（POST /api/v1/demo/explore）→ 获取题目（POST /api/v1/demo/capture/challenge，传入 library-001）→ 提交正确答案（POST /api/v1/demo/capture/answer，optionId=A）→ 查询状态（GET /api/v1/demo/state）成功返回 captured:True, count:1。
 
-前置与后置条件：前置：专用测试数据库与两名隔离测试用户；服务已启动且记录提交号；所需模块交接提交已包含，否则记未执行。
-后置：每次测试保存输入、预期、实际、证据；失败录入 docs/stage2/quality/defects.csv；区分通过/失败/未执行，模拟不计真实持久化、权限隔离或完整定位验证。
+异常流程（已实测）：
+1. 鉴权与路径异常：按 README 缺失 /demo 的路径请求取题，服务端返回 401 未经授权。修正路径后可正常跑通。
+2. 无鉴权访问拦截：不携带 X-Demo-Session 请求探索接口，服务端正确拦截并返回 HTTP 400。
+3. 非法参数拦截：传入非法 spawnId（如 invalid-999），服务端正确拦截并返回。
+4. 答错题异常：提交错误选项 B 后，查询状态返回 captured=False, count=0，符合预期。
+5. 越权访问（未执行）：由于演示版使用 X-Demo-Session 隔离，未包含跨用户资源访问 API，标记为未执行。
 
-对其他作者的依赖需求：孙虹毅：捕获规则、接口、存储与查询、userid+spawnld 唯一约束与事务；需其接口/字段确认；
-冉昕霖：网络层与捕获页面，调用同一接口，缺功能交主责；
-胡豪：数据库类型/版本、初始化、端口、URL、profile、变量名及不含秘密的示例；
-余星晨：客户端依赖/锁文件、公共界面；
-闫昕：账号认证与总体需求；
-董欣毓：任务状态与任务接口（与自习任务相关部分）；
-尚未确定项与影响：异常流程有待进一步测试
+前置与后置条件：
+前置：JDK 17+、Flutter 3.x、后端服务在 4180 端口启动。
+后置：每次测试保存实际运行命令与结果截图；发现的缺陷录入 questions.csv；真实/模拟/未执行分开标注。
+
+本人分析图索引与说明：
+analysis/diagrams/答题捕获顺序图.puml 与同名 PNG：建会话→模拟遭遇→取题→作答→查询的正常与关键异常分支。
+（注：由于本机绘图工具环境受限，图形源文件待补，当前以文本用例与断言为准）。
+
+两个核心功能的验收条件：
+1. 正常流程：探索后获取题目，提交 optionId="A"，查询状态预期 captured=True, count=1。
+2. 异常流程：未携带 Session 访问受保护接口，预期返回 400/401；错误选项预期不增加 count（captured=False, count=0）。
+3. 当前执行状态：健康检查、探索、修正路径后的捕获主流程（答对/答错）均已通过；无 Session 和非法参数拦截测试通过。
+
+需求与测试的对应关系：
+| 需求 | 对应测试动作 | 预期结果 | 实际执行状态 |
+|---|---|---|---|
+| 用户能通过探索遇到精灵 | POST /api/v1/demo/explore | 接口成功返回 nearby=True | 通过 |
+| 用户答对题后图鉴收录 | 提交选项A，查 /api/v1/demo/state | captured=True, count=1 | 通过（修正路径后） |
+| 用户答错不收录 | 提交错误选项，查状态 | captured=False, count=0 | 通过 |
+| 服务能正常存活 | GET /test/hello | 返回 hello world | 通过 |
+| 未携带会话访问受保护接口 | 不带 X-Demo-Session 请求 /explore | 返回 400 拒绝访问 | 通过 |
+
+对其他作者的依赖需求：
+胡豪：提供详细的 JDK 17+ 和 Flutter 环境配置指南。
+余星晨：放宽前端 pubspec.yaml 的 Dart SDK 版本限制。
+孙虹毅：修正 README 中 capture 接口路径缺失 /demo 的问题。
+
+尚未确定项与影响：
+1. 前端构建失败→ 无法测试前端UI联调 → 已通过接口层完成核心验收。
+2. README 接口路径错误 误导测试导致 401 阻塞 → 已找到正确路径并跑通。
+3. 无数据库持久化 → 无法测试重启持久化 → 标为未执行。
