@@ -5,7 +5,7 @@
 任务分支：feature/dongxinyu-study
 开 PR：无（直接推 main）
 实现成果版本（源码、测试、接口状态、证据；本交接记录回填该号）：86658e6
-main成果合入提交号：（本次推送后回填）
+main成果合入提交号：b2d30aa（与 feature/dongxinyu-study 同一提交，2026-11-01 推送）
 所用输入源码/仓库提交：bc39d04（main，含本人 design）
 
 材料路径：
