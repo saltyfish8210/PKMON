@@ -1,0 +1,11 @@
+分析对象或规则,设计对象或方法,变化理由,图路径,代码路径,对应测试
+StudyTask 记录一次任务,DwellState 与 StudyTask 分离,规则只关心状态；用户与请求号属于聚合与存储,design/diagrams/驻留规则设计类图.puml,edu.pkmon.study.domain.DwellState,TC-S01
+有效停留判定,DwellEvaluator.onSample 纯函数,不读系统时钟与仓库，可用固定 Instant 验证边界,design/diagrams/驻留规则设计类图.puml,edu.pkmon.study.domain.DwellEvaluator,TC-S02 TC-S03 TC-S04
+失联暂停,DwellEvaluator.onTick 并在 current 查询时调用,没有新样本也要能暂停，不依赖调度器,design/diagrams/驻留状态图（设计）.puml,edu.pkmon.study.domain.DwellEvaluator,TC-S09 TC-S10
+任务用例编排,StudyTaskService + DwellStudyTaskService,端口化存储与遭遇，第三阶段只换实现,design/diagrams/位置样本处理顺序图.puml,edu.pkmon.study.service.DwellStudyTaskService,TC-S19 TC-S20
+一次任务最多一次遭遇,TRIGGERED 时调用 SpawnGateway 并回填 spawnId,并发下页面禁用不足以保证唯一,design/diagrams/任务触发顺序图.puml,edu.pkmon.study.service.DwellStudyTaskService,TC-S21
+样本拒绝语义,RejectionReason + sampleAccepted,契约要求 HTTP200 返回原因而不是报错,design/diagrams/位置样本处理顺序图.puml,edu.pkmon.study.domain.RejectionReason,TC-S13
+规则参数集中管理,StudyRulesProperties → DwellRules,客户端不能指定阈值；测试与正式只差 requiredSeconds,design/diagrams/驻留规则设计类图.puml,edu.pkmon.study.config.StudyRulesProperties,TC-S04
+任务对外字段,TaskView,与赵冠钧 TaskSnapshot 逐字段一致,design/diagrams/自习任务包图.puml,edu.pkmon.study.dto.TaskView,TC-S19
+错误码分层,TaskException(httpStatus、code),控制器只做映射；规则层不出现 HTTP,design/diagrams/自习任务包图.puml,edu.pkmon.study.error.TaskException,TC-S20 TC-S23
+区域与距离,Region + Geo,区域是规则输入；距离按 haversine 计算,design/diagrams/驻留规则设计类图.puml,edu.pkmon.study.domain.Geo,TC-S18

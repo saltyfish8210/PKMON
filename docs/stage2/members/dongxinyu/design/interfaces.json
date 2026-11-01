@@ -1,0 +1,184 @@
+{
+  "owner": "dongxinyu",
+  "stage": "stage2",
+  "module": "study",
+  "version": "design-2026-11-01",
+  "designedVersion": "design-2026-10-28",
+  "status": "design_only",
+  "statusNote": "本文件是自习任务与驻留触发的设计契约：字段、错误码、签名、规则参数与未实现项。规则原型已在本机用 20 个测试验证，但仓库内尚未提交 edu.pkmon.study 代码，控制台接口未实现，implemented=false。10/31 foundation 提交骨架后再把 status 改为 skeleton。",
+  "conventions": {
+    "baseUrl": "http://127.0.0.1:4180",
+    "businessPrefix": "/api/v1",
+    "auth": "正式：Authorization: Bearer <token>（闫昕交付）；开发/测试：沿用 capture 的 X-Dev-User 请求头替身，仅在 dev/test profile 开放。控制器只接受 CurrentUser 解析出的 userId，任何请求体都不接受 userId。",
+    "successEnvelope": {"code": 0, "message": "ok", "data": {}},
+    "errorEnvelope": {"code": 40001, "message": "参数错误", "data": null},
+    "fieldCase": "lowerCamelCase",
+    "timeFormat": "UTC ISO 8601，界面展示转北京时间",
+    "idFormat": "运行时实体 UUID 字符串；regionId、sourceType 为业务键",
+    "coordinates": "只接收 GCJ02；坐标系不确定时拒绝，不静默标记",
+    "serverTime": "响应 data.serverTime 为服务端当前时间，客户端不得用它替代本地计时"
+  },
+  "errorCodes": [
+    {"code": 0, "httpStatus": 200, "meaning": "成功"},
+    {"code": 40001, "httpStatus": 400, "meaning": "参数错误：缺失/非法字段（经纬度越界、uuid 格式错误等）"},
+    {"code": 40101, "httpStatus": 401, "meaning": "未提供可用身份"},
+    {"code": 40401, "httpStatus": 404, "meaning": "任务或区域不存在，或不属于当前用户（不泄露归属）"},
+    {"code": 40902, "httpStatus": 409, "meaning": "同一 requestId/sampleId 携带了不同内容"},
+    {"code": 40903, "httpStatus": 409, "meaning": "当前状态不允许该操作：任务已结束、区域未启用"},
+    {"code": 40904, "httpStatus": 409, "meaning": "同用户同区域仍在冷却期（1800 秒）"},
+    {"code": 50001, "httpStatus": 500, "meaning": "服务错误"}
+  ],
+  "taskViewFields": {
+    "taskId": "UUID",
+    "regionId": "业务键，如 library_entrance",
+    "status": "WAITING|DWELLING|PAUSED|TRIGGERED|ENDED",
+    "pauseReason": "null|OUTSIDE|NO_SIGNAL",
+    "effectiveSeconds": "非负整数，服务端权威",
+    "requiredSeconds": "正整数，来自配置（正式 600，测试 60）",
+    "spawnId": "UUID 或 null；只有 TRIGGERED 后非空",
+    "serverTime": "UTC ISO 8601"
+  },
+  "rejectionReasons": [
+    {"value": "FUTURE_SAMPLE", "meaning": "采样时间超前服务器超过 5 秒"},
+    {"value": "SAMPLE_TOO_OLD", "meaning": "采样时间早于服务器 30 秒以上"},
+    {"value": "LOW_ACCURACY", "meaning": "精度大于 50 米"},
+    {"value": "UNSUPPORTED_COORDINATE_SYSTEM", "meaning": "坐标系不是 GCJ02"},
+    {"value": "DUPLICATE_SAMPLE", "meaning": "同一任务内 sampleId 重复且内容一致"},
+    {"value": "OUT_OF_ORDER", "meaning": "采样时间不晚于上一条合格样本"},
+    {"value": "TASK_ENDED", "meaning": "任务已结束"}
+  ],
+  "rules": {
+    "enterRadiusMeters": 80,
+    "exitRadiusMeters": 100,
+    "maxAccuracyMeters": 50,
+    "maxSampleAgeSeconds": 30,
+    "maxFutureSkewSeconds": 5,
+    "maxSampleGapSeconds": 30,
+    "requiredSeconds": 600,
+    "testRequiredSeconds": 60,
+    "cooldownSeconds": 1800,
+    "dwellStart": "第二条连续合格样本确认 DWELLING，从第二条时刻开始累计，首条不追算",
+    "accumulate": "前后两条合格样本都在退出半径内且间隔不超过 30 秒才累计该间隔；缓冲带（80-100 米）保持已确认状态并累计",
+    "outside": "首次超出 100 米不暂停且该段不累计；连续第二次转 PAUSED/OUTSIDE",
+    "noSignal": "距最后合格样本超过 30 秒，由 current 查询或 tick 推进 PAUSED/NO_SIGNAL，不依赖新样本",
+    "resume": "恢复需要两条连续合格样本；已认可时长保留，暂停区间不补算",
+    "triggerOnce": "达到阈值只生成一个 spawnId；之后状态与时长固定",
+    "rounding": "有效时长按整秒向下取整"
+  },
+  "interfaces": [
+    {
+      "method": "POST",
+      "path": "/api/v1/study/tasks",
+      "name": "开始自习任务",
+      "implemented": false,
+      "request": {
+        "regionId": "library_entrance",
+        "requestId": "<UUID>",
+        "locationSource": "GPS|SIMULATED"
+      },
+      "response": {
+        "taskId": "<UUID>",
+        "regionId": "library_entrance",
+        "status": "WAITING",
+        "pauseReason": null,
+        "effectiveSeconds": 0,
+        "requiredSeconds": 600,
+        "spawnId": null,
+        "serverTime": "2026-11-01T02:00:00Z"
+      },
+      "errors": ["40001", "40101", "40401", "40902", "40903", "40904"],
+      "notes": "同用户已有活动任务时返回该任务（不新建）；同 requestId 幂等；SIMULATED 仅 dev/test。"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/samples",
+      "name": "提交位置样本",
+      "implemented": false,
+      "request": {
+        "sampleId": "<UUID>",
+        "latitude": 39.9042,
+        "longitude": 116.4074,
+        "accuracyMeters": 10.0,
+        "sampledAt": "2026-11-01T02:00:10Z",
+        "coordinateSystem": "GCJ02",
+        "source": "GPS|SIMULATED"
+      },
+      "response": {
+        "taskId": "<UUID>",
+        "regionId": "library_entrance",
+        "status": "DWELLING",
+        "pauseReason": null,
+        "effectiveSeconds": 20,
+        "requiredSeconds": 600,
+        "spawnId": null,
+        "serverTime": "2026-11-01T02:00:10Z",
+        "sampleAccepted": true,
+        "rejectionReason": null
+      },
+      "errors": ["40001", "40101", "40401", "40902", "40903"],
+      "notes": "不合格样本返回 HTTP200 + sampleAccepted=false + rejectionReason；同 sampleId 内容一致返回当前视图不累计，内容不同 40902。"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/study/tasks/current",
+      "name": "查询当前任务",
+      "implemented": false,
+      "request": {},
+      "response": {"task": "TaskView 或 null"},
+      "errors": ["40101"],
+      "notes": "查询时执行失联判定（onTick），状态变化则落库后返回。"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/study/tasks/{taskId}/end",
+      "name": "结束自习任务",
+      "implemented": false,
+      "request": {"requestId": "<UUID>"},
+      "response": {
+        "taskId": "<UUID>",
+        "regionId": "library_entrance",
+        "status": "ENDED",
+        "pauseReason": null,
+        "effectiveSeconds": 20,
+        "requiredSeconds": 600,
+        "spawnId": null,
+        "serverTime": "2026-11-01T02:00:20Z"
+      },
+      "errors": ["40001", "40101", "40401"],
+      "notes": "重复结束返回同一最终状态；结束后同区域 1800 秒冷却。"
+    }
+  ],
+  "signatures": [
+    {"class": "edu.pkmon.study.domain.DwellEvaluator", "signature": "DwellDecision onSample(DwellState, Region, LocationSample, Instant)"},
+    {"class": "edu.pkmon.study.domain.DwellEvaluator", "signature": "DwellState onTick(DwellState, Instant)"},
+    {"class": "edu.pkmon.study.service.StudyTaskService", "signature": "TaskView startTask(String userId, String regionId, String requestId, String locationSource)"},
+    {"class": "edu.pkmon.study.service.StudyTaskService", "signature": "SampleResult submitSample(String userId, String taskId, LocationSample sample)"},
+    {"class": "edu.pkmon.study.service.StudyTaskService", "signature": "Optional<TaskView> currentTask(String userId)"},
+    {"class": "edu.pkmon.study.service.StudyTaskService", "signature": "TaskView endTask(String userId, String taskId, String requestId)"},
+    {"class": "edu.pkmon.study.port.TaskRepository", "signature": "Optional<StudyTask> findActiveByUser(String userId) 等 9 个方法"},
+    {"class": "edu.pkmon.study.port.SpawnGateway", "signature": "String createStudySpawn(String userId, String regionId, String taskId, Instant now)"}
+  ],
+  "dependencies": [
+    {"owner": "yanxin", "item": "CurrentUser / 40101：控制器从认证上下文取 userId", "status": "约定"},
+    {"owner": "zhaoguanjun", "item": "StudyApi/TaskSnapshot 字段与本文件 TaskView 对齐；客户端只展示服务端 effectiveSeconds", "status": "已对齐"},
+    {"owner": "sunhongyi", "item": "SpawnGateway 创建 STUDY 来源遭遇；spawn(task_id) 唯一；当前只有 /dev/spawns（DEV），STUDY 不新增对外路由", "status": "待确认"},
+    {"owner": "huhao", "item": "study_task、task_sample 建表与索引；配置注入方式", "status": "待确认"},
+    {"owner": "lizongyan", "item": "按 design/test-cases.csv 复测", "status": "待交付"}
+  ],
+  "switches": [
+    {"key": "pkmon.study.rules.required-seconds", "default": 600, "note": "测试 profile 覆盖为 60"},
+    {"key": "pkmon.study.rules.enter-radius-meters", "default": 80},
+    {"key": "pkmon.study.rules.exit-radius-meters", "default": 100},
+    {"key": "pkmon.study.rules.max-accuracy-meters", "default": 50},
+    {"key": "pkmon.study.rules.max-sample-gap-seconds", "default": 30},
+    {"key": "pkmon.study.rules.cooldown-seconds", "default": 1800},
+    {"key": "pkmon.study.simulated-enabled", "default": "dev/test 开启，其余关闭", "note": "关闭时 locationSource=SIMULATED 返回 40903"}
+  ],
+  "unimplemented": [
+    "StudyController 与请求 DTO 校验（本轮只设计）",
+    "JdbcTaskRepository 与迁移（胡豪）",
+    "SpawnGateway 的真实实现（孙虹毅）",
+    "数据库唯一约束验证与并发触发测试",
+    "真机定位与客户端联调"
+  ]
+}

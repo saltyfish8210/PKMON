@@ -1,0 +1,24 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+title 驻留状态图（设计，含事件、监护条件与动作）
+
+[*] --> WAITING : 用户开始任务 / 创建 StudyTask
+WAITING --> WAITING : 第一条合格样本 / insideCount=1
+WAITING --> DWELLING : 第二条连续合格样本且距离不超过80m / 开始计时，首条不追算
+DWELLING --> DWELLING : 前后样本均在100m内且间隔不超过30秒 / effectiveSeconds 累加间隔
+DWELLING --> DWELLING : 首次超出100m / outsideCount=1，该段不累计
+DWELLING --> PAUSED : 连续第二次超出100m / pauseReason=OUTSIDE
+DWELLING --> PAUSED : 距最后合格样本超过30秒（tick） / pauseReason=NO_SIGNAL
+DWELLING --> TRIGGERED : effectiveSeconds 达到 requiredSeconds / 产出 spawnId，只触发一次
+PAUSED --> PAUSED : 样本仍不在进入半径内 / 不累计
+PAUSED --> DWELLING : 两条连续合格样本回到进入半径内 / 清除 pauseReason，不补算
+TRIGGERED --> TRIGGERED : 继续提交样本 / 状态与时长固定
+WAITING --> ENDED : 用户结束
+DWELLING --> ENDED : 用户结束
+PAUSED --> ENDED : 用户结束
+TRIGGERED --> ENDED : 用户结束
+ENDED --> [*]
+@enduml

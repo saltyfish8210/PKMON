@@ -1,0 +1,56 @@
+设计阶段技术探路记录（evidence/design-probe.txt）
+作者：董欣毓
+日期：2026-11-01
+阶段：第二阶段 design（10/25-10/28，补交）
+
+一、目的与边界
+
+本阶段交付设计，不交仓库内代码。为证明"设计中的规则可实现且边界可验证"，先在本机用独立工程实现规则原型并跑通测试；
+仓库内 edu.pkmon.study 的骨架与控制器按 10/31 foundation、11/01-11/05 implementation 提交。本文只记录真实执行过的命令与结果，
+不把原型当成"仓库已实现"。
+
+二、原型位置
+
+D:\work\PKMon-deliverable\verify（Maven 工程，源目录指向同目录 repo/server/src/main/java）
+类：DwellEvaluator、DwellState、DwellRules、DwellDecision、LocationSample、Region、Geo、DwellStudyTaskService、TaskRepository、SpawnGateway、TaskView、SampleResult、TaskException、StudyTaskService
+测试：DwellEvaluatorTest（14）、DwellStudyTaskServiceTest（6）
+
+注意：原型包名是 edu.pkmon.trigger；设计定稿把模块包改为 edu.pkmon.study 以对齐仓库的 capture/common 模块布局，
+类名与方法签名不变。搬进仓库时只改 package 与目录，不改签名。
+
+三、实际命令与结果（2026-11-01 12:20 北京时间）
+
+命令：
+  cd D:\work\PKMon-deliverable\verify
+  mvn -B clean test
+
+结果：
+  Tests run: 14, Failures: 0, Errors: 0, Skipped: 0 -- DwellEvaluatorTest
+  Tests run: 6,  Failures: 0, Errors: 0, Skipped: 0 -- DwellStudyTaskServiceTest
+  Tests run: 20, Failures: 0, Errors: 0, Skipped: 0
+  BUILD SUCCESS
+
+环境：
+  Windows 11 / OpenJDK 17.0.19 / Apache Maven 3.9.9 / JUnit 5.10.2
+
+四、关键断言（与 design/test-cases.csv 对应）
+
+TC-S03 59 秒不触发：样本 0/10/20/30/40/50/60/69 秒 → effectiveSeconds=59、DWELLING、triggered=false
+TC-S04 70 秒触发：再提交 70 秒样本 → effectiveSeconds=60、TRIGGERED、triggeredNow=true
+TC-S05 71 秒固定：再提交 71 秒样本 → 仍 60 秒、triggeredNow=false、accumulated=0
+TC-S10/11 tick：40 秒不暂停；41 秒 → PAUSED/NO_SIGNAL
+TC-S12 恢复：62 秒仍在 PAUSED，72 秒转 DWELLING，effectiveSeconds 保持 20
+TC-S07/08 越界：110 米第一条 outsideCount=1 且不累计；第二条 PAUSED/OUTSIDE
+TC-S23 一次性遭遇：0-90 秒共 11 条样本，SpawnGateway 只被调用 1 次
+
+五、未执行（不得计入通过）
+
+1. Spring MVC 层：控制器未实现，TC-S28 未执行。
+2. 数据库唯一约束与并发：TC-S29 未执行（需要胡豪的迁移与 MySQL）。
+3. 真机定位与客户端联调：TC-S30 未执行。
+4. 仓库内编译：edu.pkmon.study 尚未提交，pnpm/mvn 在仓库内的编译结果未产生。
+
+六、结论
+
+规则设计与边界实现可行，测试覆盖 59/60/61、缓冲带、越界、失联、恢复、拒绝原因、一次性触发、幂等与冷却。
+设计与代码的差距（控制器、JDBC、真实遭遇、真机）在 design.txt 第十节与本文件第五节列明。
