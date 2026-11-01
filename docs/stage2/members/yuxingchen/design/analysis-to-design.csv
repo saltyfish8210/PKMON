@@ -1,0 +1,13 @@
+分析对象或规则,设计对象或方法,变化理由,图路径,代码路径,对应测试
+"登录用况","LoginPage→AuthController.login→AuthApi.login→SessionStore.save","登录成功先保存会话再进入主界面；失败不保存","../analysis/diagrams/05-登录-顺序图.png","client/lib/features/auth/login_page.dart; client/lib/features/auth/auth_controller.dart","登录 成功：保存会话并进入已登录"
+"注册用况","AuthController.register；LoginPage 显示注册后置说明","本阶段不做注册页，保留契约，不放无效按钮","../analysis/diagrams/03-账号与公共入口-用例图.png","client/lib/features/auth/auth_controller.dart; client/lib/data/api/auth_api.dart","注册 成功不自动登录，只提示请登录"
+"会话恢复","AuthController.restore + SessionStore.load + expiresAt 判断","启动先恢复本地会话，过期即清除，不伪造服务端校验","../analysis/diagrams/04-账号会话-状态图.png","client/lib/features/auth/auth_controller.dart; client/lib/features/auth/app_gate.dart","首帧显示恢复中，无会话进入登录页"
+"退出与切换账号","AuthController.logout + SessionStore.clear + onClearCache","远端失败也必须清本地，切换账号要清业务缓存","../analysis/diagrams/04-账号会话-状态图.png","client/lib/features/auth/auth_controller.dart; client/lib/features/auth/session_store.dart","退出成功：清会话、清缓存、回登录态"
+"会话失效/401","AuthController.handleUnauthorized","统一清会话、清缓存并回登录态，不各页各写","../analysis/diagrams/04-账号会话-状态图.png","client/lib/features/auth/auth_controller.dart","401 统一处理：清会话并回登录态"
+"公共加载/错误/空状态","LoadingView、ErrorView、EmptyView","统一展示，不判断登录或业务规则","../analysis/diagrams/07-客户端公共入口-包图.png","client/lib/widgets/loading_view.dart; client/lib/widgets/error_view.dart; client/lib/widgets/empty_view.dart","加载态显示进度与说明"
+"RequestId 重试复用","RequestId.generate + RequestIdTracker","一次业务操作只生成一次，重试复用，reset 后才换新","../analysis/diagrams/05-登录-顺序图.png","client/lib/core/request_id.dart","重试复用同一个 id"
+"入口导航门禁","AppGate + main.dart 接线","无会话进登录页；演示只置本地标志，不保存会话","../analysis/diagrams/07-客户端公共入口-包图.png","client/lib/features/auth/app_gate.dart; client/lib/main.dart","进入演示不创建也不保存会话"
+"防重复提交","AuthController 的 busy 守卫 + 登录按钮禁用","一次点击只发一次请求，避免重复登录","../analysis/diagrams/05-登录-顺序图.png","client/lib/features/auth/auth_controller.dart; client/lib/features/auth/login_page.dart","连续点击只发一次请求"
+"小屏与键盘布局","LoginPage 的 SafeArea + SingleChildScrollView","360×800 与键盘弹出时不溢出","../analysis/diagrams/03-账号与公共入口-用例图.png","client/lib/features/auth/login_page.dart","小屏可滚动且不溢出"
+"登录失败提示","AuthController._messageFor(unauthorized)","不区分账号不存在与口令错误，统一文案","../analysis/diagrams/05-登录-顺序图.png","client/lib/features/auth/auth_controller.dart","错误口令：统一提示且不保存会话"
+"未接入账号接口","UnavailableAuthApi","服务端无账号接口时显式报错，不伪造成功","../analysis/diagrams/07-客户端公共入口-包图.png","client/lib/features/auth/unavailable_auth_api.dart","不可用接口返回明确错误，不伪造成功"

@@ -1,0 +1,21 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+title 自习任务包图（设计）
+package "auth（闫昕）" as auth
+package "location（赵冠钧）" as location
+package "trigger（董欣毓）" as trigger
+package "spawn / capture（孙虹毅）" as spawn
+package "storage / migration（胡豪）" as storage
+package "web / client（冉昕霖、赵冠钧）" as web
+
+web ..> trigger : 调用 study 接口
+trigger ..> auth : 使用 userId 与 40101
+trigger ..> location : 使用 LocationSample、Region 定义
+trigger ..> spawn : SpawnGateway 创建 STUDY 遭遇
+trigger ..> storage : TaskRepository 由 JDBC 实现
+storage ..> spawn : spawn.task_id 外键
+@enduml

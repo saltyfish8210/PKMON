@@ -1,0 +1,18 @@
+账号骨架与主线兼容验证
+日期：2026-11-01（北京时间）
+材料负责人：闫昕；本次构建与测试执行：Codex 本地工具。
+主线输入：b3374fc590b51dc09158a5ec44d1a4170a4c400f
+账号原型输入：6991b1c21d7cd2cfc8802ecbcbad838f1026ea24
+被测 server Git 树：bf516f4fed848c15b638b8c3983b9173a1433685
+
+验证范围：将最新 main 的公共数据库、自习、捕获与旧 Demo 模块同账号原型合并后，执行整个 server 的测试。
+环境：Java 17.0.20.1、Maven 3.9.11；在 server 目录运行：
+mvn -B -DargLine=-Djdk.attach.allowAttachSelf=true test
+本机另外通过 -Dmaven.repo.local 指向工作区 .tools/m2 缓存。首次受限网络无法下载 JDBC/H2/Flyway 依赖，恢复下载权限后重跑成功。
+实际结果：91 项测试，0 失败、0 错误、0 跳过，BUILD SUCCESS；其中账号 20 项、主线原有模块 71 项。
+结构化结果与各测试类报告：evidence/foundation/summary.json、test-reports.txt。
+
+本轮代码范围：server/src/main/java/edu/pkmon/user/ 与对应测试。
+未改变其他成员的业务源码、客户端和已发布数据库迁移。
+认证核心的注册、登录、当前用户、退出逻辑已有独立测试；运行中的 HTTP 账号接口、成熟密码适配器、数据库仓储及请求身份装配仍待实现。
+不得把本次测试通过写成真实账号、数据库持久化或客户端联调完成。

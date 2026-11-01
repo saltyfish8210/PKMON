@@ -18,3 +18,11 @@
 - 交接记录区分成果提交号与 main 合入号。
 
 若本人后续通读发现事实错误，应更新 analysis.txt 或 questions.csv，并追加本文件修订段落，不得静默覆盖证据。
+
+
+设计轮补充（2026-11-01）
+- 采纳：edu.pkmon.study 模块包、DwellEvaluator 纯函数、TaskRepository/SpawnGateway 端口、
+  四个 study 端点与错误码 40001/40101/40401/40902/40903/40904。
+- 采纳：任务与样本的幂等键（requestId/sampleId）与冷却 1800 秒，沿用 analysis 的规则。
+- 拒绝：把"规则原型 20 个测试通过"写成"仓库已实现"；正文与 evidence 都标注了仓库内未提交。
+- 待确认：孙虹毅的 STUDY 来源遭遇是否新增对外路由；胡豪的 study_task 迁移编号。

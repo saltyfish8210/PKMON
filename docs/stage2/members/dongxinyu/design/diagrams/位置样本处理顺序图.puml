@@ -1,0 +1,46 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+title 位置样本处理顺序图（设计）
+actor "客户端" as client
+participant "TaskController" as ctrl
+participant "DwellStudyTaskService" as svc
+participant "DwellEvaluator" as eval
+participant "TaskRepository" as repo
+participant "SpawnGateway" as spawn
+
+client -> ctrl : POST /study/tasks/{id}/samples
+ctrl -> svc : submitSample(userId, taskId, sample)
+svc -> repo : findById(taskId)（行锁）
+alt 任务不存在或不属于该用户
+  svc --> ctrl : TaskException 40401
+else 任务已结束
+  svc --> ctrl : TaskException 40903
+else 合法任务
+  svc -> repo : findSample(taskId, sampleId)
+  alt 同编号内容不同
+    svc --> ctrl : TaskException 40902
+  else 同编号内容一致（重放）
+    svc --> ctrl : SampleResult(sampleAccepted=false, DUPLICATE_SAMPLE)
+  else 新样本
+    svc -> eval : onSample(state, region, sample, now)
+    eval --> svc : DwellDecision
+    svc -> repo : save(task.withState(...))
+    svc -> repo : saveSample(accepted, rejectionReason)
+    opt triggeredNow
+      svc -> spawn : createStudySpawn(userId, regionId, taskId, now)
+      spawn --> svc : spawnId
+      svc -> repo : save(task.withSpawn(spawnId))
+    end
+    svc --> ctrl : SampleResult
+  end
+end
+ctrl --> client : 200 {code:0, message:ok, data}
+note right of eval
+  不读系统时钟、不访问数据库，
+  服务器时间由外部注入。
+end note
+@enduml

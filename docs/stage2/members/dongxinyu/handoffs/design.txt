@@ -1,0 +1,35 @@
+阶段：design（2026-10-25 至 10-28）
+作者：董欣毓
+截止：2026-10-29 04:00（北京时间）；本材料于截止后补交，接收方按实际合入/推送时间读取。
+状态：已合入 main（成果提交 163c21e；main 合入提交号见下行）
+任务分支：design/dongxinyu-stage2
+开 PR：无（直接推 main；若被保护再开 PR）
+设计成果版本（正文、图、接口、测试设计、技术探路；本交接记录回填该号）：b413247
+main成果合入提交号：163c21e（与 design/dongxinyu-stage2 同一提交，2026-11-01 推送）
+所用输入源码/仓库提交：117a706（main，2026-11-01）
+所读他人成果：docs/stage2/members/yanxin/analysis/analysis.txt（§6 共享驻留规则）、docs/stage2/members/zhaoguanjun/design/design.txt（StudyApi/TaskSnapshot）、docs/stage2/members/sunhongyi/design/interfaces.json（/dev/spawns 仅 DEV）、docs/stage2/members/huhao/design/design.txt（模块划分）、docs/stage2/project/decisions.csv
+
+材料路径：
+docs/stage2/members/dongxinyu/design/design.txt
+docs/stage2/members/dongxinyu/design/interfaces.json
+docs/stage2/members/dongxinyu/design/analysis-to-design.csv
+docs/stage2/members/dongxinyu/design/test-cases.csv
+docs/stage2/members/dongxinyu/design/diagram-index.csv
+docs/stage2/members/dongxinyu/design/diagrams/（5×.puml + 5×.png）
+docs/stage2/members/dongxinyu/evidence/design-probe.txt
+docs/stage2/members/dongxinyu/ai/（使用记录与本人采纳记录的设计轮补记）
+
+读者：闫昕读汇总与口径；赵冠钧核对 StudyApi 与 TaskView 字段；胡豪取 study_task/task_sample 字段与索引；孙虹毅确认 SpawnGateway 与 STUDY 来源遭遇；李宗晏按 test-cases.csv 复测。
+
+实际验证：本机 JDK 17.0.19 + Maven 3.9.9 运行规则原型 20 个测试全部通过（evidence/design-probe.txt）；5 张图用 PlantUML 1.2024.8 导出并检查。
+未执行：Spring MVC 层、JDBC 仓库、数据库唯一约束与并发、真机定位、客户端联调。
+
+真实性：设计内容为真实整理；仓库内尚无 edu.pkmon.study 代码（10/31 foundation 提交骨架），interfaces.json 的 implemented=false 已如实标注；规则原型代码不在仓库内，只作为设计可行性证据。
+
+不足与后续：
+1. 需要胡豪确认 study_task、task_sample 的迁移编号与配置注入方式；
+2. 需要孙虹毅确认 STUDY 来源遭遇由 SpawnGateway 内部创建（不新增对外路由），以及 spawn(task_id) 唯一约束；
+3. 包名按仓库布局定为 edu.pkmon.study（指南建议 edu.pkmon.trigger），差异已在 design.txt 第零节说明；
+4. 实现轮（11/01-11/05）提交骨架、控制器与仓库实现，再补 MockMvc 与并发测试。
+
+交接读取方式：更新到含本记录的分支或 main 后，先读 design.txt 与 interfaces.json，再看 diagrams。成果提交号指业务材料提交，不要求包含本 handoffs 文件自身。

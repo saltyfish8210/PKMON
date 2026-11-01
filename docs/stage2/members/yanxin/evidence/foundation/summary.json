@@ -1,0 +1,102 @@
+{
+  "executedOn": "2026-11-01 Asia/Shanghai",
+  "executor": "Codex local tool execution",
+  "mainInput": "b3374fc590b51dc09158a5ec44d1a4170a4c400f",
+  "accountInput": "6991b1c21d7cd2cfc8802ecbcbad838f1026ea24",
+  "testedServerTree": "bf516f4fed848c15b638b8c3983b9173a1433685",
+  "tests": 91,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "name": "edu.pkmon.capture.config.CaptureDefaultProfileHttpTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.capture.config.CaptureDevProfileHttpTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.capture.config.CaptureSwitchTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.capture.service.CaptureServiceTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.common.api.ApiResponseTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.common.CommonFoundationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.common.error.GlobalExceptionHandlerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.demo.DemoServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.study.DwellEvaluatorTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.study.DwellStudyTaskServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.study.StudyControllerTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.pkmon.user.AuthServiceTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "limitations": [
+    "account HTTP not wired",
+    "production password and database adapters not implemented",
+    "client not changed or retested in this merge"
+  ]
+}

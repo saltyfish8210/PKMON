@@ -1,0 +1,82 @@
+状态：骨架已交付并通过静态分析与测试（2026-10-31）
+源码基线：eb86b64（main）
+交付提交：见 handoffs/foundation.txt 回填的成果提交号
+工具链：Flutter 3.47.6 / Dart 3.13.5、Maven 3.9.9、JDK 17.0.10（安装与限制见 toolchain.txt）
+
+一、本次交付范围
+  client/lib/data/api/
+    api_failure.dart      ApiFailure + FailureKind（11 类：badRequest/unauthorized/notFound/
+                          conflict/expired/serviceUnavailable/timeout/network/staleSession/
+                          protocol/server）
+    token_provider.dart   SessionToken(value, generation) + TokenProvider + StaticTokenProvider
+    request_id.dart       RequestIdGenerator typedef + 默认实现（无 uuid 依赖）
+    api_client.dart       统一信封解析、Bearer 注入、超时、错误映射、代次校验
+    auth_api.dart         AuthApi + HttpAuthApi（register/login/logout/me）
+    capture_api.dart      CaptureApi + HttpCaptureApi（spawn/challenge/answer/status）
+    study_api.dart        StudyApi + HttpStudyApi（create/upload/current/end）
+    collection_api.dart   CollectionApi + HttpCollectionApi（summary）
+    demo_api.dart         DemoApi（旧演示，X-Demo-Session，独立会话）
+  client/lib/data/model/
+    parsing.dart, auth_models.dart, capture_models.dart, collection_models.dart,
+    study_models.dart, demo_models.dart
+  client/lib/data/fakes/fakes.dart   四个端口 Fake（可排队返回失败/结果，记录调用）
+  client/lib/features/capture/       capture_controller.dart（状态机 + 请求/恢复）与 capture_page.dart
+  client/lib/features/collection/    collection_page.dart
+  client/test/data/                  6 个测试文件 + test_support + mock_client_fixture
+  client/test/capture/               capture_controller_test.dart
+  client/test/fixtures/              07/08/09(answer-wrong)/10、challenge-open/captured/expired、
+                                     collection-empty、06-spawns（与配套模板同名文件一致）
+
+二、关键签名（与 design/interfaces.json 一致）
+  ApiClient({required Uri baseUrl, required TokenProvider tokens, http.Client? httpClient,
+    Duration timeout = 10s, void Function()? onUnauthorized, HeaderProvider? extraHeaders,
+    String apiPrefix = '/api/v1'})
+    Future<Map<String,dynamic>> get(String path, {bool authenticated = true, Map<String,String>? query})
+    Future<Map<String,dynamic>> post(String path, {Map<String,dynamic>? body, bool authenticated = true})
+  AuthApi: register/login/logout/me
+  CaptureApi: createDevSpawn/challenge/answer/status
+  StudyApi: createTask/uploadSample/getCurrent/endTask
+  CollectionApi: summary
+  DemoApi: connect/state/explore/reset/challenge/answer
+  CaptureController: load(String spawnId), submit(String optionId), retry(), refreshSummary(), dispose()
+  CapturePage({required String spawnId, required CaptureController controller})
+  CollectionPage({required CollectionApi api})
+
+三、实际执行与结果（工作目录 client，2026-10-31）
+  命令：flutter analyze
+  结果：No issues found!（ran in 7.0s）
+  命令：flutter test
+  结果：+51 All tests passed!（43 个新增 + 8 个原有组件测试）
+  覆盖：信封成功/业务码映射/HTTP 兜底/超时/网络异常/UTF-8 中文/契约违约；
+    Bearer 注入、无 token、401 回调、代次变化丢弃；
+    取题/答对/答错/状态/概览/DTO 约束；
+    旧演示字段映射与“success 无收录号”；
+    控制器：load、答对、答错新 requestId、超时后 CAPTURED、超时后 OPEN 复用原请求、
+    过期、提交中重复点击、取题失败重试。
+  另：server 侧 mvn test 34/34 通过（记录见 toolchain.txt）。
+
+四、模拟与未实现标注（不写成已完成）
+  模拟：Fake 四端口仅测试用；DemoApi 为旧演示，success 不产生 captureRecordId，
+    不得当正式收录证据；ChallengeView.sourceType=DEMO 时页面标注“模拟”。
+  未实现：Auth HTTP（闫昕分支契约、服务端未实现）；Study HTTP（设计态）；
+    真实登录、真实 token、账号切换联调；Android/APK；main.dart 接线（余星晨）。
+  未改动：main.dart、pubspec.yaml、pubspec.lock、core/api.dart、他人页面。
+    旧演示路由 /demo/capture/* 的 F2 适配与 F3 替换未执行，旧页面仍走旧 Api。
+
+五、如何运行（本机）
+  $env:FLUTTER_ROOT="<workspace>\.tools\flutter"
+  $env:PUB_CACHE="<workspace>\.tools\pub-cache"
+  $env:APPDATA/LOCALAPPDATA/TEMP 指向工作区（默认用户目录不可写）
+  cd client
+  flutter --no-version-check analyze
+  flutter --no-version-check test
+  说明：本机沙箱禁止命名管道，Flutter 需完整权限运行；普通终端无此限制。
+  后端：.tools\maven\apache-maven-3.9.9\bin\mvn.cmd -B -s ..\.tools\maven-settings.xml
+    -DargLine=-Djdk.attach.allowAttachSelf=true test
+
+六、缺项与风险
+  1) 未接真实后端：Http 实现的路径与字段按 interfaces.json 静态对齐，未做端到端。
+  2) 未编译 Android/Web：仅 VM 测试与静态分析。
+  3) Auth/Study 服务端未实现，相关 Http 实现只能靠 Mock 测试。
+  4) 旧页面仍使用 core/api.dart，双网络层并存；F3 需余星晨切换入口后删除。
+  5) 本机 Flutter 运行依赖沙箱放宽；换机器按 toolchain.txt 重装即可。

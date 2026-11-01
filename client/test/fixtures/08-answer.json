@@ -1,0 +1,11 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "challengeId": "00000000-0000-4000-8000-000000000003",
+    "requestId": "00000000-0000-4000-8000-000000000006",
+    "result": "CORRECT",
+    "captureRecordId": "00000000-0000-4000-8000-000000000004",
+    "speciesId": "siege_lion"
+  }
+}

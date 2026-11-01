@@ -1,0 +1,79 @@
+@startuml 答题捕获客户端顺序图
+' 冉昕霖 · 第二阶段分析 · 客户端顺序图
+' 正常主流程 + 超时恢复 + 答错分支；只出现客户端对象与后端接口
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #5B6B7C
+  ParticipantBackgroundColor #F5F8FB
+  ParticipantBorderColor #6F97B8
+  ParticipantFontColor #1F2A37
+  LifeLineBorderColor #B9C7D4
+  GroupBorderColor #6F97B8
+  GroupHeaderFontColor #1F3D57
+}
+
+actor 玩家 as P
+participant "CapturePage\n答题界面" as Page
+participant "CaptureController\n控制" as Ctrl
+participant "CaptureApi\n捕获接口" as API
+participant "ApiClient\nHTTP/信封" as HttpClient
+participant "SessionStore\n会话" as Store
+participant "捕获服务\n（后端）" as S
+
+P -> Page : 点击「遇见攻城狮」
+Page -> Ctrl : loadChallenge(spawnId)
+Ctrl -> API : challenge(spawnId)
+API -> HttpClient : post("/capture/challenge")
+HttpClient -> Store : token()
+Store --> HttpClient : token
+HttpClient -> S : POST /api/v1/capture/challenge
+S --> HttpClient : code=0, data={challenge...}
+HttpClient --> API : data
+API --> Ctrl : ChallengeView
+Ctrl --> Page : 题干、选项、有效期
+
+P -> Page : 选择选项
+Page -> Ctrl : submit(optionId)
+Ctrl -> Ctrl : 生成新 requestId；禁用提交
+Ctrl -> API : answer(requestId, challengeId, optionId)
+API -> HttpClient : post("/capture/answer")
+HttpClient -> S : POST /api/v1/capture/answer
+
+alt 正常返回
+  S --> HttpClient : code=0, data={result...}
+  HttpClient --> API : AnswerDto
+  API --> Ctrl : CaptureResult
+else 超时 / 连接中断
+  HttpClient --> Ctrl : 网络未完成（不是业务失败）
+  Ctrl -> API : status(challengeId)
+  API -> S : GET /api/v1/capture/challenges/{id}
+  alt status = CAPTURED
+    S --> Ctrl : CAPTURED + captureRecordId
+    Ctrl --> Page : 显示已捕获（不重复发奖）
+  else status = OPEN
+    S --> Ctrl : OPEN
+    Ctrl -> API : answer(原 requestId, 同内容)
+    API -> S : 重试同一请求
+    S --> Ctrl : 首次处理结果（幂等回放）
+  else 仍无法确认
+    Ctrl --> Page : 结果待确认，提供重试
+    note right of Ctrl : 客户端只在收到 CORRECT\n且 captureRecordId 非空时显示成功
+  end
+end
+
+alt result = CORRECT
+  Ctrl -> API : summary()
+  API -> S : GET /api/v1/collection/summary
+  S --> Ctrl : collectedSpeciesCount / captureCount
+  Ctrl --> Page : 成功态 + 真实收藏数量
+else result = WRONG
+  Ctrl --> Page : 答错态，可重新作答
+end
+
+P -> Page : 返回地图
+Page -> Ctrl : 刷新收藏概览
+Ctrl -> API : summary()
+API --> Page : CollectionSummary
+@enduml

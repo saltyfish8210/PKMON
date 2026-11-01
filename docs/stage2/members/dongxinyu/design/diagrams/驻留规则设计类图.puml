@@ -1,0 +1,55 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+package "edu.pkmon.study" {
+  class DwellEvaluator {
+    - rules : DwellRules
+    + onSample(state, region, sample, now) : DwellDecision
+    + onTick(state, now) : DwellState
+  }
+  class DwellState <<record>> {
+    taskId / status / pauseReason
+    effectiveSeconds / requiredSeconds
+    insideCount / outsideCount / chainValid
+    lastAcceptedAt / lastSampledAt / lastSampleId
+    + start(taskId, requiredSeconds)$ : DwellState
+    + ended() : DwellState
+  }
+  class DwellRules <<record>> {
+    + production()$ : DwellRules
+    + testRules()$ : DwellRules
+  }
+  class DwellStudyTaskService {
+    + startTask(userId, regionId, requestId, source) : TaskView
+    + submitSample(userId, taskId, sample) : SampleResult
+    + currentTask(userId) : Optional~TaskView~
+    + endTask(userId, taskId, requestId) : TaskView
+  }
+  interface StudyTaskService
+  interface TaskRepository
+  interface SpawnGateway
+  class TaskView <<record>>
+  class SampleResult <<record>>
+  class TaskException
+}
+class Region
+class LocationSample
+class Geo
+class StoredTask <<record>>
+
+DwellStudyTaskService ..|> StudyTaskService
+DwellStudyTaskService --> TaskRepository
+DwellStudyTaskService --> SpawnGateway
+DwellStudyTaskService --> DwellEvaluator
+DwellStudyTaskService ..> StoredTask
+DwellStudyTaskService ..> TaskView
+DwellStudyTaskService ..> TaskException
+DwellEvaluator ..> DwellState
+DwellEvaluator ..> DwellRules
+DwellEvaluator ..> LocationSample
+DwellEvaluator ..> Region
+DwellEvaluator ..> Geo
+@enduml

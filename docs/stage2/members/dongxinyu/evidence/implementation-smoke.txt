@@ -1,0 +1,17 @@
+== 1. 开始任务
+200 {'code': 0, 'message': 'ok', 'data': {'taskId': '6178c3d9-a606-4141-8eda-33651db0496a', 'regionId': 'library_entrance', 'status': 'ENDED', 'pauseReason': None, 'effectiveSeconds': 5, 'requiredSeconds': 5, 'spawnId': '6efcb039-47f3-4db4-88db-9ba46c1c4b14', 'serverTime': '2026-11-01T04:37:42.761093342Z'}}
+== 2. 第一条样本（应仍 WAITING）
+(409, {'code': 40903, 'message': '任务已结束', 'data': None})
+== 3. 第二条样本（应 DWELLING，effective=0）
+409 {'code': 40903, 'message': '任务已结束', 'data': None}
+== 4. 第三条样本（required=5，应 TRIGGERED 并带 spawnId）
+409 {'code': 40903, 'message': '任务已结束', 'data': None}
+== 5. 查询当前任务
+(200, {'code': 0, 'message': 'ok', 'data': {'task': None}})
+== 6. 结束任务
+200 {'code': 0, 'message': 'ok', 'data': {'taskId': '6178c3d9-a606-4141-8eda-33651db0496a', 'regionId': 'library_entrance', 'status': 'ENDED', 'pauseReason': None, 'effectiveSeconds': 5, 'requiredSeconds': 5, 'spawnId': '6efcb039-47f3-4db4-88db-9ba46c1c4b14', 'serverTime': '2026-11-01T04:37:54.777498067Z'}}
+== 7. 结束后再提交样本（应 409/40903）
+(409, {'code': 40903, 'message': '任务已结束', 'data': None})
+== 8. 他人任务（应 404/40401）
+(200, {'code': 0, 'message': 'ok', 'data': {'task': None}})
+(404, {'code': 40401, 'message': '任务不属于当前用户', 'data': None})

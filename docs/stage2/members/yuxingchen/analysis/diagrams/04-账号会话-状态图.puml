@@ -1,0 +1,39 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam stateBackgroundColor #F7F8FA
+skinparam stateBorderColor #2C7A6B
+title 账号会话 · 状态图
+
+[*] --> NoSession : 启动 / 无本地会话
+state "未登录\nNoSession" as NoSession
+state "登录中\nAuthenticating" as Authing
+state "已登录\nAuthenticated" as Authed
+state "会话过期\nExpired" as Expired
+state "退出中\nLoggingOut" as LoggingOut
+
+NoSession --> Authing : 提交登录
+NoSession --> Authing : 注册成功后进入登录
+Authing --> Authed : 登录成功\n保存 token / expiresAt / user
+Authing --> NoSession : 登录失败\n保留输入并提示
+Authed --> Expired : 401 / expiresAt 到达
+Expired --> Authing : 重新登录
+Expired --> NoSession : 用户取消
+Authed --> LoggingOut : 用户退出
+LoggingOut --> NoSession : 本地会话已清除
+Authed --> Authing : 切换账号\n清除挑战/收藏/页面缓存
+Authed --> Authed : 刷新 CurrentUser
+
+note right of Authed
+  entry: 加载 CurrentUser
+  exit: 清 SessionStore + 业务缓存
+end note
+
+note bottom of Authing
+  登录中禁用提交按钮；
+  但会话是否有效仍以服务端为准。
+end note
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml 客户端网络层包图
+' 冉昕霖 · 第二阶段设计 · 包与依赖方向
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam package {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F3D57
+}
+left to right direction
+
+package "features/capture\n答题捕获页面与控制" as FC
+package "features/collection\n收藏概览页面" as FCOL
+package "features/auth\n账号页面与 SessionStore\n（余星晨）" as FA
+package "features/study\n自习任务页面\n（赵冠钧）" as FS
+
+package "data/api\n统一网络层\n（本人）" as API
+package "data/model\nDTO 与视图模型\n（本人）" as MODEL
+package "core\n会话端口/请求号/主题\n（共享）" as CORE
+package "test\nFake 与契约测试\n（本人）" as TEST
+
+FC ..> API : CaptureApi
+FCOL ..> API : CollectionApi
+FA ..> API : AuthApi
+FS ..> API : StudyApi
+FA ..|> CORE : 实现 TokenProvider
+API ..> MODEL : 解析/映射
+API ..> CORE : TokenProvider / ApiFailure
+TEST ..> API : 实现端口替身
+
+note bottom of API
+  禁止：data/api import features/*。
+  页面不得自行拼 URL、解析信封或读取 token。
+end note
+
+note bottom of CORE
+  SessionStore（token 持久化）属于账号侧；
+  网络层只依赖 TokenProvider 读 token 与代次。
+end note
+@enduml

@@ -1,0 +1,45 @@
+@startuml 答题捕获客户端用况图
+' 冉昕霖 · 第二阶段分析 · 客户端用况图
+' 表达玩家目标，不把按钮画成用况；恢复未决结果也由玩家主动发起
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam actorStyle awesome
+skinparam arrowColor #5B6B7C
+skinparam usecase {
+  BackgroundColor #F5F8FB
+  BorderColor #6F97B8
+  FontColor #1F2A37
+}
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #B9C7D4
+  FontColor #1F2A37
+}
+left to right direction
+
+actor "玩家" as Player
+
+rectangle "PKMon 客户端 · 答题捕获与精灵收录" {
+  usecase "UC-R1\n进入答题并取得题目" as R1
+  usecase "UC-R2\n提交作答并查看结果" as R2
+  usecase "UC-R3\n答错后重试" as R3
+  usecase "UC-R4\n恢复结果待确认" as R4
+  usecase "UC-R5\n查看收藏概览" as R5
+}
+
+Player --> R1
+Player --> R2
+Player --> R3
+Player --> R4
+Player --> R5
+
+R3 ..> R2 : 仅 WRONG 且挑战仍 OPEN
+R4 ..> R2 : 超时/断网后改用状态查询
+
+note bottom of R5
+  支撑系统：捕获服务提供题目与结算，SessionStore 提供身份。
+  客户端不持有正确答案，也不依据本地状态发放精灵；
+  是否捕获以服务端结算结果为准。
+end note
+@enduml

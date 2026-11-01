@@ -1,0 +1,9 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "collectedSpeciesCount": 0,
+    "totalSpeciesCount": 1,
+    "captureCount": 0
+  }
+}

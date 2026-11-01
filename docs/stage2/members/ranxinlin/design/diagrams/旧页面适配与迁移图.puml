@@ -1,0 +1,59 @@
+@startuml 旧页面适配与迁移图
+' 冉昕霖 · 第二阶段设计 · 旧首页/旧捕获页的拆分与迁移
+' 入口 main.dart 的接线由余星晨完成；本人只提供页面构造签名与网络层
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam component {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F2A37
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #5B6B7C
+  FontColor #1F3D57
+}
+
+package "现状 main@eb86b64（旧页面仍在使用）" {
+  [main.dart] as Main
+  [HomeShell] as Shell
+  [CapturePage 旧] as OldPage
+  [core/api.dart] as OldApi
+  Main --> Shell
+  Shell --> OldPage
+  Shell --> OldApi
+  OldPage --> OldApi
+}
+
+package "目标：新链路（本人实现）" {
+  [CapturePage 新] as NewPage
+  [CaptureController] as Ctrl
+  [CaptureApi] as CapApi
+  [CollectionApi] as ColApi
+  [ApiClient] as Client
+  NewPage --> Ctrl
+  Ctrl --> CapApi
+  Ctrl --> ColApi
+  CapApi --> Client
+  ColApi --> Client
+}
+
+package "服务端" {
+  [正式接口 /api/v1/capture/* 与 /collection/*] as Real
+  [旧演示接口 /api/v1/demo/capture/*] as Demo
+}
+
+OldApi ..> Demo : X-Demo-Session（演示专用）
+Client ..> Real : Authorization: Bearer
+Client ..> Demo : 仅 DemoApi 适配层，不混用会话
+
+note bottom of OldPage
+  迁移三步：
+  F1 新增 data/api 与 data/model，旧页面不动；
+  F2 旧页面改调 DemoApi（路径改为 /api/v1/demo/capture/*）；
+  F3 新页面替换旧页面，main.dart 由余星晨切换，
+     确认无第二个入口后再删除 core/api.dart。
+end note
+@enduml

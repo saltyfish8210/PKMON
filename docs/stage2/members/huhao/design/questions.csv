@@ -1,6 +1,6 @@
 ﻿问题,影响,直接责任人,建议,状态,目标交接时间,证据或结论
-数据库技术选型,决定依赖、部署方式与测试手段,胡豪,课程演示优先嵌入式方案（H2 或 SQLite 文件库），免安装、可随 jar 分发；10/29 前定型,待定型,2026-10-29 04:00,design.txt第6节
-迁移与种子装载方式,题库与图鉴数据如何入库、如何版本化,胡豪（内容：孙虹毅）,采用迁移脚本管理 schema 版本；种子数据由孙虹毅提供内容、本人提供装载机制,待定型,2026-10-29 04:00,design.txt第3.3节
-开发替身默认开启,X-Dev-User 与模拟遭遇在默认配置下可用，存在伪装身份风险,胡豪、孙虹毅,仅 dev/test profile 显式开启，其余环境关闭；补启动与拒绝测试,待对齐,2026-10-29 04:00,CaptureConfig.java 三个默认 true 开关；闫昕 analysis.txt 第18节
+数据库技术选型,决定依赖、部署方式与测试手段,胡豪,课程演示优先嵌入式方案（H2 或 SQLite 文件库），免安装、可随 jar 分发；10/29 前定型,已定型：H2 嵌入式（默认内存库 / dev 文件库）,2026-10-31,server/pom.xml；application.properties；application-dev.properties
+迁移与种子装载方式,题库与图鉴数据如何入库、如何版本化,胡豪（内容：孙虹毅）,采用迁移脚本管理 schema 版本；种子数据由孙虹毅提供内容、本人提供装载机制,机制已定型（Flyway 版本化迁移）；种子内容待孙虹毅提供后以增量迁移装载,2026-10-31,server/pom.xml flyway-core；db/migration/V1__init_schema.sql
+开发替身默认开启,X-Dev-User 与模拟遭遇在默认配置下可用，存在伪装身份风险,胡豪、孙虹毅,仅 dev/test profile 显式开启，其余环境关闭；补启动与拒绝测试,已对齐：孙虹毅 CaptureConfig 已改安全默认（仅 dev/test 默认开启）；本人默认 profile 配置不改开关,2026-10-31,CaptureConfig.java；CaptureDefaultProfileHttpTest 验证默认关闭
 User/AuthSession 字段定稿,users 与 auth_sessions 建表依赖账号设计字段,闫昕（表结构：胡豪）,按闫昕设计轮交付的字段清单建表；用户名唯一、token 摘要唯一先行固定,等待计划中的交付,2026-10-29 04:00,闫昕 analysis.txt 第9/12节
 驻留数据字段未交付,study_tasks、location_samples 字段需与驻留规则核对,董欣毓、赵冠钧（表结构：胡豪）,按其分析/设计交付核对字段；当前草案只固定关系与外键,等待计划中的交付,2026-10-29 04:00,design.txt第5节

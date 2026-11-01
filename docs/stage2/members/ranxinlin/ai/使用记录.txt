@@ -1,0 +1,62 @@
+工具与可见版本（未知写未提供）：DeepSeek Harness 中的 deepseek-flash 模型，版本号未提供；
+  辅助工具 PlantUML 1.2024.7 仅用于把本文手写的图源导出 PNG，不生成图的内容。
+任务场景、阶段、目标与验收标准：
+  第二阶段分析（2026-10-20 至 10-24，阶段键 analysis，截止 10-25 04:00）。
+  目标：产出本人（冉昕霖）的 analysis/analysis.txt、questions.csv、diagrams/ 与 evidence。
+  验收标准取自个人开发指南与 project/backlog.csv 第 5 行：
+  “答题、超时、重试与接口差异明确”，且正常/异常流程、对象与问题写清、依赖有接收人。
+提供的上下文及裁剪理由：
+  读取并只保留与本人模块相关的材料：
+  1) 个人开发指南（冉昕霖）全文：职责、范围、时间表、交付物与 Git 规范；
+  2) docs/stage2/project/：范围、术语、用况、决策、Backlog、Kanban；
+  3) docs/stage2/members/sunhongyi/：捕获领域分析、设计、interfaces.json 与 foundation 交接；
+  4) docs/stage2/members/yanxin/：账号分析、questions.csv 与交接记录；
+  5) 仓库当前源码：client/lib/core/api.dart、features/home_shell.dart、features/capture_page.dart、
+     server DemoController.java、capture/web 下的控制器；
+  6) 配套 api-contract.json、fixtures 与个人材料模板。
+  未提供：任何 token、口令、真实位置、他人代码副本。
+初始提示词、原输出附件：
+  提示词 1（2026-10-24）：请根据“参考文档”“开发文档”及“PkMon开发工作安排”等内容，
+    对项目及职责有一个充分的了解，完成后回复 OK 即可。
+  提示词 2（2026-10-24）：请参考工作安排中“个人开发指南”“配套模板及样例”以及
+    PKMON\docs\stage2\members 中其他同学已完成的内容，完成“分析”阶段（10.25 前）的任务，
+    提交至新分支并推送到我的远程仓库。
+  原输出：本目录 analysis/analysis.txt 初稿、analysis/diagrams/ 五张图源与 PNG、
+  analysis/questions.csv、evidence/environment.txt。附件即这些文件本身。
+本人发现的问题（AI 自检，非本人结论）：
+  1) 初版用况图把“捕获服务/SessionStore”画成参与者并连到每个用况，连线穿透整张图，
+     已改为“玩家五个目标 + 支撑系统用注说明”；
+  2) 初版状态图把服务端 Challenge 状态与界面状态混在一起，已拆开：界面状态七个，
+     并明确 UNKNOWN 不是服务端状态；
+  3) 初版顺序图末尾的注触发 PlantUML 重绘参与者框，已把注移入 alt 分支内；
+  4) 用 PowerShell 的 Get-Content/Set-Content 修改 UTF-8 图源时出现中文二次编码，
+     已改用工具直接写入，仓库中不留该中间文件；
+  5) 静态核对发现客户端 'capture/challenge' 与 'capture/answer' 同后端新路由不一致，
+     已写入 analysis 5.4，并标注“静态推断、未运行验证”。
+修订提示与每轮结果：
+  第 1 轮：生成初稿 → 发现图布局与状态边界问题 → 重画用况图、状态图、顺序图注。
+  第 2 轮：核对孙虹毅 design.txt 3.3/3.4 与 interfaces.json → 补旧字段适配表与错误码表。
+  第 3 轮：执行 fixtures 字段校验 → 得到 4 个 fixture 的字段与“无答案泄露”结果，写入 evidence。
+采纳/修改后采纳/拒绝及理由：
+  采纳：用况/类/顺序/状态/包图与正文结构；接口差异表；CR-01～CR-15。
+  修改后采纳：用况图由“参与者+扩展”改为“玩家目标+依赖+注”；状态图拆分界面状态。
+  拒绝：不采纳“客户端本地加一显示捕获成功”的任何写法；不采纳把超时直接判为失败；
+    不采纳声称已通过 flutter test（本机无 SDK，未执行）。
+人工检查人（本人）、方法与结果：
+  检查人：冉昕霖。状态：待本人逐条复核后签字，本文件不代替本人结论。
+  建议复核顺序：3.2～3.6 用况前置/后置条件 → 5.4 接口差异与文件行号 → 5.5 requestId 规则 →
+  6.2 状态转换表 → questions.csv 的责任人与结论。
+  复核时请特别确认：本机是否确实未安装 Flutter、旧路由迁移是否按本机运行结果一致。
+验证结果与证据：
+  已执行：源码提交号核对（e17aa32）、调用点与 DemoController 路由静态核对、
+  fixtures 字段校验（4 个文件，missing=none，answerLeak=none）、五张图导出。
+  未执行：mvn test、flutter analyze/test、真实 HTTP 联调、真机验证。
+  证据见 evidence/environment.txt。
+上下文/生成/本人检查/返工耗时：
+  上下文读取约 20 分钟；生成与返工约 40 分钟；本人检查耗时待本人填写。
+实际费用或Token（不可得写未取得）：未取得。
+质量、效率、问题、诚信与后续改进：
+  效率：文档骨架、图源与字段核对较快；不足：无法替代真实构建与联调，图布局需多轮调整。
+  诚信：本记录如实标注“AI 生成初稿、未执行项、待本人复核”，不把未运行的检查写成通过。
+  后续：设计阶段（10/25-10/28）先做统一网络层与旧字段适配，再用固定 fixtures 做解析测试；
+  安装 Flutter 后补 analyze/test，并把真实结果写入 evidence。
