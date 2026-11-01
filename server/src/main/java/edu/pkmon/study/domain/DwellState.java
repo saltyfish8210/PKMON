@@ -77,7 +77,7 @@ public record DwellState(
      * @return TRIGGERED 与 ENDED 之外为 true
      */
     public boolean isActive() {
-        return status != TaskStatus.TRIGGERED && status != TaskStatus.ENDED;
+        return status != TaskStatus.ENDED;
     }
 
     /**

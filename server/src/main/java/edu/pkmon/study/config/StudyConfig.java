@@ -4,6 +4,7 @@ import edu.pkmon.capture.port.CurrentUserProvider;
 import edu.pkmon.study.domain.DwellRules;
 import edu.pkmon.study.domain.DwellEvaluator;
 import edu.pkmon.study.domain.Region;
+import edu.pkmon.study.error.StudyExceptionHandler;
 import edu.pkmon.study.port.SpawnGateway;
 import edu.pkmon.study.port.TaskRepository;
 import edu.pkmon.study.repository.InMemoryTaskRepository;
@@ -127,6 +128,17 @@ public class StudyConfig {
     public StudyTaskService studyTaskService(TaskRepository repository, SpawnGateway spawnGateway,
             DwellEvaluator evaluator, Clock clock) {
         return new DwellStudyTaskService(repository, spawnGateway, evaluator, clock);
+    }
+
+    /**
+     * 业务错误映射。@RestControllerAdvice 不在组件扫描范围，必须显式注册为 Bean。
+     *
+     * @return 异常处理器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public StudyExceptionHandler studyExceptionHandler() {
+        return new StudyExceptionHandler();
     }
 
     /**
