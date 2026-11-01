@@ -1,2 +1,3 @@
 edu.pkmon.common.config.CommonConfig
 edu.pkmon.capture.config.CaptureConfig
+edu.pkmon.study.config.StudyConfig
