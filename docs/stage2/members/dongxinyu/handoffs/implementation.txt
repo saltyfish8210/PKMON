@@ -1,0 +1,38 @@
+阶段：implementation（2026-11-01 至 11-05；与 10/31 foundation 合并一次提交）
+作者：董欣毓
+截止：11/06 04:00（北京时间）；本材料按 11/01 实际完成时间提交。
+状态：已合入 main（成果提交 86658e6；main 合入提交号见下行）
+任务分支：feature/dongxinyu-study
+开 PR：无（直接推 main）
+实现成果版本（源码、测试、接口状态、证据；本交接记录回填该号）：86658e6
+main成果合入提交号：（本次推送后回填）
+所用输入源码/仓库提交：bc39d04（main，含本人 design）
+
+材料路径：
+server/src/main/java/edu/pkmon/study/（domain / port / service / dto / error / repository / config / web）
+server/src/test/java/edu/pkmon/study/（DwellEvaluatorTest、DwellStudyTaskServiceTest、StudyControllerTest）
+docs/stage2/members/dongxinyu/design/interfaces.json（status=implemented_in_memory）
+docs/stage2/members/dongxinyu/evidence/implementation.txt
+docs/stage2/members/dongxinyu/evidence/implementation-smoke.txt
+
+读者：闫昕读进度与接口状态；赵冠钧对接 StudyApi（四个端点已可用）；胡豪按接口字段建 study_task/task_sample；
+孙虹毅替换 StubSpawnGateway；李宗晏按 design/test-cases.csv 复测。
+
+实际验证（开发服务器 group8，2026-11-01）：
+1. mvn -B test → Tests run: 71, Failures: 0, Errors: 0；BUILD SUCCESS（study 27 个）。
+2. mvn -DskipTests package → target/pkmon-server-0.1.0.jar。
+3. 端到端冒烟 8 步全部符合预期：开始→WAITING→DWELLING→TRIGGERED（带 spawnId）→current→ENDED→结束后 40903→他人 40401。
+
+真实 / 模拟 / 未执行：
+- 真实：四个 HTTP 接口、规则、服务编排、错误码在真实 Spring Boot 进程上跑通。
+- 模拟：存储为内存、身份为 X-Dev-User 替身、遭遇为 StubSpawnGateway 只生成编号、区域中心为候选坐标。
+- 未执行：JDBC、数据库唯一约束、并发触发、真机定位、客户端联调。
+
+缺项、影响及后续：
+1. 胡豪：study_task、task_sample 迁移与 JdbcTaskRepository；在此之前重启丢数据。
+2. 孙虹毅：实现 SpawnGateway（写 spawn 表并带 task_id 唯一约束），替换 StubSpawnGateway。
+3. 闫昕：认证接入后移除 X-Dev-User 依赖；未提供身份时接口返回 50301。
+4. 赵冠钧：用 X-Dev-User 即可联调四个端点；停止条件为 40903、冷却为 40904。
+5. 李宗晏：并发触发与数据库约束两项测试仍待执行。
+
+交接读取方式：更新到含本记录的分支或 main 后，先读 interfaces.json 与 evidence/implementation.txt，再跑 mvn test。成果提交号指业务材料提交，不要求包含本 handoffs 文件自身。
