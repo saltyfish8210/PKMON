@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1000" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1000" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1000" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="13" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="33.52099609375" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">业务 / CurrentUser</text>
+			<path d="M 95,575 L 95,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="218" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="260.1396484375" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">AuthService</text>
+			<path d="M 300,575 L 300,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="423" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="443.8798828125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">SessionRepository</text>
+			<path d="M 505,575 L 505,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="628" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="658.8876953125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">UserRepository</text>
+			<path d="M 710,575 L 710,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="833" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="873.0" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">业务资源仓储</text>
+			<path d="M 915,575 L 915,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 95,548 L 300,548 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="300 548, 288.9473 552.673, 288.9473 543.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="136.4013671875" y="560" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1120) scale(1,-1)">1 currentUser(头)</text>
+			<path d="M 300,490 L 505,490 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="505 490, 493.9473 494.673, 493.9473 485.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="334.82421875" y="502" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1004) scale(1,-1)">2 按tokenHash查询</text>
+			<path d="M 505,440 L 300,440 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 300,440 L 309.904918,435.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 300,440 L 309.904918,444.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="365.73974609375" y="452" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,904) scale(1,-1)">3 会话 / 空</text>
+			<text x="215.968017578125" y="395" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,790) scale(1,-1)">检查时间 / 撤销；失败401，存储失败503</text>
+			<path d="M 300,345 L 710,345 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="710 345, 698.9473 349.673, 698.9473 340.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="438.653564453125" y="357" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,714) scale(1,-1)">4 [会话有效] 读用户</text>
+			<path d="M 710,297 L 300,297 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 300,297 L 309.904918,292.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 300,297 L 309.904918,301.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="468.23974609375" y="309" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,618) scale(1,-1)">5 用户 / 空</text>
+			<path d="M 300,245 L 95,245 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 95,245 L 104.904918,240.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 95,245 L 104.904918,249.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="147.830810546875" y="257" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,514) scale(1,-1)">6 userId / 401</text>
+			<path d="M 95,185 L 915,185 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="915 185, 903.9473 189.673, 903.9473 180.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="378.939208984375" y="197" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,394) scale(1,-1)">7 [身份有效] 按userId与资源编号查询</text>
+			<path d="M 915,127 L 95,127 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 95,127 L 104.904918,122.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 95,127 L 104.904918,131.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="447.545166015625" y="139" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,278) scale(1,-1)">8 本人资源 / 404</text>
+			<text x="248.00903320312497" y="55" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,110) scale(1,-1)">不接受body.userId或开发头回退；公共桥接与业务接线尚待实现。</text>
+		</g>
+	</g>
+</svg>

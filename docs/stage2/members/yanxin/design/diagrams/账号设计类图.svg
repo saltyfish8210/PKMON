@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1000" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1000" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1000" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="35" y="433" width="360" height="175" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="193.4130859375" y="579" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1158) scale(1,-1)">User</text>
+			<path d="M 35,561 L 395,561 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="50" y="533" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1066) scale(1,-1)">userId / username / nickname</text>
+			<text x="50" y="510" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1020) scale(1,-1)">passwordHash / createdAt</text>
+			<text x="50" y="487" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,974) scale(1,-1)">不向HTTP直接暴露</text>
+			<rect x="605" y="433" width="360" height="175" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="726.03515625" y="579" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1158) scale(1,-1)">AuthSession</text>
+			<path d="M 605,561 L 965,561 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="620" y="533" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1066) scale(1,-1)">sessionId / userId / tokenHash</text>
+			<text x="620" y="510" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1020) scale(1,-1)">issuedAt / expiresAt / revokedAt</text>
+			<text x="620" y="487" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,974) scale(1,-1)">isActiveAt() / revokeAt()</text>
+			<path d="M 605,520 L 395,520 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 395,520 L 404.904918,515.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 395,520 L 404.904918,524.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="424.72216796875" y="537" style="font-family: Microsoft YaHei; font-size: 18px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1074) scale(1,-1)">1</text>
+			<text x="544.29345703125" y="537" style="font-family: Microsoft YaHei; font-size: 18px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1074) scale(1,-1)">0..*</text>
+			<text x="440.5" y="493" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,986) scale(1,-1)">关联：会话归属</text>
+			<rect x="300" y="225" width="400" height="145" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="443.056640625" y="341" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,682) scale(1,-1)">AuthService</text>
+			<path d="M 300,323 L 700,323 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="315" y="295" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,590) scale(1,-1)">register() / login()</text>
+			<text x="315" y="272" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,544) scale(1,-1)">currentUser() / logout()</text>
+			<text x="315" y="249" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,498) scale(1,-1)">currentUserPort()</text>
+			<path d="M 365,370 L 235,433 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 235,433 L 241.82681,424.374766 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 235,433 L 245.999991,432.986092 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 635,370 L 785,433 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 785,433 L 774.015082,433.575829 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 785,433 L 777.720603,424.753159 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<rect x="25" y="35" width="290" height="135" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="96.982421875" y="141" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,282) scale(1,-1)">UserRepository</text>
+			<path d="M 25,123 L 315,123 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="40" y="95" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,190) scale(1,-1)">findById / findByUsername</text>
+			<text x="40" y="72" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,144) scale(1,-1)">insertIfUsernameAbsent</text>
+			<path d="M 500,225 L 170,170 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 170,170 L 180.556738,166.908838 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 170,170 L 178.983564,176.347879 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<rect x="355" y="35" width="290" height="135" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="389.6044921875" y="141" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,282) scale(1,-1)">AuthSessionRepository</text>
+			<path d="M 355,123 L 645,123 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="370" y="95" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,190) scale(1,-1)">findByTokenHash / insert</text>
+			<text x="370" y="72" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,144) scale(1,-1)">revokeIfActive</text>
+			<path d="M 500,225 L 500,170 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 500,170 L 504.784621,179.904918 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 500,170 L 495.215379,179.904918 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<rect x="685" y="35" width="290" height="135" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="751.0888671875" y="141" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,282) scale(1,-1)">PasswordHasher</text>
+			<path d="M 685,123 L 975,123 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="700" y="95" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,190) scale(1,-1)">hash / matches</text>
+			<text x="700" y="72" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,144) scale(1,-1)">生产适配器待实现</text>
+			<path d="M 500,225 L 830,170 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 830,170 L 821.016436,176.347879 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 830,170 L 819.443262,166.908838 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="396.7265625" y="395" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,790) scale(1,-1)">&lt;&lt;use&gt;&gt; 创建、验证与转换</text>
+			<text x="764.06640625" y="295" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,590) scale(1,-1)">Clock：注入时间</text>
+			<text x="767.80078125" y="272" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,544) scale(1,-1)">DTO：公开数据</text>
+			<text x="738.890625" y="249" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,498) scale(1,-1)">CurrentUser：身份端口</text>
+		</g>
+	</g>
+</svg>

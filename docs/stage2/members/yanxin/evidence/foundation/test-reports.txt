@@ -1,0 +1,70 @@
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.capture.config.CaptureDefaultProfileHttpTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.276 s -- in edu.pkmon.capture.config.CaptureDefaultProfileHttpTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.capture.config.CaptureDevProfileHttpTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.349 s -- in edu.pkmon.capture.config.CaptureDevProfileHttpTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.capture.config.CaptureSwitchTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 s -- in edu.pkmon.capture.config.CaptureSwitchTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.capture.service.CaptureServiceTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in edu.pkmon.capture.service.CaptureServiceTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.common.api.ApiResponseTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in edu.pkmon.common.api.ApiResponseTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.common.CommonFoundationTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.081 s -- in edu.pkmon.common.CommonFoundationTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.common.error.GlobalExceptionHandlerTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.038 s -- in edu.pkmon.common.error.GlobalExceptionHandlerTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.demo.DemoServiceTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in edu.pkmon.demo.DemoServiceTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.study.DwellEvaluatorTest
+-------------------------------------------------------------------------------
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in edu.pkmon.study.DwellEvaluatorTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.study.DwellStudyTaskServiceTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in edu.pkmon.study.DwellStudyTaskServiceTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.study.StudyControllerTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in edu.pkmon.study.StudyControllerTest
+
+
+-------------------------------------------------------------------------------
+Test set: edu.pkmon.user.AuthServiceTest
+-------------------------------------------------------------------------------
+Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.093 s -- in edu.pkmon.user.AuthServiceTest
