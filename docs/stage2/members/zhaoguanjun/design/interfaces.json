@@ -2,10 +2,10 @@
   "owner": "zhaoguanjun",
   "stage": "stage2",
   "module": "study-location",
-  "version": "design-2026-10-28",
+  "version": "foundation-2026-10-28",
   "designedVersion": "design-2026-10-28",
-  "status": "designed_not_implemented",
-  "statusNote": "四条 Study HTTP 与 RealLocationProvider 均未实现。客户端开发期使用 FakeStudyApi + SimulatedLocationProvider。storageSimulated/implemented 标记如下；不得把 Fake 伪装为真实到场。董欣毓定稿后若字段冲突，以交接差异更新本文件并通知调用方。",
+  "status": "client_skeleton_with_fake",
+  "statusNote": "foundation：SimulatedLocationProvider + FakeStudyApi + StudyPage 骨架已落地；AndroidManifest 已声明 FINE/COARSE。四条 Study HTTP 与 RealLocationProvider 仍未实现。不得把 Fake 伪装为真实到场。本机未执行 flutter test（无 Flutter SDK）。",
   "conventions": {
     "baseUrl": "http://127.0.0.1:4180",
     "businessPrefix": "/api/v1",
@@ -32,16 +32,17 @@
       "name": "LocationProviderPort",
       "kind": "dart_interface",
       "pathHint": "client/lib/core/location/location_provider.dart",
-      "implemented": false,
+      "implemented": true,
+      "implementedNote": "端口与 SimulatedLocationProvider 已实现；RealLocationProvider 仅为 NOT_IMPLEMENTED stub",
       "methods": [
         { "name": "start", "returns": "Future<void>", "notes": "开始采样；未授权应通过 errors 发出 PERMISSION_DENIED" },
         { "name": "stop", "returns": "Future<void>", "notes": "释放订阅；可重复调用无副作用" },
         { "name": "samples", "returns": "Stream<LocationSample>", "notes": "字段见 LocationSample" },
-        { "name": "errors", "returns": "Stream<LocationError>", "notes": "PERMISSION_DENIED|SERVICE_DISABLED|UNKNOWN" }
+        { "name": "errors", "returns": "Stream<LocationError>", "notes": "PERMISSION_DENIED|SERVICE_DISABLED|UNKNOWN|NOT_IMPLEMENTED" }
       ],
       "implementations": [
-        { "name": "SimulatedLocationProvider", "source": "SIMULATED", "notes": "合成流；UI 必须标注模拟" },
-        { "name": "RealLocationProvider", "source": "GPS", "notes": "geolocator；坐标系未确认前不得改标签" }
+        { "name": "SimulatedLocationProvider", "source": "SIMULATED", "notes": "已实现合成流；UI 必须标注模拟", "codePath": "client/lib/core/location/simulated_location_provider.dart" },
+        { "name": "RealLocationProvider", "source": "GPS", "notes": "stub：start 发 NOT_IMPLEMENTED；待 geolocator", "implemented": false }
       ],
       "legacyCompat": "client/lib/core/location_provider.dart 的 DemoLocationProvider 仅课堂示意，不满足本端口"
     }
