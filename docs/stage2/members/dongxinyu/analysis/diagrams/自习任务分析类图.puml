@@ -1,0 +1,62 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+hide empty members
+class "StudyTask 自习任务" as StudyTask {
+  taskId : UUID
+  status : TaskStatus
+  pauseReason : PauseReason
+  effectiveSeconds : int
+  requiredSeconds : int
+  lastAcceptedAt : Instant
+  --
+  开始() : StudyTask
+  提交样本(sample) : DwellDecision
+  结束() : StudyTask
+}
+class "Region 区域" as Region {
+  regionId : String
+  centerLatitude / centerLongitude
+  enterRadiusMeters : int
+  exitRadiusMeters : int
+  enabled : boolean
+}
+class "LocationSample 位置样本" as Sample {
+  sampleId : UUID
+  latitude / longitude
+  accuracyMeters : double
+  sampledAt : Instant
+  coordinateSystem : GCJ02
+  source : GPS / SIMULATED
+}
+class "DwellRules 规则参数" as Rules {
+  enterRadiusMeters : 80
+  exitRadiusMeters : 100
+  maxAccuracyMeters : 50
+  maxSampleGapSeconds : 30
+  requiredSeconds : 600 / 60
+}
+class "DwellEvaluator 停留判定者" as Eval {
+  判定(state, sample, now) : 新状态
+  推进失联(state, now) : 新状态
+}
+class "Spawn 遭遇机会" as Spawn {
+  spawnId : UUID
+  sourceType : STUDY
+}
+
+StudyTask "1" *-- "1" Region : 位于
+StudyTask "1" o-- "0..*" Sample : 收到
+StudyTask "1" -- "0..1" Spawn : 产生（最多一次）
+Eval ..> StudyTask : 推进状态
+Eval ..> Sample : 读取
+Eval ..> Rules : 使用
+Rules ..> Region : 默认半径
+note bottom of Spawn
+  遭遇由孙虹毅负责，
+  任务不直接写捕获记录。
+end note
+@enduml

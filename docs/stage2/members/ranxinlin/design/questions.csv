@@ -1,0 +1,13 @@
+问题,影响,直接责任人,建议,状态,结论或证据路径
+设计轮晚交（截止 10/29 04:00，实际 10/31）,余星晨的入口与赵冠钧的 Study 接线未能按期读取；foundation 与设计同日进行,本人,10/31 当日推送并开 PR；10/31 晚至 11/01 04:00 前补 foundation 骨架,已说明,design.txt 11.1
+本机无 Flutter/Dart SDK,无法编译、analyze、dart test；设计无法以构建证明,本人（版本由余星晨统一）,安装与锁文件一致的 SDK；先用 MockClient 写纯 Dart 单测,未解决,evidence/design-validation.txt
+认证 HTTP 未实现,AuthApi 只能按契约与 Fake 推进；真实登录联调未执行,闫昕,10/31 前确认 design/yanxin-auth-design 是否合入 main 并给实现日期,待确认,yanxin 分支 interfaces.json；design.txt 6.1
+StudyApi 与 TaskSnapshot 的路径归属,赵冠钧设计放在 features/study，本人设计放 data/api；两处同名会重复实现,赵冠钧,采用 design.txt 2.4 方案 A（data/api 维护端口）；如坚持方案 B 则由其维护接口,待确认,design.txt 2.4
+TokenProvider 的提供方式,网络层需要 token 与 generation；SessionStore 由账号侧持有,余星晨,SessionStore 实现 TokenProvider.current() 返回（token、generation）,待确认,design.txt 4.4
+RequestIdGenerator 默认实现,网络层与控制器需要稳定 UUID；新增依赖需改锁文件,余星晨,在 core/request_id.dart 提供默认实现并注入；不擅自改 pubspec,待确认,design.txt 4.3
+入口接线签名,新页面无法从 App 进入,余星晨,CapturePage（spawnId、controller）与 CollectionPage（api）由 HomeShell 创建并传参,待确认,design.txt 4.6
+测试 fixtures 入库,无固定数据无法做契约测试,本人,把 07/08/09/10 的等价 JSON 放 client/test/fixtures/ 并注明来源,计划,design.txt 9.3
+旧演示页面保留期限,core/api.dart 与旧页面长期并存会造成双入口,余星晨/本人,新页验收后由余星晨切换入口，再删旧层,待确认,design.txt 8.5
+totalSpeciesCount 真值,收藏概览比例显示依赖该值（当前替身 1）,孙虹毅,接真实图鉴后给出实际条目数并同步样例,未解决,design.txt 5.1
+40902 的界面处理,同 requestId 不同内容属客户端缺陷,孙虹毅（语义）/本人（处理）,提示重新作答并生成新 requestId；同时记缺陷,已给建议,design.txt 4.3
+Web 调试跨域来源 5173,浏览器调试与课堂演示需要 CORS,胡豪,开发配置放行 5173 与 Authorization/Content-Type,待确认,个人开发指南环境页

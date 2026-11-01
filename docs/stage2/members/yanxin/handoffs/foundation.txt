@@ -1,0 +1,21 @@
+闫昕账号骨架交接
+阶段：foundation；日期：2026-11-01。
+本人参与：闫昕已审核并确认采用本轮账号设计与核心原型。
+本次交付：原账号设计、CurrentUser 与账号 DTO/服务/仓储端口、20 项账号测试，以及同最新主线兼容的 91 项后端测试结果。
+发布入口：PR #6 https://github.com/saltyfish8210/PKMON/pull/6
+发布状态：以 PR #6 的 merged 状态和 merge_commit_sha 为准；只有合并成功后才算 main 交接完成。
+合并前主线输入：b3374fc590b51dc09158a5ec44d1a4170a4c400f
+成果提交：在 PR #6 的提交记录中定位“同步最新主线并验证账号骨架交接”；该提交包含本记录与测试证据，避免记录自身哈希循环。
+
+接收者：余星晨、冉昕霖、胡豪、孙虹毅、董欣毓、李宗晏，按本人需要读取：
+1. design/interfaces.json、design/design.txt：账号参数、错误码、会话与接入约定。
+2. server/src/main/java/edu/pkmon/user/：可编译的领域、DTO、服务与端口。
+3. evidence/foundation.txt、evidence/foundation/：最新主线兼容验证。
+4. design/test-cases.csv：设计用例；未实现部分不标为已通过。
+
+已知数据库映射差异（后续接入前必须处理）：
+胡豪 V1 已采用 auth_sessions.token_digest；账号设计字段表使用 token_hash。仓储适配以现有物理列 token_digest 映射逻辑 tokenHash，不重建或改写 V1。
+V1 的用户名/口令散列/昵称容量为 64/100/64；设计建议为 24/255/80。业务校验仍按账号规则，持久化实现前核对容量与约束；需要结构变化由胡豪提交增量迁移。
+
+后续截止：11/06 04:00，继续完成真实账号 HTTP、成熟口令散列、数据库仓储与身份装配。
+本轮合并后只代表设计和骨架交接完成，不代表后续真实账号功能全部完成。

@@ -1,0 +1,95 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam classBackgroundColor #F7F8FA
+skinparam classBorderColor #2C7A6B
+skinparam classAttributeIconSize 0
+title 账号与公共入口 · 分析类图
+
+class LoginPage {
+  - usernameController
+  - passwordController
+  + submit()
+  + showError(message)
+}
+
+class RegisterPage {
+  - usernameController
+  - passwordController
+  - nicknameController
+  + submit()
+}
+
+class AuthController {
+  - AuthApi authApi
+  - SessionStore sessionStore
+  - AuthState state
+  + login(username, password)
+  + register(username, password, nickname)
+  + logout()
+  + restoreSession()
+  + onUnauthorized()
+}
+
+interface AuthApi {
+  + login(username, password): Future<LoginResult>
+  + register(username, password, nickname): Future<User>
+  + logout(token): Future<void>
+  + me(token): Future<User>
+}
+
+class SessionStore {
+  + save(session: Session)
+  + load(): Session?
+  + clear()
+}
+
+class Session {
+  + token: String
+  + expiresAt: DateTime
+  + user: User
+}
+
+class User {
+  + userId: String
+  + username: String
+  + nickname: String
+}
+
+class RequestIdGenerator {
+  + newId(): String
+}
+
+class LoadingView
+class ErrorView
+class EmptyView
+
+LoginPage --> AuthController : 提交登录
+RegisterPage --> AuthController : 提交注册
+AuthController --> AuthApi : 调用
+AuthController --> SessionStore : 保存/读取/清除
+AuthController --> RequestIdGenerator : 业务重试
+SessionStore --> Session : 持久化
+Session --> User : 持有
+LoginPage ..> LoadingView : 提交中
+LoginPage ..> ErrorView : 登录失败
+
+note right of AuthApi
+  网络层实现由冉昕霖负责；
+  本图只定义调用契约。
+end note
+
+note right of User
+  CurrentUser 由闫昕提供；
+  其他服务只调用该入口。
+end note
+
+note bottom of LoadingView
+  LoadingView / ErrorView / EmptyView
+  只显示状态，不承担业务规则。
+  EmptyView 供图鉴/背包等业务页面复用。
+end note
+
+@enduml

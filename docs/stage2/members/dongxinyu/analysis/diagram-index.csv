@@ -1,0 +1,5 @@
+图名,源文件,导出图,正文说明位置
+自习任务与驻留用况图,analysis/diagrams/自习任务与驻留用况图.puml,analysis/diagrams/自习任务与驻留用况图.png,analysis.txt 第9节、第6节
+自习任务分析类图,analysis/diagrams/自习任务分析类图.puml,analysis/diagrams/自习任务分析类图.png,analysis.txt 第3节、第9节
+驻留状态图,analysis/diagrams/驻留状态图.puml,analysis/diagrams/驻留状态图.png,analysis.txt 第4节、第9节
+遭遇触发流程,analysis/diagrams/遭遇触发流程.puml,analysis/diagrams/遭遇触发流程.png,analysis.txt 第6节、第7节、第9节

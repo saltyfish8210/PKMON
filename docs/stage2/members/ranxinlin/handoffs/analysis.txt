@@ -1,0 +1,59 @@
+阶段：analysis（2026-10-20 至 10-24）
+作者：冉昕霖
+截止：2026-10-25 04:00（北京时间）；接收方 10/25 白天读取：闫昕、余星晨、赵冠钧、李宗晏
+状态：仅个人分支 design/ranxinlin-stage2；尚未推送、尚未合入 main
+本人分支与完整提交号：design/ranxinlin-stage2；2b37cdd36f2806ca58251bc9d808d3cf398dfd0f
+主线合并提交号：无（未合入）
+所用输入源码提交：e17aa328d446bc0a499f110514e938b233ab4587（main，与 upstream/main 一致）
+所读依赖：sunhongyi 的 analysis/design/interfaces.json（同一 main）、yanxin 的 analysis 与交接、
+  project/ 清单、配套 api-contract.json 与 fixtures/
+
+一、本次交付
+  docs/stage2/members/ranxinlin/analysis/analysis.txt      正文（513 行，11 节）
+  docs/stage2/members/ranxinlin/analysis/questions.csv     问题与依赖 12 条
+  docs/stage2/members/ranxinlin/analysis/diagram-index.csv 图索引
+  docs/stage2/members/ranxinlin/analysis/diagrams/         5 张图源 .puml + 5 张导出 .png + 说明
+  docs/stage2/members/ranxinlin/evidence/environment.txt   实际执行与未执行
+  docs/stage2/members/ranxinlin/ai/使用记录.txt            AI 使用记录（待本人复核）
+  design/、final/、presentation/ 仅保留 .gitkeep，按 10/29、11/18 节点补齐
+
+二、正文与图的对应
+  图1 答题捕获客户端用况图 → 3.7；图2 客户端交互分析类图 → 4.1；
+  图3 答题捕获客户端顺序图 → 5.1；图4 捕获界面状态图 → 6.1；
+  图5 客户端网络适配包图 → 7.1。
+
+三、运行与查看方式（无需构建）
+  1) 正文：任意 UTF-8 文本编辑器打开 analysis.txt；
+  2) 图：直接打开 diagrams/*.png；源文件为 .puml，重导出命令：
+     java -Djava.awt.headless=true -jar plantuml.jar -charset UTF-8 -tpng *.puml
+  3) 实际执行的核对命令见 evidence/environment.txt。
+
+四、本人测试与核对
+  真实执行：
+  - git rev-parse HEAD → e17aa328d446bc0a499f110514e938b233ab4587；
+  - 客户端调用点与旧演示路由静态核对：home_shell.dart:151 调 'capture/challenge'，
+    capture_page.dart:45 调 'capture/answer'，DemoController.java:19-20 已迁到
+    /api/v1/demo/capture/*，两者不一致；
+  - fixtures 字段校验：07/08/09/10 四个文件 missing=none，题目 options=3 且 answerLeak=none；
+  - 五张图源导出 PNG，中文显示正常。
+  未执行：mvn test、flutter analyze、flutter test、真实 HTTP 联调、Android 真机验证。
+
+五、真实/模拟/未执行
+  真实：源码读取、静态核对、fixtures 校验、图导出。
+  模拟：无（未使用替身数据冒充运行结果）。
+  未执行：客户端构建与接口联调（本机无 Flutter/Dart 与 Maven）。
+
+六、缺项、影响与下一步
+  1) 本机无 Flutter/Dart SDK：影响 analyze/test 与页面验证；下一步安装与锁文件一致的 SDK，
+     由余星晨统一版本。责任人：本人/余星晨。
+  2) 本机无 Maven 与可运行后端包：影响真实联调；责任人胡豪。
+  3) 真实认证 token 未接入：影响账号切换与 401 验证；责任人闫昕。
+  4) 旧路由迁移只做静态核对，未运行验证；设计阶段随统一网络层一并修正（Q02）。
+  5) totalSpeciesCount 真值未定（当前替身 1）；责任人孙虹毅。
+  以上缺项不阻塞分析结论；设计阶段（10/25-10/28）先做统一网络层、旧字段适配与
+  requestId/超时恢复的接口签名与测试设计。
+
+七、交接读取方式
+  更新到含本记录的分支/提交后，先读 analysis/analysis.txt 第 3、5、6 节与 questions.csv，
+  再按本人模块读 project/ 与 sunhongyi 的 design/interfaces.json。
+  本记录引用的成果提交号为 2b37cdd；本记录自身的提交号以 Git 历史为准，不循环填写。

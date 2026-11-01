@@ -1,0 +1,6 @@
+图名,源文件,导出图,正文说明位置
+驻留规则设计类图,design/diagrams/驻留规则设计类图.puml,design/diagrams/驻留规则设计类图.png,design.txt 6.1
+位置样本处理顺序图,design/diagrams/位置样本处理顺序图.puml,design/diagrams/位置样本处理顺序图.png,design.txt 4.1
+任务触发顺序图,design/diagrams/任务触发顺序图.puml,design/diagrams/任务触发顺序图.png,design.txt 4.2
+驻留状态图（设计）,design/diagrams/驻留状态图（设计）.puml,design/diagrams/驻留状态图（设计）.png,design.txt 8.1
+自习任务包图,design/diagrams/自习任务包图.puml,design/diagrams/自习任务包图.png,design.txt 1.3

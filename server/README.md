@@ -60,6 +60,25 @@ java -jar target/pkmon-server-0.1.0.jar --server.address=0.0.0.0
 
 默认只监听 `127.0.0.1`；安卓模拟器经 `10.0.2.2` 可以访问，真机不行。
 
+### 数据库与 profile（第二阶段新增，胡豪维护）
+
+嵌入式 H2，免安装；迁移由 Flyway 管理（`src/main/resources/db/migration/`，胡豪统一编号）。
+
+| profile | 数据库 | 用途 |
+|---|---|---|
+| 默认（无） | 内存库 `jdbc:h2:mem:pkmon` | 直接启动验证，不写磁盘 |
+| `dev` | 文件库 `./data/pkmon-dev`（在 `server/data/`，不入库） | 联调，重启后数据保留 |
+| `test` | 内存库 `pkmon_test` | 自动化测试专用独立库 |
+
+```bash
+# 用 dev profile 启动（重启后数据保留）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+数据库口令读环境变量 `PKMON_DB_PASSWORD`（默认空）。启动日志中的
+「PKMon 启动检查」一行可核对当前连的库与迁移版本。
+全量环境说明见 `../docs/stage2/baselines/environment.txt`。
+
 ---
 
 ## 二、要改题目，改哪个文件

@@ -1,0 +1,25 @@
+交接记录：系统模块划分、模块依赖与主要数据关系设计
+责任人：胡豪 | 日期：2026-10-25 | 阶段：第二阶段设计轮
+
+交付文件
+- design/design.txt：系统模块划分、模块依赖与主要数据关系正文
+- design/questions.csv：5 项未决问题（含责任人与目标交接时间）
+
+交接状态
+- 已提交本人设计分支 design/huhao-stage2（基于 main 3802257），成果提交
+  7bd456165f11c48e74ad974957593fa83fe3c820；
+- 已合入主线 main，主线合并提交 49636865f401f7775ae5dc14c5a48e555f039fb5
+  （2026-10-31 补记，此前记录误写"未合入主线"）。
+- 本文只含结构设计结论，不包含任何已完成的编码；数据库实现为 11/01 起的工作。
+
+输入依据
+- main 固定提交 380225791e4b0791509be90e58368036519fe540
+- docs/stage2/members/yanxin/analysis/analysis.txt
+- docs/stage2/members/sunhongyi/analysis/ 与 design/
+
+请以下成员按依赖读取
+- 闫昕：users/auth_sessions 表草案与身份适配装配位置（design.txt 第7节）
+- 孙虹毅：repository 接口不变、幂等与唯一约束落库方式（第7节）
+- 董欣毓、赵冠钧：study_tasks/location_samples 表草案（第7节）
+- 冉昕霖：客户端不感知数据库，仅走 HTTP API（第7节）
+- 李宗晏：唯一约束可直接转化为持久化验收用例（第7节）

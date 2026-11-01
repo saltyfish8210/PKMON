@@ -1,0 +1,57 @@
+@startuml 捕获控制器设计状态图
+' 冉昕霖 · 第二阶段设计 · CaptureController 的请求与恢复状态
+' 40101 不进入本状态图：由 ApiClient 回调入口清会话并跳登录（见 design.txt 4.4）
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F2A37
+  ArrowColor #5B6B7C
+}
+
+state "空闲\nIDLE" as Idle
+state "取题中\nLOADING" as Loading
+state "待作答\nREADY" as Ready
+state "提交中\nSUBMITTING" as Submitting
+state "结果待确认\nUNKNOWN" as Unknown
+state "已捕获\nCAPTURED" as Captured
+state "已过期\nEXPIRED" as Expired
+state "取题失败\nFAILED" as Failed
+
+[*] --> Idle : 创建控制器
+Idle --> Loading : load(spawnId) / state=loading
+Loading --> Ready : challenge 成功 / 保存 ChallengeView
+Loading --> Failed : ApiFailure / 保存失败原因
+Failed --> Loading : retry() / 重新取题
+
+Ready --> Submitting : submit(optionId)\n[!sending] / requestId=newId()、state=submitting
+Submitting --> Captured : result=CORRECT\n且 captureRecordId 非空 / 刷新概览
+Submitting --> Ready : result=WRONG / 记录答错，允许新 requestId
+Submitting --> Unknown : timeout | network / state=unknown
+Submitting --> Expired : 41001 / 提示重新遭遇
+Submitting --> Ready : 40001 | 40902 / 显示错误，可重试
+
+Unknown : entry / 调用 status(challengeId)
+Unknown --> Captured : status=CAPTURED
+Unknown --> Submitting : status=OPEN 且原内容已知\n用原 requestId 重试
+Unknown --> Ready : status=OPEN 且内容不可恢复\n按新作答处理
+Unknown --> Expired : status=EXPIRED
+Unknown --> Unknown : 查询失败 / 保留 requestId 与 optionId
+
+Captured : entry / collectionApi.summary()
+Captured --> [*] : 页面返回后 dispose()
+Expired --> [*] : 页面返回后 dispose()
+
+note right of Submitting
+  sending 标志是界面保护，不是幂等保证：
+  真正的幂等由 requestId + 服务端唯一约束保证。
+end note
+
+note bottom of Unknown
+  retry 只允许复用原 requestId + 原 optionId；
+  用户重新选择选项时必须 newId()。
+  40101 由 ApiClient 统一回调入口处理。
+end note
+@enduml

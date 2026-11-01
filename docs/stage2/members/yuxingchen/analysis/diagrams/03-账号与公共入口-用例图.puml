@@ -1,0 +1,55 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam usecaseBackgroundColor #F7F8FA
+skinparam usecaseBorderColor #2C7A6B
+skinparam actorBackgroundColor #E6F2EF
+skinparam actorBorderColor #2C7A6B
+title 账号与公共入口 · 用况图
+
+actor "未登录用户" as Guest
+actor "已登录玩家" as Player
+
+rectangle "PKMon 客户端 · 账号与公共入口" {
+  usecase "注册账号" as UC01
+  usecase "登录" as UC02
+  usecase "进入主界面" as UC03
+  usecase "维持会话" as UC04
+  usecase "会话失效处理" as UC05
+  usecase "退出登录" as UC06
+  usecase "切换账号" as UC07
+  usecase "查看当前用户" as UC08
+}
+
+Guest --> UC01
+Guest --> UC02
+Player --> UC03
+Player --> UC04
+Player --> UC05
+Player --> UC06
+Player --> UC07
+Player --> UC08
+
+UC01 ..> UC02 : 注册成功后登录
+UC03 ..> UC04 : <<include>>
+UC05 ..> UC02 : <<include>>
+UC07 ..> UC02 : 重新认证
+
+note right of UC03
+  进入主界面必须先通过登录门禁；
+  未登录/会话过期一律回登录页。
+end note
+
+note bottom of UC04
+  受保护请求携带 Bearer token；
+  token 失效由账号服务判定。
+end note
+
+note bottom of UC08
+  当前用户由闫昕提供；
+  其他服务只调用 CurrentUser 入口。
+end note
+
+@enduml

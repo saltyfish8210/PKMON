@@ -18,9 +18,11 @@
 
 二、运行方式（真实可用）
   1) cd server
-  2) mvn -B test                      → 预期 Tests run: 23，BUILD SUCCESS
+  2) mvn -B test                      → 预期 Tests run: 34，BUILD SUCCESS
   3) mvn -B package -DskipTests
-  4) java -jar target/pkmon-server-0.1.0.jar      （监听 127.0.0.1:4180）
+  4) java -jar target/pkmon-server-0.1.0.jar --spring.profiles.active=dev
+     （监听 127.0.0.1:4180。必须带 dev 或 test profile：2026-10-25 起开发期身份替身与
+      开发遭遇入口默认关闭，无 profile 时业务接口一律返回 503/50301）
   5) 另开终端，正式业务接口需带开发期身份头 X-Dev-User: <任意用户标识>
      示例：
        curl -X POST http://127.0.0.1:4180/api/v1/dev/spawns \
@@ -29,13 +31,14 @@
   6) 依次调用 /api/v1/capture/challenge、/api/v1/capture/answer、
      /api/v1/capture/challenges/{id}、/api/v1/collection/summary，
      字段与样例见 design/interfaces.json。
-  三个开关（默认即开发期形态，正式环境必须关）：
-     pkmon.capture.dev-user-header=false    关闭 X-Dev-User 身份替身
-     pkmon.capture.dev-spawn-enabled=false  关闭开发遭遇
-     pkmon.capture.in-memory-store=false    不使用内存仓储替身（届时需接入真实实现）
+  三个开关（2026-10-25 起安全默认为关闭前两项）：
+     pkmon.capture.dev-user-header    默认=false；dev/test profile 下默认 true（X-Dev-User 身份替身）
+     pkmon.capture.dev-spawn-enabled  默认=false；dev/test profile 下默认 true（/dev/spawns）
+     pkmon.capture.in-memory-store    默认=true（真实持久化接入前必须为 true，否则无仓储、起不来）
+     显式覆盖示例：java -jar ... --pkmon.capture.dev-spawn-enabled=false
 
 三、实测结果（摘自 evidence/foundation.txt）
-  mvn -B test：Tests run: 23, Failures: 0, Errors: 0, Skipped: 0；BUILD SUCCESS
+  mvn -B test：Tests run: 34, Failures: 0, Errors: 0, Skipped: 0；BUILD SUCCESS（2026-10-25 更新）
   端到端：/test/hello 200；dev/spawns 200（DEV_SIMULATED）；challenge 200（不含答案字段）；
     答错 200 WRONG + 记录为空；答对 200 CORRECT + captureRecordId；
     status 200 CAPTURED；summary 200 captureCount=1；
@@ -62,5 +65,26 @@
   缺项1 事务与持久化依赖（胡豪）：决定 TC-07/TC-08 与事务边界能否落地。
   缺项2 启动类扫描范围（胡豪，Q09）：现用自动配置兜底，改扫描范围后可删 imports 文件。
   缺项3 认证入口（闫昕，Q01）、题库初始数据（闫昕，Q03）。
+  新增责任（2026-10-25 读团队决策后）：题库与图鉴的种子内容由孙虹毅提供，
+    装载机制与迁移由胡豪负责，见 docs/stage2/project/decisions.csv「题库职责」。
+    当前种子内容仅 1 种精灵与 1 道题（FixtureCatalog），扩充属后续范围，不报为已完成。
+  另：胡豪 design.txt 第 6 节说明数据库与迁移技术选型仍在 Q01/Q02 跟踪，未定型，
+    因此本模块的事务边界与唯一约束仍无法落地。
   下一步：接真库后补 TC-07/TC-08，把 interfaces.json 的 storageSimulated 置 false；
     与董欣毓接通正式任务遭遇时保持幂等与隔离回归测试。
+
+七、2026-10-25 跟进（读过团队交付后的一次代码调整）
+  读了 main 1697e87 上闫昕的 analysis 与胡豪的 design/questions.csv，结论与改动：
+  1) 胡豪点名本人一项：开发替身默认开启有伪装身份风险，要求仅 dev/test 显式开启并补拒绝测试。
+     已改：dev-user-header 与 dev-spawn-enabled 的默认值改为按 profile 判定，开启时启动日志打 WARN；
+     新增 11 个测试（3 个类），全套 34 个用例通过。
+     实测：dev profile 下 14 步端到端全通；默认 profile 下业务接口与开发入口均 503/50301，
+     带 X-Dev-User 头也不放行。
+  2) 胡豪 design 第 7 节确认：capture 的 repository 接口保持不变，下一轮由数据层替换内存实现；
+     幂等与不重复收录分别由 answer_attempts.requestId 与 (userId, spawnId) 唯一约束支撑。
+     与本人 design.txt 5.1/5.3 一致，设计不改。
+  3) 闫昕 analysis 明确：登录路径 404、认证未实现，但 token 与 userId 契约已在分析层定下；
+     X-Dev-User 不能作为正式身份。本人 Q01 保持待回复，接入时只替换 CurrentUserProvider 实现。
+  4) 新增责任：题库与图鉴种子内容由本人提供（胡豪负责装载机制），当前仅 1 种 1 题。
+  5) 数据库选型（H2 或 SQLite）待胡豪 10/29 定型，本人事务边界与 TC-07/TC-08 仍无法落地。
+  详细记录：evidence/inputs-2026-10-25.txt

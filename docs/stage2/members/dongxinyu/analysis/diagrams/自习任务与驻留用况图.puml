@@ -1,0 +1,38 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "学生用户" as student
+actor "演示人员" as demo
+actor "服务器时间" as clock <<system>>
+
+rectangle "PKMon 自习任务与驻留（本人范围）" {
+  usecase "开始自习任务" as UC1
+  usecase "提交位置样本" as UC2
+  usecase "查看任务状态" as UC3
+  usecase "有效驻留并触发遭遇" as UC4
+  usecase "结束任务" as UC5
+  usecase "模拟位置演示" as UC6
+  usecase "答题并捕获" as UC7
+}
+
+student --> UC1
+student --> UC3
+student --> UC5
+UC1 ..> UC2 : <<include>>
+UC2 ..> UC4 : <<include>>
+UC4 --> UC7 : 生成遭遇机会
+demo --> UC6
+UC6 ..> UC2 : 模拟来源
+clock --> UC4 : 推进失联判定
+note right of UC7
+  由孙虹毅负责，
+  本模块只产生 spawnId，
+  不写捕获记录。
+end note
+@enduml

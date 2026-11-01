@@ -1,0 +1,119 @@
+{
+  "owner": "huhao",
+  "stage": "stage2",
+  "module": "common（统一响应/异常兜底/时钟）与 persistence（数据源、迁移、构建配置）",
+  "version": "foundation-2026-10-31",
+  "status": "skeleton_implemented",
+  "statusNote": "common 骨架（ApiResponse、GlobalExceptionHandler、可注入 Clock、启动检查）与 V1 迁移已落地并通过自测（见 evidence/foundation.txt）。业务 Repository 的真实持久化实现属 11/01-11/05 实现轮：capture 模块当前仍走内存替身（pkmon.capture.in-memory-store 默认 true），接口不变。",
+  "conventions": {
+    "baseUrl": "http://127.0.0.1:4180",
+    "businessPrefix": "/api/v1",
+    "successEnvelope": {"code": 0, "message": "ok", "data": {}},
+    "errorEnvelope": {"code": 40001, "message": "参数错误", "data": null},
+    "fieldCase": "lowerCamelCase",
+    "sqlCase": "lower_snake_case",
+    "timeFormat": "UTC ISO 8601（数据库 TIMESTAMP WITH TIME ZONE，界面展示转换为北京时间）",
+    "entityId": "UUID 字符串（VARCHAR(36)）"
+  },
+  "beans": [
+    {
+      "name": "clock",
+      "type": "java.time.Clock",
+      "providedBy": "edu.pkmon.common.config.CommonConfig",
+      "semantics": "全模块统一注入 Clock（生产 Clock.systemUTC()）；@ConditionalOnMissingBean，测试可替换为固定时钟；capture 原 captureClock 自动让位，行为不变"
+    },
+    {
+      "name": "globalExceptionHandler",
+      "type": "edu.pkmon.common.error.GlobalExceptionHandler",
+      "semantics": "统一异常响应兜底：参数形状错误→400/40001；未知路径→404/40401；未捕获异常→500/50000（堆栈仅记服务端日志）。业务模块自己声明的 @ExceptionHandler 优先匹配"
+    },
+    {
+      "name": "startupCheckRunner",
+      "type": "edu.pkmon.common.config.StartupCheckRunner",
+      "semantics": "启动前打印 profile、数据源 URL、已应用迁移；数据库不可用直接启动失败（fail-fast）；只输出非敏感项"
+    }
+  ],
+  "types": [
+    {
+      "class": "ApiResponse",
+      "signature": "record ApiResponse<T>(int code, String message, T data)；静态构造 ok(T) / error(int, String)",
+      "note": "新模块（user/study 等）统一使用；capture 历史代码使用同构 CaptureDtos.ApiEnvelope，字段与语义一致"
+    }
+  ],
+  "dataSource": {
+    "engine": "H2（嵌入式，随 jar 分发，免安装）",
+    "driver": "org.h2.Driver",
+    "passwordEnv": "PKMON_DB_PASSWORD（默认空；只在本人终端或未入库配置中设置实际口令）",
+    "profiles": {
+      "default": "jdbc:h2:mem:pkmon;DB_CLOSE_DELAY=-1（内存库，不写磁盘，适合直接启动验证）",
+      "dev": "jdbc:h2:file:./data/pkmon-dev（文件库，重启后数据保留；文件在 server/data/，已 gitignore）",
+      "test": "jdbc:h2:mem:pkmon_test;DB_CLOSE_DELAY=-1（独立内存库；自动化测试只准连本库）"
+    },
+    "switchNote": "开发替身 X-Dev-User 与开发遭遇入口的开关归 capture 模块（pkmon.capture.*），仅 dev/test profile 默认开启；本模块不改动该语义"
+  },
+  "migrations": {
+    "tool": "Flyway（版本化增量迁移，classpath:db/migration）",
+    "policy": "迁移由胡豪统一编号与提交；已应用的迁移不改写，变更走 V2+ 增量",
+    "applied": [
+      {
+        "version": "V1",
+        "script": "V1__init_schema.sql",
+        "tables": ["users", "auth_sessions", "species", "questions", "spawns", "challenges", "answer_attempts", "capture_records"],
+        "uniqueConstraints": [
+          "users(username)",
+          "auth_sessions(token_digest)",
+          "species(business_key)",
+          "questions(business_key)",
+          "challenges(spawn_id)",
+          "answer_attempts(request_id)",
+          "capture_records(user_id, spawn_id)"
+        ],
+        "deferred": "study_tasks / location_samples 待驻留字段定稿后以 V2 增补（questions.csv Q05）；题库与图鉴种子内容待孙虹毅提供后以增量迁移装载"
+      }
+    ]
+  },
+  "health": {
+    "method": "GET",
+    "path": "/test/hello",
+    "note": "返回文本 hello world，只表示服务入口可达，不代表业务完成"
+  },
+  "ownerScope": {
+    "modifiablePaths": [
+      "server/pom.xml",
+      "server/src/main/java/edu/pkmon/common/",
+      "server/src/main/java/edu/pkmon/demo/PkmonApplication.java",
+      "server/src/main/resources/",
+      "server/src/test/java/edu/pkmon/common/",
+      "compose.yaml",
+      "README.md",
+      ".gitignore",
+      "docs/stage2/baselines/",
+      "docs/stage2/members/huhao/"
+    ],
+    "notModifiable": [
+      "server/src/main/java/edu/pkmon/capture/（主责孙虹毅；repository 接口不变，实现替换由本人下一轮与其配合完成）",
+      "client/ 与锁文件（主责余星晨）",
+      "网络适配与页面（主责冉昕霖）"
+    ]
+  },
+  "dependencies": [
+    {
+      "item": "User/AuthSession 字段定稿",
+      "status": "pending",
+      "owner": "闫昕（表结构落地：胡豪）",
+      "impact": "V1 users/auth_sessions 按 design.txt 草案建表；字段变化走 V2 增量迁移"
+    },
+    {
+      "item": "题库与图鉴种子内容",
+      "status": "pending",
+      "owner": "孙虹毅（装载机制：胡豪）",
+      "impact": "当前库内无种子数据；capture 运行时仍用 FixtureCatalog 替身"
+    },
+    {
+      "item": "驻留相关表字段",
+      "status": "pending",
+      "owner": "董欣毓、赵冠钧（表结构：胡豪）",
+      "impact": "study_tasks/location_samples 未建，不影响捕获主流程"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1000" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1000" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1000" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="30" y="435" width="280" height="170" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="114.58984375" y="576" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1152) scale(1,-1)">user.service</text>
+			<path d="M 30,558 L 310,558 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="45" y="530" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1060) scale(1,-1)">AuthService / AuthRules</text>
+			<text x="45" y="507" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1014) scale(1,-1)">SessionTokens / AuthFailure</text>
+			<rect x="370" y="435" width="260" height="170" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="457.021484375" y="576" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1152) scale(1,-1)">user.port</text>
+			<path d="M 370,558 L 630,558 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="385" y="530" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1060) scale(1,-1)">UserRepository</text>
+			<text x="385" y="507" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1014) scale(1,-1)">AuthSessionRepository</text>
+			<text x="385" y="484" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,968) scale(1,-1)">PasswordHasher / CurrentUser</text>
+			<rect x="690" y="435" width="280" height="170" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="744.1650390625" y="576" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1152) scale(1,-1)">user.domain / dto</text>
+			<path d="M 690,558 L 970,558 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="705" y="530" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1060) scale(1,-1)">User / AuthSession</text>
+			<text x="705" y="507" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1014) scale(1,-1)">AuthDtos</text>
+			<path d="M 310,510 L 370,510 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 370,510 L 360.095082,514.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 370,510 L 360.095082,505.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 170,435 L 170,390 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 170,390 L 820,390 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 820,390 L 820,435 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 820,435 L 815.215379,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 820,435 L 824.784621,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<rect x="35" y="165" width="280" height="160" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="79.1943359375" y="296" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,592) scale(1,-1)">user HTTP / adapter</text>
+			<path d="M 35,278 L 315,278 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="50" y="250" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,500) scale(1,-1)">待实现：账号路由</text>
+			<text x="50" y="227" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,454) scale(1,-1)">口令库 / 请求头供应器</text>
+			<rect x="370" y="165" width="260" height="160" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="394.4091796875" y="296" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,592) scale(1,-1)">common 配置（胡豪）</text>
+			<path d="M 370,278 L 630,278 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="385" y="250" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,500) scale(1,-1)">待实现：仓储与装配</text>
+			<text x="385" y="227" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,454) scale(1,-1)">CurrentUserProvider桥接</text>
+			<rect x="690" y="165" width="280" height="160" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="751.0107421875" y="296" style="font-family: Microsoft YaHei; font-size: 20px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,592) scale(1,-1)">capture / trigger</text>
+			<path d="M 690,278 L 970,278 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="705" y="250" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,500) scale(1,-1)">领域规则、资源归属</text>
+			<text x="705" y="227" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,454) scale(1,-1)">调用自己的身份端口</text>
+			<path d="M 175,325 L 175,435 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 175,435 L 170.215379,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 175,435 L 179.784621,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 500,325 L 500,435 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 500,435 L 495.215379,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 500,435 L 504.784621,425.095082 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 630,245 L 690,245 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 690,245 L 680.095082,249.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 690,245 L 680.095082,240.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="268.3583984375" y="75" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,150) scale(1,-1)">箭头表示使用依赖；账号main代码不导入capture或trigger。</text>
+			<text x="279.24072265625" y="42" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,84) scale(1,-1)">公共桥接在CaptureConfig条件判断前装配；本轮未启用。</text>
+		</g>
+	</g>
+</svg>

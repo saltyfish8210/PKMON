@@ -1,7 +1,14 @@
-状态：待进一步完善
+状态：完善
 作者：李宗晏
 目标与范围：覆盖两个核心功能中第二项“答题捕获与精灵收录”的需求到测试对应关系，优先分析其真实完整流程：开发遭遇 → 发起挑战 → 答题 → 判题结算 → 捕获记录持久化 → 收藏/图鉴查询。遭遇部分允许明确模拟，判题、结算、存储、查询按真实实现分析。
+
 当前源码与实际能力：
+1. 环境配置：本机已成功配置 Java 17.0.20.1 与 Flutter 3.35.5。
+2. 后端启动：在 server 目录下使用 Maven 打包并运行 java -jar，成功启动服务，监听 4180 端口。
+3. 接口连通性：GET /test/hello 返回 "hello world"；POST /api/v1/demo/sessions 和 /explore 成功建立会话并返回 nearby=True，证明服务端真实可用。
+4. 核心能力缺陷：尝试获取题目 POST /api/v1/capture/challenge 时，服务端返回 401 未经授权。说明演示版接口（可能依赖 Bearer Token）与演示用 X-Demo-Session 鉴权机制不兼容。
+5. 前端构建能力：一键构建脚本失败，因为前端 pubspec.yaml 限制 Dart SDK ^3.13.5，当前环境（3.9.2）无法满足。
+
 参与者和业务对象：参与者：User（userld）、客户端、CaptureController/CaptureService（捕获规则、接口、存储与查询）、Challenge/AnswerAttempt/CaptureRecord、Species（业务键 siege_lion）、Spawn（允许模拟）。
 业务对象与统一名称：Challenge/challenged、AnswerAttempt/requestld、CaptureRecord/captureRecordld、Species/speciesld、Spawn/spawnld、User/userld。
 正常流程：注册/登录取得 token（POST /api/v1/auth/register、/login）；
@@ -11,10 +18,22 @@
 状态查询（GET /api/v1/capture/challenges/{challenged}）确认 CAPTURED；
 收藏/图鉴查询（GET /api/v1/collection/summary、/api/v1/dex、/api/v1/species/{speciesId}、/api/v1/captures）确认收录；
 重启后再次查询，捕获记录仍只有一条。
+
 异常流程：
+1. 鉴权异常（已实测）：
+   - 动作：仅携带演示会话 X-Demo-Session 请求 POST /api/v1/capture/challenge。
+   - 实际结果：HTTP 401 未经授权。
+   - 分析：导致答题主流程中断，无法获取 challengeId。
+2. 答错题异常（未实测，因主流程被阻断）：
+   - 预期：提交错误选项后，状态 captured 应为 False，count 应为 0，允许重新挑战。
+3. 越权访问（未实测，因无多用户环境）：
+   - 预期：使用用户 A 的 Session 去查询用户 B 的状态或题目，应被拒绝。
+4. 参数缺失（未实测）：
+   - 预期：不传 spawnId 或 optionId 直接请求，服务端应返回 400 参数错误。
+
 前置与后置条件：前置：专用测试数据库与两名隔离测试用户；服务已启动且记录提交号；所需模块交接提交已包含，否则记未执行。
 后置：每次测试保存输入、预期、实际、证据；失败录入 docs/stage2/quality/defects.csv；区分通过/失败/未执行，模拟不计真实持久化、权限隔离或完整定位验证。
-本人分析图索引与说明：
+
 对其他作者的依赖需求：孙虹毅：捕获规则、接口、存储与查询、userid+spawnld 唯一约束与事务；需其接口/字段确认；
 冉昕霖：网络层与捕获页面，调用同一接口，缺功能交主责；
 胡豪：数据库类型/版本、初始化、端口、URL、profile、变量名及不含秘密的示例；

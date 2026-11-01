@@ -417,3 +417,17 @@ foundation-2026-10-21）。
 12.5 仍未执行
   TC-07（并发唯一，需真实数据库约束）、TC-08（重启后查询）、TC-09 的真实认证隔离、
   submit 的事务边界（工程无 spring-tx）、客户端联调（本机无 Flutter）。
+
+12.6 开发期开关的安全默认（10/25 依团队决策调整）
+  触发依据：胡豪 design/questions.csv「开发替身默认开启」一条点名本人，指出默认开启身份替身
+    与开发遭遇入口存在伪装身份风险，要求仅 dev/test 显式开启并补启动与拒绝测试（目标 10/29）。
+  原状：pkmon.capture.dev-user-header 与 pkmon.capture.dev-spawn-enabled 默认 true。
+  改为：两项默认值由 profile 决定——激活 dev 或 test profile 时默认开启，其余（无 profile、prod）
+    默认关闭；仍可用同名属性显式覆盖；开启时启动日志打 WARN。
+  in-memory-store 仍默认 true：真实持久化实现接入前关闭它会导致本模块没有仓储、应用无法启动，
+    这一过渡状态在 12.4 已标注，接真库后改为 false。H2/SQLite 选型待胡豪 10/29 定型。
+  新增测试 11 个（3 个类）：开关判定 5、默认配置拒绝 3、dev profile 可用 3；
+    全套 34 个用例通过。
+  实测：dev profile 启动后 14 步端到端全通；默认 profile 下业务接口与开发入口均返回 503/50301，
+    即使请求带 X-Dev-User 头也不放行。
+  详细记录见 evidence/inputs-2026-10-25.txt。

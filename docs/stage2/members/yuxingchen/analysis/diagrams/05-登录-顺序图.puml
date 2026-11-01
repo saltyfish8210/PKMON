@@ -1,0 +1,59 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #2C7A6B
+skinparam participantBackgroundColor #F7F8FA
+skinparam participantBorderColor #2C7A6B
+skinparam actorBackgroundColor #E6F2EF
+skinparam actorBorderColor #2C7A6B
+title 登录 · 顺序图（正常 / 认证失败 / 网络异常）
+
+autonumber
+actor "用户" as U
+participant "LoginPage" as LP
+participant "AuthController" as AC
+participant "AuthApi\n(冉昕霖)" as API
+participant "账号服务\n(闫昕)" as S
+participant "SessionStore" as SS
+
+U -> LP : 输入用户名/密码\n点击登录
+LP -> AC : submit(username, password)
+AC -> AC : 校验非空与格式
+
+alt 输入不合法
+  AC --> LP : 显示字段错误\n不发请求
+else 输入合法
+  AC -> API : login(username, password)
+  API -> S : POST /api/v1/auth/login
+
+  alt 登录成功
+    S --> API : 200 {token, expiresAt, user}
+    API --> AC : LoginResult
+    AC -> SS : save(token, expiresAt, user)
+    SS --> AC : ok
+    AC --> LP : 登录成功
+    LP -> LP : 进入地图 / 原目标页
+  else 账号或密码错误
+    S --> API : 40101
+    API --> AC : AuthException
+    AC --> LP : 统一提示“用户名或密码错误”\n保留输入
+  else 网络超时 / 断网
+    API --> AC : NetworkException
+    AC --> LP : 错误提示 + 重试\n保留输入
+  end
+end
+
+note right of AC
+  AuthController 依赖 AuthApi 接口注入；
+  测试时用 Fake AuthApi，
+  不直接拼 HTTP 请求。
+end note
+
+note right of SS
+  会话过期/退出/切换账号时
+  必须调用 clear()，
+  并清理业务缓存。
+end note
+
+@enduml

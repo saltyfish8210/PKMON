@@ -1,0 +1,310 @@
+自习任务与驻留触发 · 详细设计
+作者：董欣毓
+阶段：第二阶段 10/25-10/28（阶段键 design）
+对应截止：10/29 04:00（北京时间）；本材料于截止后补交，读取方按实际合入时间处理。
+状态：设计交付。规则原型已在本机用 20 个自动化测试验证（见第十一节）；HTTP 控制器与 JDBC 存储在仓库中尚未实现，代码骨架按 10/31 foundation 提交。
+所读源码提交号：117a706（main，2026-11-01）
+所读分析成果提交号：a6dcaef（docs/stage2/members/dongxinyu/analysis，已合入 main）
+共享输入：闫昕 analysis §6（共享用况与驻留规则口径）、赵冠钧 design（StudyApi/TaskSnapshot 客户端契约）、孙虹毅 interfaces.json（/api/v1/dev/spawns 仅 DEV 来源）、胡豪 design（模块划分与数据关系）
+
+====================================================================
+零、本阶段产出与图码对应
+====================================================================
+
+本文将 analysis 的业务结论落成技术设计：模块分层、类与方法签名、Study HTTP 字段与错误码、存储约束、测试设计。分析对象与规则不推翻，只补技术对象。
+
+图表索引（design/diagrams/，PlantUML 源 + PNG 导出）：
+  图1 驻留规则设计类图        说明见本文 6.1
+  图2 位置样本处理顺序图      说明见本文 4.1
+  图3 任务触发顺序图          说明见本文 4.2
+  图4 驻留状态图（设计）      说明见本文 8.1
+  图5 自习任务包图            说明见本文 1.3
+
+本阶段明确边界：
+- 交付签名、JSON 样例、存储约束、测试设计；可编译骨架放 10/31 foundation。
+- 不写 @RestController、不建表、不接真机定位；这些在实现轮完成。
+- 不修改其他人目录与公共契约；与赵冠钧的 StudyApi、孙虹毅的 Spawn 只按本文接口对齐。
+
+包名说明：个人指南建议目录 server/src/main/java/edu/pkmon/trigger/，仓库现有模块是 edu.pkmon.capture / edu.pkmon.common / edu.pkmon.demo（config/domain/dto/error/port/repository/service/web 分层）。为与仓库一致，本文采用 edu.pkmon.study 作为模块包，内部仍按 trigger 语义只负责"驻留与触发"，不改指南要求的职责范围。
+
+====================================================================
+一、从分析到设计的变化
+====================================================================
+
+1.1 对象落地
+- DwellEvaluator 落成纯函数：onSample(state, region, sample, now) 与 onTick(state, now)，不持有仓库、不读系统时钟。
+  理由：59/60/61 秒边界、越界、失联都能用固定时间瞬间验证，不需要真实等待，也不需要 Spring 上下文。
+- StudyTask 拆成 DwellState（规则状态）与 StudyTask（聚合：userId、regionId、请求号、起止时间、spawnId）。
+  理由：规则测试只构造状态；存储与接口字段放聚合，避免规则类依赖用户与持久化细节。
+- 服务层 StudyTaskService 依赖两个端口：TaskRepository（存取）、SpawnGateway（创建 STUDY 遭遇）。
+  理由：第三阶段接 JDBC 与孙虹毅的 SpawnService 时只换实现，规则与用例不动。
+
+1.2 错误分层
+- 规则类不抛 HTTP 概念；服务层抛 TaskException(httpStatus, code, message)，控制器只做映射。
+  理由：错误码集中在 design/interfaces.json，测试可直接断言 code=40904 而不是解析字符串。
+
+1.3 模块与依赖（图5 自习任务包图）
+edu.pkmon.study
+├─ config    StudyRulesProperties（阈值/半径/冷却，@ConfigurationProperties）
+├─ domain    TaskStatus、PauseReason、DwellState、DwellRules、DwellDecision、LocationSample、Region、Geo、DwellEvaluator
+├─ port      TaskRepository、SpawnGateway
+├─ service   StudyTaskService、DwellStudyTaskService
+├─ dto       TaskView、SampleResult
+├─ error     TaskException
+└─ web       StudyController（本轮只设计，不实现）
+
+依赖方向：web → service → (port, domain)；domain 不依赖 Spring；service 依赖 common.api.ApiResponse 由 web 层使用。
+
+1.4 与客户端契约的对齐
+赵冠钧设计稿的 StudyApi 为 createTask / uploadSample / currentTask / endTask，返回 TaskSnapshot（taskId、regionId、status、pauseReason、effectiveSeconds、requiredSeconds、spawnId）。本文的 TaskView 字段与之逐项一致，不新增必填字段；客户端不需要知道 sampleAccepted 之外的规则细节。
+
+1.5 未采纳的候选
+- 不引入 WebSocket/SSE 推送：本轮轮询 current + 响应回传即可；推送列入后续优化。
+- 不做后台定时任务强制 tick：只用"查询时判定 + 可选 @Scheduled"，避免多实例重复暂停（第八节 8.4 说明）。
+
+====================================================================
+二、问题域设计
+====================================================================
+
+2.1 职责划分
+- DwellEvaluator：判定样本是否采纳、进入/离开/暂停/恢复、累计秒数、是否触发。唯一规则权威。
+- StudyTaskService：开始/样本/查询/结束的用例编排、幂等、冷却、归属校验、事务边界。
+- TaskRepository：持久化 study_task 与 task_sample；提供活动任务唯一性与样本唯一性的落点。
+- SpawnGateway：收到 triggeredNow 时创建一次 STUDY 来源遭遇，返回 spawnId。
+- 控制器：认证上下文取 userId、DTO 校验、错误映射；不含业务判断。
+- 客户端（赵冠钧）：只展示服务端返回的 effectiveSeconds，本地倒计时不是权威。
+
+2.2 规则到代码位置的对应
+BR-D01 双样本确认进入 → DwellEvaluator.handleWaiting（insideCount≥2）
+BR-D02 缓冲带保持并累计 → handleDwelling（withinExit && inside 分开处理）
+BR-D03 连续两次越界暂停 → handleDwelling（outsideCount≥2）
+BR-D04 失联由时钟推进 → onTick + current 查询时调用
+BR-D05 恢复不补算 → handlePaused（两条样本确认，不加 gap）
+BR-D06 阈值只触发一次 → handleDwelling（effective≥required 时置 TRIGGERED）
+BR-D07 精度/坐标系/时间/重复/乱序拒绝 → onSample 前置校验
+BR-D08 暂停保留已认可时长 → 状态迁移不修改 effectiveSeconds
+BR-D09 冷却拒绝 → DwellStudyTaskService.startTask（findLatestEnded）
+BR-D10 归属隔离 → requireOwned（40401，不区分"不存在"与"别人的"）
+
+2.3 与相邻模块的边界
+- 遭遇内容与有效期：孙虹毅；本模块只保证一个任务最多一个 spawnId。
+- 区域中心与半径：胡豪的 region 表；本模块读配置/数据，不写死坐标。
+- 认证：闫昕的 CurrentUser；控制器只接受服务端解析出的 userId，不接受请求体 userId。
+- 客户端采样与权限：赵冠钧；本模块只校验样本字段与质量。
+
+====================================================================
+三、人机交互设计（服务端可见部分）
+====================================================================
+
+3.1 TaskView 字段
+taskId、regionId、status、pauseReason、effectiveSeconds、requiredSeconds、spawnId、serverTime。
+状态取值 WAITING/DWELLING/PAUSED/TRIGGERED/ENDED；暂停原因 OUTSIDE/NO_SIGNAL。
+
+3.2 页面提示（由客户端实现，服务端提供判据）
+- PAUSED/OUTSIDE：提示"请回到区域内，已认可时长保留"。
+- PAUSED/NO_SIGNAL：提示"没有收到定位，已暂停计时"。
+- sampleAccepted=false：按 rejectionReason 提示（精度不足/坐标不支持/样本过期/时间超前/重复/乱序）。
+- TRIGGERED 且 spawnId 非空：跳转答题；未答题前任务仍可结束。
+
+3.3 模拟来源
+locationSource=SIMULATED 仅在 dev/test 开放；响应与页面同时保留该标记，不得展示为真实到场。
+
+====================================================================
+四、控制驱动设计
+====================================================================
+
+4.1 一条样本的处理（图2）
+客户端 → 控制器 → StudyTaskService.submitSample：
+1) 取任务并校验归属（行锁）；
+2) 已结束 → 40903；
+3) 同 sampleId 已存在：内容一致返回当前视图 + sampleAccepted=false/DUPLICATE_SAMPLE；内容不同 → 40902；
+4) 调 DwellEvaluator.onSample(state, region, sample, now)；
+5) 保存状态与样本记录（同一事务）；
+6) 若 triggeredNow 且 spawnId 为空：调 SpawnGateway 创建遭遇并回填（同一事务）。
+
+4.2 触发（图3）
+effectiveSeconds 达到 requiredSeconds 的那一次样本返回 status=TRIGGERED、spawnId 非空；之后继续提交样本只更新样本记录，状态与时长固定。
+并发保护：spawn(task_id) 唯一 + study_task 行锁；即使两个请求同时判定触发，也只有一个能回填 spawnId。
+
+4.3 查询与失联
+GET /study/tasks/current：读取活动任务 → 调 onTick(state, now) → 状态变化则保存 → 返回视图。
+理由：用户关掉定位后可能不再提交样本，没有查询就永远不暂停；把 tick 挂在查询上，不依赖调度器。
+
+4.4 定时任务（可选）
+@Scheduled 每分钟扫描 status=DWELLING 且 last_accepted_at 超过 30 秒的任务，推进 NO_SIGNAL。
+多实例部署时需要分布式锁或单实例部署；本轮不启用，查询路径已覆盖同一判据。
+
+4.5 重试与幂等
+- 开始/结束用 requestId 幂等：同 requestId 返回同一结果；同 requestId 不同参数 → 40902。
+- 样本用 sampleId 幂等：内容一致返回当前视图；内容不同 → 40902。
+- 客户端超时先查 current，再决定是否重发；不得本地推进状态。
+
+五、数据管理设计
+
+5.1 表与字段（与胡豪的迁移对齐；本轮不建表）
+study_task：id uuid pk、user_id uuid、region_id varchar(64)、start_request_id uuid、location_source varchar(16)、status varchar(16)、pause_reason varchar(16) null、effective_seconds int、required_seconds int、inside_count int、outside_count int、last_accepted_at timestamptz null、last_sampled_at timestamptz null、last_latitude float8 null、last_longitude float8 null、last_sample_inside bool、chain_valid bool、triggered_spawn_id uuid null、ended_at timestamptz null、created_at timestamptz。
+
+task_sample：id uuid pk、task_id uuid fk、sample_id uuid、latitude float8、longitude float8、accuracy_meters float8、sampled_at timestamptz、received_at timestamptz、coordinate_system varchar(16)、source varchar(16)、accepted bool、rejection_reason varchar(32) null。
+
+5.2 约束与索引
+- unique(user_id, start_request_id)：重复开始幂等。
+- unique(user_id) where status in (WAITING,DWELLING,PAUSED,TRIGGERED)：同一用户最多一个活动任务。
+- unique(task_id, sample_id)：样本幂等与重复编号比较。
+- spawn(task_id) unique：一个任务最多一次遭遇（孙虹毅侧建）。
+- index(user_id, status)、(user_id, region_id, ended_at desc)、(task_id, sampled_at)。
+
+5.3 事务与隔离
+- submitSample、endTask 使用单事务 + 行锁（select ... for update）。
+- 触发时遭遇创建与 spawnId 回填在同一事务；SpawnGateway 实现必须在调用方事务内（REQUIRED）。
+- 冷却查询只读，允许稍旧结果。
+
+5.4 访问控制与保留
+- 所有查询按 user_id 过滤；不属于当前用户一律 40401。
+- 被拒样本保留 rejection_reason；不在日志输出完整坐标与 token。
+- 任务结束后样本可按 archived 标记清理，本轮不做。
+
+====================================================================
+六、类与方法签名
+====================================================================
+
+6.1 规则层（图1）
+public final class DwellEvaluator {
+    public DwellEvaluator(DwellRules rules);
+    public DwellDecision onSample(DwellState state, Region region, LocationSample sample, Instant now);
+    public DwellState onTick(DwellState state, Instant now);
+    public DwellRules rules();
+}
+
+public record DwellState(String taskId, TaskStatus status, PauseReason pauseReason, long effectiveSeconds,
+        long requiredSeconds, int insideCount, int outsideCount, boolean chainValid,
+        Instant lastAcceptedAt, Instant lastSampledAt, Double lastLatitude, Double lastLongitude,
+        boolean lastSampleInside, String lastSampleId, boolean triggered) { ... }
+
+public record DwellRules(double enterRadiusMeters, double exitRadiusMeters, double maxAccuracyMeters,
+        int maxSampleAgeSeconds, int maxFutureSkewSeconds, int maxSampleGapSeconds,
+        long requiredSeconds, long cooldownSeconds) { ... }
+
+public record LocationSample(String sampleId, double latitude, double longitude, double accuracyMeters,
+        Instant sampledAt, String coordinateSystem, String source) { ... }
+
+public record Region(String regionId, double centerLatitude, double centerLongitude,
+        double enterRadiusMeters, double exitRadiusMeters, boolean enabled) { ... }
+
+6.2 服务层
+public interface StudyTaskService {
+    TaskView startTask(String userId, String regionId, String requestId, String locationSource);
+    SampleResult submitSample(String userId, String taskId, LocationSample sample);
+    Optional<TaskView> currentTask(String userId);
+    TaskView endTask(String userId, String taskId, String requestId);
+}
+
+public interface TaskRepository {
+    Optional<StudyTask> findActiveByUser(String userId);
+    Optional<StudyTask> findById(String taskId);
+    Optional<StudyTask> findByStartRequest(String userId, String requestId);
+    Optional<StudyTask> findLatestEnded(String userId, String regionId);
+    StudyTask insert(StudyTask task);
+    void save(StudyTask task);
+    Optional<Region> findRegion(String regionId);
+    Optional<LocationSample> findSample(String taskId, String sampleId);
+    void saveSample(String taskId, LocationSample sample, boolean accepted, RejectionReason reason);
+}
+
+public interface SpawnGateway {
+    String createStudySpawn(String userId, String regionId, String taskId, Instant now);
+}
+
+6.3 配置
+@ConfigurationProperties("pkmon.study")
+record StudyRulesProperties(double enterRadiusMeters, double exitRadiusMeters, double maxAccuracyMeters,
+        int maxSampleAgeSeconds, int maxFutureSkewSeconds, int maxSampleGapSeconds,
+        long requiredSeconds, long cooldownSeconds) { DwellRules toRules(); }
+默认值：80/100/50/30/5/30/600/1800；测试 profile 覆盖 requiredSeconds=60。
+
+====================================================================
+七、接口与错误
+====================================================================
+
+7.1 四个端点（前缀 /api/v1，认证 Bearer/CurrentUser）
+POST /study/tasks               {regionId, requestId, locationSource} → TaskView
+POST /study/tasks/{id}/samples  {sampleId, latitude, longitude, accuracyMeters, sampledAt, coordinateSystem, source} → TaskView + sampleAccepted + rejectionReason
+GET  /study/tasks/current       → {task: TaskView|null}
+POST /study/tasks/{id}/end      {requestId} → TaskView
+
+7.2 错误码
+40001 参数错误；40101 未认证；40401 任务/区域不存在或不属于当前用户；40902 同一请求号或 sampleId 内容不同；40903 当前状态不允许（已结束、区域未启用）；40904 冷却中；50001 服务错误。
+
+7.3 样本拒绝原因（HTTP 200 + sampleAccepted=false）
+FUTURE_SAMPLE、SAMPLE_TOO_OLD、LOW_ACCURACY、UNSUPPORTED_COORDINATE_SYSTEM、DUPLICATE_SAMPLE、OUT_OF_ORDER、TASK_ENDED。
+
+7.4 未实现说明
+控制器本轮不提交；孙虹毅侧目前只有 /api/v1/dev/spawns（DEV 来源），STUDY 来源由 SpawnGateway 内部创建，不新增对外路由，待其确认后同步 interfaces.json。
+
+====================================================================
+八、规则边界（与代码一致）
+====================================================================
+
+8.1 状态机（图4）
+WAITING --第二条连续合格样本--> DWELLING --阈值--> TRIGGERED
+DWELLING --两次越界/30s 无样本--> PAUSED(OUTSIDE/NO_SIGNAL) --两条合格样本--> DWELLING
+任意活动状态 --结束--> ENDED
+
+8.2 计时
+墙钟 0、10、20、30、40、50、60、69、70、71 秒 → 有效 0、10、20、30、40、50、59、60、60 秒；第 70 秒触发一次，第 71 秒固定。
+按整秒向下取整。
+
+8.3 边界
+- 30 秒整不暂停（>30 才暂停）；首次越界不暂停；缓冲带继续累计。
+- 恢复需要两条样本，暂停期间不补算。
+- sampleId 重复内容一致不累计；内容不同 40902。
+- 结束任务后再提交样本 40903。
+
+8.4 多实例
+tick 挂在 current 查询上，天然幂等（同一状态重复推进结果相同）；若启用 @Scheduled，需要单实例或分布式锁，否则多次暂停无副作用但会重复写库。
+
+====================================================================
+九、测试设计
+====================================================================
+
+9.1 分层
+- 单元：DwellEvaluator（固定 Instant，合成坐标）。
+- 服务：DwellStudyTaskService + 内存仓库替身 + 计数遭遇替身（幂等、冷却、一次性触发）。
+- 待补：Spring MVC 层（MockMvc）、JDBC 唯一约束、并发触发。
+
+9.2 覆盖矩阵（与 test-cases.csv 一一对应）
+规则边界 14 项：进入确认、59/60/61、缓冲带、两次越界、失联（tick 与样本）、恢复、精度、过期、未来、重复、乱序、距离。
+服务行为 8 项：重复开始、结束幂等、冷却、一次性触发、样本幂等/冲突、查询推进失联、他人任务。
+未执行 3 项：真机、数据库重启、并发触发。
+
+9.3 证据
+本机 JDK 17.0.19 + Maven 3.9.9 跑 20 个测试通过（日志 evidence/design-probe.txt）。
+
+====================================================================
+十、依赖、路径与未实现项
+====================================================================
+
+10.1 路径
+规则：server/src/main/java/edu/pkmon/study/domain/
+端口：…/study/port/
+服务：…/study/service/
+DTO：…/study/dto/
+测试：server/src/test/java/edu/pkmon/study/
+
+10.2 依赖
+Spring Boot 3.5.7（父 POM 已有）、JUnit 5（starter-test）、common.api.ApiResponse；不新增第三方库。
+
+10.3 未实现（不得写成已完成）
+- StudyController 与 DTO 校验；
+- JDBC 仓库与迁移（胡豪）；
+- SpawnGateway 真实实现（孙虹毅）；
+- 数据库唯一约束与并发测试；
+- 真机定位与客户端联调。
+
+====================================================================
+十一、技术探路：实际命令与结果
+====================================================================
+
+命令：cd D:\work\PKMon-deliverable\verify && mvn -B clean test
+结果：BUILD SUCCESS；DwellEvaluatorTest 14 + DwellStudyTaskServiceTest 6 = 20 通过，0 失败（2026-10-26 本机）。
+关键断言：59 秒不触发、70 秒触发、71 秒固定；tick 40 秒不暂停、41 秒暂停；恢复后有效时长保持。
+说明：这是规则原型验证，仓库内尚未提交该代码；10/31 foundation 提交骨架后再在仓库内复跑。

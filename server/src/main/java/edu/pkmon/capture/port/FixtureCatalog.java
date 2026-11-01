@@ -7,8 +7,12 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 题库与物种目录的固定数据替身，仅用于开发与测试。
- * 真实题库与图鉴由闫昕主责；本类不代表它们已实现，也不能用于冒充真实判题数据来源。
+ * 题库与物种目录的开发期固定数据，同时作为题库/图鉴种子内容的来源。
+ *
+ * 分工（见 docs/stage2/project/decisions.csv「题库职责」）：领域内容与读取由孙虹毅负责，
+ * 种子数据的装载与迁移由胡豪负责，闫昕协调。
+ * 当前只有 1 种精灵（siege_lion）与 1 道题（hello_world_001）；扩充属于后续范围，
+ * 不得报告为已完成。
  */
 public final class FixtureCatalog implements QuestionSource, SpeciesCatalog {
 

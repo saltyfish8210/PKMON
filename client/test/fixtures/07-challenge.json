@@ -1,0 +1,27 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "challengeId": "00000000-0000-4000-8000-000000000003",
+    "spawnId": "00000000-0000-4000-8000-000000000002",
+    "speciesId": "siege_lion",
+    "speciesName": "攻城狮",
+    "questionId": "hello_world_001",
+    "questionText": "执行 print(\"hello world\") 后输出什么",
+    "options": [
+      {
+        "optionId": "A",
+        "text": "hello world"
+      },
+      {
+        "optionId": "B",
+        "text": "\"hello world\""
+      },
+      {
+        "optionId": "C",
+        "text": "程序报错"
+      }
+    ],
+    "expiresAt": "2026-10-19T02:05:00Z"
+  }
+}

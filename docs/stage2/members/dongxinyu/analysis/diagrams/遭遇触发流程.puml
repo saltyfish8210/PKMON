@@ -1,0 +1,66 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+title 遭遇触发流程（分析）
+
+start
+:用户选择支持的区域，点击“开始自习”;
+:创建 StudyTask，状态 WAITING，有效 0 秒;
+note right
+  同一用户同时最多一个活动任务；
+  同一 requestId 重发返回同一任务。
+end note
+
+while (任务进行中且尚未触发?) is (是)
+  :客户端每 10 秒取得一次位置样本（GCJ02）;
+  :提交位置样本;
+  if (样本合格?) then (否)
+    :不累计，记录拒绝原因
+    （精度 / 坐标系 / 过期 / 未来 / 重复 / 乱序）;
+  else (是)
+    if (当前状态?) then (WAITING)
+      if (连续第二条样本在 80 米内?) then (否)
+        :保持 WAITING（首条只作候选）;
+      else (是)
+        :确认 DWELLING，从本条开始计时;
+      endif
+    elseif (DWELLING)
+      if (超出 100 米?) then (否)
+        :累加间隔（≤30 秒）;
+      else (是)
+        if (连续第二次越界?) then (否)
+          :记为越界一次，该段不累计;
+        else (是)
+          :暂停 PAUSED（OUTSIDE）;
+        endif
+      endif
+    else (PAUSED)
+      if (连续两条样本回到区域内?) then (是)
+        :恢复 DWELLING，已认可时长保留;
+      else (否)
+        :保持暂停，不补算;
+      endif
+    endif
+    if (有效累计达到阈值?) then (是)
+      :只生成一次 Spawn（TRIGGERED）;
+      :页面提示“模拟遇见攻城狮”;
+    else (否)
+    endif
+  endif
+  note right
+    超过 30 秒没有合格样本时，
+    由服务器时间推进 PAUSED（NO_SIGNAL），
+    不需要等新样本到达。
+  end note
+endwhile (否)
+
+if (已触发?) then (是)
+  :遭遇有效期 900 秒内可答题（孙虹毅负责）;
+else (否)
+  :未触发，直接结束;
+endif
+:用户点击结束 → ENDED，进入 1800 秒冷却;
+stop
+
+@enduml

@@ -1,0 +1,14 @@
+路径,用途,本轮结论
+server/src/main/java/edu/pkmon,服务端包结构,仅 capture（31 类）与 demo；无 study/trigger/location
+server/src,检索 study,无结果：任务接口与驻留逻辑未实现
+client/lib/widgets/task_sheet.dart,自习任务 UI 原型,纯界面原型；开始/结束为本地布尔；不采集位置；有"快进"入口
+client/lib/features/dex_page.dart,图鉴页文案,仅提到"未来可以通过自习驻留"解锁精灵
+开发文档/03_软件需求说明书.md,UC-08 驻留触发精灵,写的是心跳3至5分钟、断连清零；与最新指南冲突，按 decisions.csv 处理
+docs/stage2/project/decisions.csv,团队决策,驻留暂停保留已认可时间（已采用）
+docs/stage2/project/glossary.csv,统一命名,StudyTask/LocationSample/Spawn 命名与主责
+docs/stage2/members/yanxin/analysis/analysis.txt,共享用况与账号边界,§6 已写共享驻留规则并标注"董欣毓主责、未交付"
+docs/stage2/members/yanxin/handoffs/analysis.txt,交接方式参考,按阶段键与提交号记录
+docs/stage2/members/zhaoguanjun/analysis/analysis.txt,界面与定位边界,任务页与定位采集为赵冠钧范围
+docs/stage2/members/zhaoguanjun/handoffs/analysis.txt,交接格式参考,成果提交号与 main 合入号分开填写
+docs/stage2/members/zhaoguanjun/analysis/diagram-index.csv,图表索引格式,采用同名四列格式
+docs/stage2/members/zhaoguanjun/evidence/source-index.csv,源码索引格式,采用三列格式

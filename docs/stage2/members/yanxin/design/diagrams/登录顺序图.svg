@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="1000" height="650" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="1000" height="650"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-650)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="0" width="1000" height="650" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="13" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="56.14453125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">界面 / HTTP</text>
+			<path d="M 95,575 L 95,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="218" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="260.1396484375" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">AuthService</text>
+			<path d="M 300,575 L 300,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="423" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="453.8876953125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">UserRepository</text>
+			<path d="M 505,575 L 505,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="628" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="654.76220703125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">PasswordHasher</text>
+			<path d="M 710,575 L 710,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<rect x="833" y="575" width="164" height="60" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(92%,95%,96%); fill-rule: evenodd;"/>
+			<text x="853.8798828125" y="610" style="font-family: Microsoft YaHei; font-size: 14px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1220) scale(1,-1)">SessionRepository</text>
+			<path d="M 915,575 L 915,40 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 95,548 L 300,548 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="300 548, 288.9473 552.673, 288.9473 543.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="152.694091796875" y="560" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1120) scale(1,-1)">1 login(凭据)</text>
+			<path d="M 300,500 L 505,500 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="505 500, 493.9473 504.673, 493.9473 495.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="350.882568359375" y="512" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,1024) scale(1,-1)">2 查规范用户名</text>
+			<path d="M 505,457 L 300,457 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 300,457 L 309.904918,452.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 300,457 L 309.904918,461.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="365.73974609375" y="469" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,938) scale(1,-1)">3 用户 / 空</text>
+			<path d="M 300,410 L 710,410 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="710 410, 698.9473 414.673, 698.9473 405.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="410.65673828125" y="422" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,844) scale(1,-1)">4 matches(真实 / 占位散列)</text>
+			<path d="M 710,365 L 300,365 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 300,365 L 309.904918,360.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 300,365 L 309.904918,369.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="468.382568359375" y="377" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,754) scale(1,-1)">5 验证结果</text>
+			<text x="45" y="330" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,660) scale(1,-1)">失败：40101；无会话写入</text>
+			<path d="M 300,285 L 915,285 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<polygon points="915 285, 903.9473 289.673, 903.9473 280.327" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1; fill: rgb(13%,23%,29%); fill-rule: evenodd;"/>
+			<text x="508.641357421875" y="297" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,594) scale(1,-1)">6 [有效] insert(会话，仅摘要)</text>
+			<path d="M 915,238 L 300,238 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 300,238 L 309.904918,233.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 300,238 L 309.904918,242.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="548.23974609375" y="250" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,500) scale(1,-1)">7 写入确认 / 失败</text>
+			<text x="258.65234375" y="198" style="font-family: Microsoft YaHei; font-size: 16px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,396) scale(1,-1)">写入失败：50301，禁止提前返回token</text>
+			<path d="M 300,142 L 95,142 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8; stroke-dasharray: 7, 5;"/>
+			<path d="M 95,142 L 104.904918,137.215379 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<path d="M 95,142 L 104.904918,146.784621 Z" style="stroke: rgb(13%,23%,29%); stroke-linecap: butt; stroke-width: 1.8;"/>
+			<text x="160.882568359375" y="154" style="font-family: Microsoft YaHei; font-size: 15px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,308) scale(1,-1)">8 成功结果</text>
+			<text x="271.14501953125" y="65" style="font-family: Microsoft YaHei; font-size: 17px;fill: rgb(13%,23%,29%); stroke:none;" transform="translate(0,130) scale(1,-1)">AuthController及生产库适配尚待实现；图示为目标调用顺序。</text>
+		</g>
+	</g>
+</svg>

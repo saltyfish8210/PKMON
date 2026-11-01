@@ -1,0 +1,79 @@
+@startuml 答题捕获设计顺序图
+' 冉昕霖 · 第二阶段设计 · 提交、超时恢复与旧字段适配
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #5B6B7C
+  ParticipantBackgroundColor #F5F8FB
+  ParticipantBorderColor #6F97B8
+  ParticipantFontColor #1F2A37
+  LifeLineBorderColor #B9C7D4
+  GroupBorderColor #6F97B8
+  GroupHeaderFontColor #1F3D57
+}
+
+actor 玩家 as P
+participant "CapturePage\n视图" as Page
+participant "CaptureController\n控制" as Ctrl
+participant "CaptureApi\n端口" as API
+participant "ApiClient\n统一网络层" as Client
+participant "TokenProvider\n会话端口" as Token
+participant "捕获服务\n（后端）" as Server
+participant "CollectionApi" as Coll
+
+P -> Page : 选择选项
+Page -> Ctrl : submit(optionId)
+Ctrl -> Ctrl : 若 sending 直接返回；requestId = newId()
+Ctrl -> Ctrl : state = submitting
+Ctrl -> API : answer(challengeId, requestId, optionId)
+API -> Client : post("/capture/answer", auth=true)
+Client -> Token : current()
+Token --> Client : SessionToken(value, generation)
+Client -> Server : POST /api/v1/capture/answer\nAuthorization: Bearer <token>
+
+alt 正常返回 code=0
+  Server --> Client : data {result, captureRecordId}
+  Client -> Token : current()
+  alt generation 未变
+    Client --> API : data
+    API --> Ctrl : CaptureResult
+  else generation 已变
+    Client --> Ctrl : ApiFailure(staleSession)
+    note right of Client : 丢弃上一代会话的迟到响应
+  end
+else 超时 / 连接中断
+  Client --> Ctrl : ApiFailure(timeout | network)
+  Ctrl -> Ctrl : state = unknown
+  Ctrl -> API : status(challengeId)
+  API -> Client : get("/capture/challenges/{id}")
+  Client -> Server : GET /api/v1/capture/challenges/{id}
+  alt status = CAPTURED
+    Server --> Ctrl : CAPTURED + captureRecordId
+    Ctrl -> Ctrl : state = captured
+  else status = OPEN
+    Server --> Ctrl : OPEN + lastAttempt
+    Ctrl -> API : answer(原 requestId, 原 optionId)
+    API -> Server : 重试同一请求
+    Server --> Ctrl : 首次处理结果（幂等回放）
+  else status = EXPIRED
+    Server --> Ctrl : EXPIRED
+    Ctrl -> Ctrl : state = expired
+  end
+end
+
+alt result = CORRECT 且 captureRecordId 非空
+  Ctrl -> Coll : summary()
+  Coll --> Ctrl : CollectionSummary
+  Ctrl -> Page : captured(quantity)
+else result = WRONG
+  Ctrl -> Page : ready(wrong)，允许新作答（新 requestId）
+end
+
+note over API, Server
+  适配层只在这里把旧 Demo 的
+  name/question/options.id/success
+  转成 speciesName/questionText/options.optionId/result；
+  页面不出现旧字段名。
+end note
+@enduml

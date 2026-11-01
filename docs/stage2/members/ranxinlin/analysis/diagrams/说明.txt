@@ -1,0 +1,16 @@
+本目录是冉昕霖第二阶段的客户端分析图（答题捕获界面与网络适配）。
+
+约定：
+- 每张图同时保留可编辑源文件（.puml）与同名导出图（.png），不提交截图代替源文件。
+- 图名用中文功能名加类型，例如“答题捕获客户端顺序图”。
+- 正文 analysis.txt 的图表索引给出每张图的说明章节；analysis/diagram-index.csv 给出路径索引。
+
+重新导出（需 PlantUML，任意版本即可，本文用 1.2024.7）：
+  java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -jar plantuml.jar -charset UTF-8 -tpng *.puml
+
+图与代码的对应：
+- 用况图：analysis.txt 3.7，五个玩家目标 UC-R1～UC-R5。
+- 类图：analysis.txt 4.1-4.2，客户端对象与网络端口。
+- 顺序图：analysis.txt 5.1，正常提交与超时恢复分支。
+- 状态图：analysis.txt 6.1，答题界面状态（不等于服务端挑战状态）。
+- 包图：analysis.txt 7.1，features → data/api → data/model 与 core 的依赖方向。

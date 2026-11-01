@@ -1,0 +1,84 @@
+阶段：foundation（10/31）
+作者：冉昕霖
+对应截止：2026-11-01 04:00（北京时间）
+实际交出：2026-10-31
+状态：仅个人分支 design/ranxinlin-stage2（待推送）；推送后由本人开 PR，尚未合入 main
+任务分支：design/ranxinlin-stage2（11/01 起实现轮按指南切换 feature/ranxinlin-capture-ui）
+成果提交号（完整）：48976a7bcd015f535a0c7b14eb636463b1b923f9
+源码基线：eb86b64（main）
+工具链：Flutter 3.47.6 / Dart 3.13.5、Maven 3.9.9、JDK 17.0.10
+
+一、本次交付（38 个文件，3220 行）
+  client/lib/data/api/
+    api_failure.dart、token_provider.dart、request_id.dart、api_client.dart、
+    auth_api.dart、capture_api.dart、study_api.dart、collection_api.dart、demo_api.dart
+  client/lib/data/model/
+    parsing.dart、auth_models.dart、capture_models.dart、collection_models.dart、
+    study_models.dart、demo_models.dart
+  client/lib/data/fakes/fakes.dart
+  client/lib/features/capture/capture_controller.dart、capture_page.dart
+  client/lib/features/collection/collection_page.dart
+  client/test/data/（6 个测试文件 + test_support + mock_client_fixture）
+  client/test/capture/capture_controller_test.dart
+  client/test/fixtures/（9 个固定 JSON，与配套模板同名文件一致）
+  docs/stage2/members/ranxinlin/evidence/foundation.txt
+
+二、可运行方式（本机）
+  $env:FLUTTER_ROOT="<workspace>\.tools\flutter"；PUB_CACHE/APPDATA/LOCALAPPDATA/TEMP 指向工作区
+  cd client
+  flutter --no-version-check analyze
+  flutter --no-version-check test
+  提示：本机沙箱禁止命名管道，Flutter 需完整权限执行；普通终端无此限制。
+  后端：.tools\maven\apache-maven-3.9.9\bin\mvn.cmd -B -s ..\.tools\maven-settings.xml
+    -DargLine=-Djdk.attach.allowAttachSelf=true test
+
+三、本人测试（真实执行）
+  输入 1：flutter analyze（client）
+  预期 1：无 error/warning/info
+  实际 1：No issues found!（7.0s）
+  输入 2：flutter test（client）
+  预期 2：原有组件测试与新增网络层/控制器测试全部通过
+  实际 2：+51 All tests passed!（43 新增 + 8 原有）
+  输入 3：mvn test（server，见 toolchain.txt）
+  实际 3：34/34 通过
+  未执行：真实 HTTP 联调、真实 token 登录、Study 路由联调、flutter build apk/web、Android 真机。
+
+四、真实／模拟／未实现
+  真实：数据层、控制器、页面骨架与 43 个新增测试真实可运行；analyze/test 为实际执行。
+  模拟：Fake 四端口仅测试用；DemoApi 为旧演示，success 不产生 captureRecordId，
+    不得作为正式收录证据；sourceType=DEMO/DEV_SIMULATED 时页面标注“模拟”。
+  未实现：Auth HTTP（闫昕分支契约，服务端未实现）；Study HTTP（设计态）；main.dart 接线
+    （余星晨）；旧页面 F2/F3 迁移；Android 构建。
+  未改动：main.dart、pubspec.yaml、pubspec.lock、core/api.dart、他人页面与组件。
+
+五、给调用方的签名（可直接接线）
+  ApiClient({required Uri baseUrl, required TokenProvider tokens, http.Client? httpClient,
+    Duration timeout = 10s, void Function()? onUnauthorized, HeaderProvider? extraHeaders})
+  AuthApi: register/login/logout/me；CaptureApi: createDevSpawn/challenge/answer/status；
+  StudyApi: createTask/uploadSample/getCurrent/endTask；CollectionApi: summary；
+  DemoApi: connect/state/explore/reset/challenge/answer。
+  CaptureController({required CaptureApi captureApi, required CollectionApi collectionApi,
+    RequestIdGenerator newRequestId = defaultRequestIdGenerator})
+    load(spawnId) / submit(optionId) / retry() / refreshSummary() / dispose()
+    state 为 ValueListenable<CaptureUiState>（Idle/Loading/Ready/Submitting/Unknown/
+    Captured/Expired/Failed）。
+  CapturePage({required String spawnId, required CaptureController controller})
+  CollectionPage({required CollectionApi api})
+  需余星晨提供：TokenProvider 实现（读 SessionStore，token + generation）、
+    RequestIdGenerator（core/request_id.dart 或直接使用默认实现）、main.dart 接线。
+  需赵冠钧确认：StudyApi/TaskSnapshot 采用 data/api、data/model（design 2.4 方案 A）。
+
+六、缺项、影响与下一步
+  1) 未接真实后端：路径与字段按 interfaces.json 静态对齐；CAPTURE 接口已实现，但客户端尚未联调。
+  2) Auth/Study 服务端未实现：HttpAuthApi/HttpStudyApi 只有 Mock 测试。
+  3) 旧页面仍走 core/api.dart，新页面未接入入口；F3 需余星晨切换 main.dart 后删除旧层。
+  4) 本机 Flutter 依赖沙箱放宽；换机按 evidence/toolchain.txt 重装。
+  下一步（11/01-11/05）：切 feature/ranxinlin-capture-ui；接真实 capture 接口、补 widget 测试、
+  与孙虹毅联调；Auth/Study 待服务端就绪后接。
+
+七、读取顺序
+  1) evidence/foundation.txt（范围、命令、结果、限制）；
+  2) client/lib/data/api/api_client.dart 与 interfaces.json；
+  3) capture_controller.dart（状态机）与 test/capture/capture_controller_test.dart；
+  4) 页面骨架与 Fake；5) handoffs/design.txt 的签名与依赖。
+  本记录引用成果提交 48976a7b；本记录自身提交号以 Git 历史为准。

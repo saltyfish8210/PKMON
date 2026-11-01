@@ -1,0 +1,38 @@
+foundation 阶段自测记录（胡豪）
+日期：2026-10-31 | 分支：chore/huhao-foundation（基于 origin/main 9e84480d1949663bfdcb3b05a0eafc9e348a9343）
+提交号见 handoffs/foundation.txt（按规范：先合入成果，再登记提交号）
+
+环境：Windows 11 / OpenJDK 21.0.2 / Maven 3.9.12 / Spring Boot 3.5.7 /
+H2 2.3.232 / Flyway 11.7.2（详见本目录 environment.txt）
+
+一、编译与自动化测试（真实执行）
+命令：mvn -f server/pom.xml test
+预期：全部测试通过（含本人新增 10 条与既有 capture/demo 34 条）
+实际：BUILD SUCCESS；Tests run: 44, Failures: 0, Errors: 0, Skipped: 0
+- edu.pkmon.common.CommonFoundationTest：6 通过
+  · 测试库独立（实际连接 pkmon_test 内存库）
+  · 空库迁移（Flyway 已应用 V1__init_schema.sql，且无其他迁移）
+  · Clock Bean 为 UTC 可注入
+  · users.username 唯一约束：重复插入抛 DuplicateKeyException
+  · answer_attempts.request_id 幂等唯一约束生效
+  · capture_records (user_id, spawn_id) 唯一约束生效
+- edu.pkmon.common.api.ApiResponseTest：2 通过（成功/失败信封形状符合接口约定）
+- edu.pkmon.common.error.GlobalExceptionHandlerTest：2 通过（500 兜底、404 统一信封）
+- 既有测试：capture 23 条、demo 8 条全部通过，未破坏存量行为
+
+二、真实启动冒烟（真实执行，默认 profile）
+命令：mvn -f server/pom.xml spring-boot:run（另开终端做接口检查）
+预期：空库自动执行 V1 迁移；启动检查输出行；/test/hello 可达；未知路径返回统一信封
+实际：
+- 日志：Schema history table 不存在 → Migrating schema "PUBLIC" to version "1 - init schema"
+  → Successfully applied 1 migration，now at version v1
+- 日志：PKMon 启动检查 | profiles=(默认) | datasource=jdbc:h2:mem:pkmon | 已应用迁移=[V1 V1__init_schema.sql]
+  （Windows 控制台该行中文按 GBK 显示为乱码，已知显示问题，不影响内容）
+- GET http://127.0.0.1:4180/test/hello → 200，返回 "hello world"
+- GET http://127.0.0.1:4180/api/v1/no-such-endpoint → 404，
+  {"code":40401,"message":"接口或资源不存在","data":null}
+- 默认 profile 下 dev 遭遇入口关闭由既有 CaptureDefaultProfileHttpTest 守住（3 条通过）
+
+三、结论
+- 本人骨架可编译、可启动、迁移可执行：通过。
+- 真实/模拟/未执行：上述全部真实执行；业务 Repository 持久化替换为下一轮任务（未执行，非本轮范围）。

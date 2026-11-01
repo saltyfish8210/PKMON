@@ -1,0 +1,60 @@
+@startuml 捕获界面状态图
+' 冉昕霖 · 第二阶段分析 · 捕获界面状态图
+' 描述 CapturePage 的界面状态，不是服务端 Challenge 的业务状态
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #F7FAFC
+  BorderColor #6F97B8
+  FontColor #1F2A37
+  ArrowColor #5B6B7C
+}
+
+state "加载中\nLOADING" as Loading
+state "待作答\nREADY" as Ready
+state "提交中\nSUBMITTING" as Submitting
+state "结果待确认\nUNKNOWN" as Unknown
+state "已捕获\nCAPTURED" as Captured
+state "已过期\nEXPIRED" as Expired
+state "加载失败\nLOAD_FAILED" as LoadFailed
+
+[*] --> Loading : 进入答题页
+
+Loading : entry / 调用 challenge(spawnId)
+Loading --> Ready : 题目就绪 / 保存 challengeId 与有效期
+Loading --> LoadFailed : 取题失败 / 显示原因与重试
+LoadFailed --> Loading : 点击重试
+
+Ready : entry / 恢复选项可点击、清空旧错误
+Ready --> Submitting : 选择选项 / 生成新 requestId、禁用按钮
+Ready --> Captured : 查询发现已捕获 / 不重复发奖
+Ready --> Expired : 收到 41001 / 提示重新遭遇
+
+Submitting : entry / 禁用返回与重复点击
+Submitting --> Captured : result=CORRECT 且 captureRecordId 非空
+Submitting --> Ready : result=WRONG / 记录答错，允许新作答
+Submitting --> Unknown : 超时或连接中断 / 禁止自行判定成功
+
+Unknown : entry / 显示「结果待确认」
+Unknown --> Captured : 查询 status=CAPTURED
+Unknown --> Submitting : 查询 status=OPEN 且上次内容已知\n用原 requestId 重试
+Unknown --> Ready : 查询 status=OPEN 且内容不可恢复\n按新作答处理
+Unknown --> Expired : 查询 status=EXPIRED
+Unknown --> Unknown : 查询仍失败 / 保留原 requestId 供重试
+
+Captured : entry / 刷新收藏概览
+Captured --> [*] : 返回地图
+
+Expired --> [*] : 返回地图并提示重新遭遇
+
+note right of Unknown
+  超时不等于失败，也不等于成功。
+  只有服务端结算结果才能离开本状态。
+end note
+
+note bottom of Submitting
+  同一 requestId 只对应一次业务提交；
+  用户重新作答必须生成新 requestId。
+end note
+@enduml

@@ -1,0 +1,31 @@
+ID,测试名称,前置条件,输入,操作,预期结果,自动或手工,所需依赖,证据路径
+TC-S01,首条样本仅作候选,任务 WAITING 且无历史样本,s1 距中心 0m、t=0s、精度 10m,提交样本,状态 WAITING；insideCount=1；有效 0 秒,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S02,第二条样本确认进入,已提交 s1,s2 距中心 0m、t=10s,提交样本,DWELLING；有效 0 秒；首条不追算,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S03,59 秒不触发,已确认 DWELLING,样本 0/10/20/30/40/50/60/69 秒均在 0m,连续提交,DWELLING；有效 59 秒；triggered=false,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S04,70 秒触发一次,承接 TC-S03,样本 t=70s、0m,提交样本,TRIGGERED；有效 60 秒；triggeredNow=true,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S05,触发后结果固定,任务已 TRIGGERED,样本 t=71s、0m,提交样本,仍 TRIGGERED；有效 60 秒；triggeredNow=false,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S06,缓冲带保持并累计,已确认 DWELLING,样本距中心 90m、t=20s,提交样本,DWELLING；有效 10 秒；outsideCount=0,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S07,首次越界不计该段,已确认 DWELLING,样本距中心 110m、t=20s,提交样本,DWELLING；有效不变；outsideCount=1,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S08,连续第二次越界暂停,outsideCount=1,样本距中心 110m、t=30s,提交样本,PAUSED；pauseReason=OUTSIDE,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S09,长间隔按失联处理,已确认 DWELLING 且有效 10 秒,样本 t=55s（间隔 35 秒）,提交样本,PAUSED；NO_SIGNAL；有效 10 秒不变,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S10,tick 满 30 秒不暂停,最后样本 t=10s,now=40s,调用 onTick,DWELLING 不变,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S11,tick 超过 30 秒暂停,同上,now=41s,调用 onTick,PAUSED；NO_SIGNAL,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S12,恢复需两条样本且保留时长,暂停且有效 20 秒,样本 t=62s 与 t=72s、均在 0m,连续提交第二条后 DWELLING；有效 20 秒,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S13,精度超标拒绝,已确认 DWELLING,精度 60m 样本,提交样本,LOW_ACCURACY；状态不变,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S14,样本过旧拒绝,已确认 DWELLING,采样时间早于服务器 31 秒,提交样本,SAMPLE_TOO_OLD,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S15,未来样本拒绝,已确认 DWELLING,采样时间超前 6 秒,提交样本,FUTURE_SAMPLE,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S16,非 GCJ02 拒绝,已确认 DWELLING,coordinateSystem=WGS84,提交样本,UNSUPPORTED_COORDINATE_SYSTEM,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S17,超前 0-5 秒截到服务器时间,已确认 DWELLING,采样超前 3 秒,提交样本,采纳且 lastSampledAt=服务器当前时间,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S18,距离按米计算,无,北移 100m 坐标,调用 Geo.distanceMeters,误差小于 1 米,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S19,重复开始返回同一任务,已有活动任务,新 requestId,调用 startTask,返回同一 taskId,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S20,结束幂等,有活动任务,连续 endTask 两次,调用 endTask,两次都 ENDED；currentTask 为空,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S21,冷却期拒绝开始,任务已结束,冷却期内新 requestId,调用 startTask,TaskException code=40904,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S22,冷却结束可重新开始,结束已过 1800 秒,新 requestId,调用 startTask,创建新 taskId,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S23,一个任务只创建一个遭遇,有活动任务,样本序列 0-90 秒,连续 submitSample,SpawnGateway 只调用 1 次；spawnId 非空,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S24,重复 sampleId 内容一致,有活动任务,同 sampleId 同内容两次,调用 submitSample,第二次 accepted=false；DUPLICATE_SAMPLE,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S25,重复 sampleId 内容不同,同上,同 sampleId 不同采样时间,调用 submitSample,TaskException code=40902,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S26,查询推进失联,已确认 DWELLING,currentTask 时服务器时间晚 41 秒,调用 currentTask,PAUSED；NO_SIGNAL,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S27,他人任务不可见,user-1 有活动任务,user-2 访问该 taskId,调用 submitSample,TaskException code=40401,自动,JDK17+JUnit5,evidence/design-probe.txt
+TC-S28,Spring MVC 层与错误映射,控制器已实现,四类错误请求,调用 HTTP,40001/40401/40903/40904 与信封一致,自动,Spring Boot Test,未执行（实现轮）
+TC-S29,数据库唯一约束与并发触发,MySQL 可用,同任务 20 并发提交触发点样本,并发请求,只产生一条 spawn；一条 40903 或同一 spawnId,自动,MySQL+集成测试,未执行（第三阶段）
+TC-S30,真机定位与客户端联调,真机与后端可用,真实校园位置,开始任务并停留至阈值,页面时长单调增长且到阈值提示遭遇,手工,Android 真机,未执行（第三阶段）

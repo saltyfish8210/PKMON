@@ -1,0 +1,32 @@
+@startuml
+skinparam defaultFontName "Microsoft YaHei"
+skinparam dpi 120
+skinparam shadowing false
+skinparam monochrome false
+
+title 达到阈值触发遭遇的顺序图（设计）
+actor "客户端" as client
+participant "DwellStudyTaskService" as svc
+participant "DwellEvaluator" as eval
+participant "SpawnGateway" as spawn
+database "study_task / spawn" as db
+
+client -> svc : 提交样本（第 N 条）
+svc -> eval : onSample(state, region, sample, now)
+eval --> svc : triggeredNow=true, effectiveSeconds=60
+svc -> spawn : createStudySpawn(userId, regionId, taskId, now)
+spawn -> db : insert spawn(task_id 唯一)
+spawn --> svc : spawnId
+svc -> db : update study_task.triggered_spawn_id
+svc --> client : TaskView{status=TRIGGERED, spawnId}
+
+client -> svc : 继续提交样本
+svc -> eval : onSample(...)
+eval --> svc : triggeredNow=false, effectiveSeconds 固定
+svc --> client : TaskView{status=TRIGGERED}
+
+note over spawn, db
+  即使并发重复提交，
+  spawn.task_id 唯一约束保证只产生一条遭遇。
+end note
+@enduml

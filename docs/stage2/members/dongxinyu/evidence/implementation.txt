@@ -1,0 +1,77 @@
+自习任务实现记录（evidence/implementation.txt）
+作者：董欣毓
+日期：2026-11-01
+阶段：第二阶段 implementation（11/01-11/05，与 10/31 foundation 合并提交）
+
+一、提交内容
+
+模块：server/src/main/java/edu/pkmon/study/（28 个文件：18 个主类 + 7 个装配/接口类 + 3 个测试类）
+
+domain：TaskStatus、PauseReason、RejectionReason、DwellRules、DwellState、DwellDecision、
+        LocationSample、Region、Geo、DwellEvaluator、StudyTask
+port：TaskRepository、SpawnGateway
+service：StudyTaskService、DwellStudyTaskService
+dto：TaskView、SampleResult、StudyDtos（请求/响应形状）
+error：TaskException、StudyExceptionHandler
+repository：InMemoryTaskRepository
+config：StudyConfig（自动配置）、StudyRulesProperties、StubSpawnGateway
+web：StudyController
+
+测试：server/src/test/java/edu/pkmon/study/
+  DwellEvaluatorTest（14）、DwellStudyTaskServiceTest（6）、StudyControllerTest（7）
+
+装配方式：与 capture 一致，用 META-INF/spring/...AutoConfiguration.imports 注册
+edu.pkmon.study.config.StudyConfig，不改 edu.pkmon.demo 的启动类。
+
+二、构建与测试（开发服务器 group8，2026-11-01）
+
+环境：Ubuntu 24.04 / OpenJDK 17.0.2（~/tools/jdk17）/ Maven 3.9.9（~/tools/maven）
+
+命令：cd ~/pkmon/server && mvn -B test
+结果：Tests run: 71, Failures: 0, Errors: 0, Skipped: 0；BUILD SUCCESS
+其中 study 27 个：DwellEvaluatorTest 14、DwellStudyTaskServiceTest 6、StudyControllerTest 7。
+
+命令：mvn -B -q -DskipTests package
+结果：target/pkmon-server-0.1.0.jar（25,497,902 字节）
+
+三、端到端冒烟（真实 HTTP，内存存储，替身遭遇）
+
+启动：
+java -jar target/pkmon-server-0.1.0.jar \
+  --server.address=127.0.0.1 --server.port=18418 \
+  --pkmon.capture.dev-user-header=true \
+  --pkmon.study.rules.required-seconds=5
+
+脚本：~/study_smoke.py（本机副本 D:\work\study_smoke.py），输出 evidence/implementation-smoke.txt
+
+步骤与实测：
+1. POST /api/v1/study/tasks → 200，status=WAITING，requiredSeconds=5
+2. 第 1 条样本 → 200，sampleAccepted=true，仍 WAITING
+3. 第 2 条样本 → 200，status=DWELLING，effectiveSeconds=0
+4. 第 3 条样本（间隔 6 秒 ≥ 阈值 5）→ 200，status=TRIGGERED，effectiveSeconds=5，spawnId 非空
+5. GET /api/v1/study/tasks/current → 200，返回 TRIGGERED 任务（触发后仍是活动任务）
+6. POST .../end → 200，status=ENDED，保留 effectiveSeconds 与 spawnId
+7. 结束后再提交样本 → 409，code=40903
+8. 他人结束该任务 → 404，code=40401
+
+四、实现中修正的两个问题（均已复测）
+
+1. DwellState.isActive 原先把 TRIGGERED 排除，导致触发后 current 查不到任务、也能再开新任务；
+   改为"除 ENDED 外均为活动"。TC-S05 与冒烟第 5 步覆盖。
+2. StudyExceptionHandler 通过 @Bean 注册但没有优先级，被 common 的全局兜底吞成 500；
+   加 @Order(HIGHEST_PRECEDENCE) 后 40903/40401 正确返回。冒烟第 7、8 步覆盖。
+
+五、已知限制（不得写成已完成）
+
+1. 存储是 InMemoryTaskRepository：进程重启数据丢失，唯一约束靠 synchronized 近似，不是数据库约束。
+2. 身份来自 capture 的 X-Dev-User 请求头替身；未设该开关时接口返回 50301，认证接入后必须替换。
+3. 遭遇由 StubSpawnGateway 只生成 UUID 并打 WARN 日志，没有写入 spawn 表，也没有挑战与判题。
+4. 区域中心使用候选坐标（39.9042, 116.4074），未按赵冠钧的真实中心点配置；启动日志有 WARN。
+5. 未做并发触发测试、未接 MySQL、未做真机与客户端联调。
+
+六、复跑方式
+
+cd ~/pkmon/server
+export JAVA_HOME=$HOME/tools/jdk17 PATH=$JAVA_HOME/bin:$HOME/tools/maven/bin:$PATH
+mvn -B test
+# 冒烟：先按第三节启动，再 python3 ~/study_smoke.py

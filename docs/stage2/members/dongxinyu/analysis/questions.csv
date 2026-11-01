@@ -1,0 +1,12 @@
+问题,影响,直接责任人,建议,状态,结论或证据路径
+旧SRS（UC-08 心跳3至5分钟、断连清零）与最新指南（10秒采样、保留已认可时间）冲突,规则口径不一致，汇总时会被判为矛盾,闫昕、董欣毓,按 decisions.csv 采用最新指南，汇总时统一措辞,已定,docs/stage2/project/decisions.csv；analysis.txt 2.3、11.1
+WAITING 阶段超过30秒无样本是否也转 PAUSED(NO_SIGNAL),任务页提示时机；不影响时长正确性,董欣毓,暂按"有最后合格样本即转暂停"确定,已定,analysis.txt 第5节、11.2
+客户端 task_sheet 的"快进"按钮,演示时会绕过真实计时，可能被误当成已完成触发,赵冠钧,快进只改界面进度、不调用正式触发，界面标注"演示",待确认,client/lib/widgets/task_sheet.dart；analysis.txt 7.8
+缓冲区样本（80至100米）是否计入有效时长,规则正确性与后续测试预期,董欣毓,暂按"前后两条都在退出半径内即累计"确定,已定,analysis.txt 第5节表4
+冷却的粒度是同用户同区域还是全局,用户换区域能否立即开始新任务,胡豪,暂按同用户同区域1800秒,已定,analysis.txt 第5节
+精度上限50米与校园实际 GPS 精度是否匹配,样本被拒比例；漂移样本是否计入,赵冠钧,用真机在图书馆入口采样统计分布后冻结,待验证,无（本轮未做真机）
+区域中心点与坐标系未确认真实值,区域判定结果无意义，只能用合成中心测试,赵冠钧,提供 library_entrance 的 GCJ02 中心点并确认 enabled=true,待处理,data-dictionary region 表；analysis.txt 10.1
+有效时长按整秒向下取整,59.9秒序列记为59秒,董欣毓,保持向下取整，文档与测试统一口径,已定,analysis.txt 第5节计时口径
+遭遇创建接口（STUDY来源）的签名与唯一约束,一次性触发能否真正落库,孙虹毅,采用 createStudySpawn(userId、regionId、taskId、now)，spawn.task_id 唯一,待确认,analysis.txt 10.3
+服务端尚无 study 模块、客户端无真实定位,本轮没有任何可运行证据，不能声称已实现,董欣毓,按后续轮次实现，本轮只交分析,已记录,analysis.txt 第2.1节；evidence/source-index.csv
+正式600秒阈值怎样在课堂演示,演示时长与截图,闫昕,演示环境注入60秒阈值并在界面标注"演示阈值",待确认,后续 presentation 材料

@@ -1,0 +1,180 @@
+PKMon 系统模块划分、模块依赖与主要数据关系设计
+胡豪 | 公共后端 / 数据库
+编制日期：2026-10-25
+交接截止：2026-10-29 04:00（北京时间）
+状态：已提交设计分支 design/huhao-stage2（成果提交 7bd4561），并经合并提交
+4963686 合入主线 main（2026-10-31 补记合并信息）。
+
+1 编写目的与本轮范围
+====================================================
+本轮交付属于第二阶段的设计轮，工作区间为 2026 年 10 月 25 日至 28 日。责任人：胡豪。
+本文完成三件事：系统模块划分、模块依赖关系、主要数据关系分析，为后续数据库
+实现（11/01-11/05 实现与自测）和各业务模块的持久化接入提供统一依据。
+
+本文只描述结构与设计决策，不声称任何编码工作已经完成。数据库建表、迁移脚本、
+配置收口属于下一轮实现任务；账号、驻留、捕获的业务规则仍以各自主责人的分析与
+设计文档为准，本文只做整合，不另写冲突的业务模型。
+
+依据：课程实践说明；docs/stage2/members/yanxin/analysis/analysis.txt（闫昕，
+账号与总体需求）；docs/stage2/members/sunhongyi/analysis/ 与 design/（孙虹毅，
+捕获模块）；GitHub main 固定提交 380225791e4b0791509be90e58368036519fe540
+中的 server/ 与 client/ 源码。
+
+2 系统总体结构
+====================================================
+系统按部署单元分为三层：
+
+  客户端（client/，Flutter，Android + Web）
+      │  HTTP/JSON，默认 127.0.0.1:4180
+      ▼
+  服务端（server/，Spring Boot 3.5.7 / Java 17）
+      │  进程内调用，经 Repository 接口
+      ▼
+  数据层（数据库文件 + 迁移脚本，由本设计定型，下一轮实现）
+
+客户端不直连数据库；服务端不依赖客户端；数据层只对服务端可见。
+旧演示模块（edu.pkmon.demo）保留为第二阶段备用演示，与正式账号、数据完全隔离，
+其内存状态不参与本文的数据关系设计。
+
+3 模块划分
+====================================================
+3.1 客户端模块（client/lib/）
+
+  模块            | 职责                          | 主责
+  features/map    | 地图展示、位置交互            | 赵冠钧
+  features/capture| 答题捕获界面                  | 冉昕霖
+  features/dex    | 图鉴展示                      | 冉昕霖
+  features/bag    | 背包展示                      | 余星晨
+  features/profile| 账号页、个人信息              | 余星晨
+  core/api        | 唯一网络层，统一凭据与错误处理| 冉昕霖
+  core/location   | 定位抽象与采集                | 赵冠钧
+  models、widgets | 数据模型与可复用组件          | 各页面作者共用
+
+3.2 服务端模块（server/src/main/java/edu/pkmon/）
+
+  模块    | 职责                                        | 主责
+  demo    | 旧攻城狮演示（会话、题库、判题，内存态）    | 已有，冻结，不扩展
+  capture | 遭遇、挑战、判题、收录（web/service/domain/ | 孙虹毅
+          | repository/port/dto/error/config 子包）     |
+  user    | 注册、登录、会话、当前身份（待建）          | 闫昕
+  study   | 自习任务、位置样本、驻留判定（待建）        | 董欣毓 / 赵冠钧
+  common  | 公共配置、数据库连接、迁移装载、开发替身    | 胡豪
+          | 开关收口                                    |
+
+3.3 数据层（本人主责）
+
+  - 数据库 Schema 与建表脚本；
+  - 迁移与种子数据装载（题库、图鉴种子内容由孙虹毅提供，装载机制由本人负责）；
+  - 各业务 Repository 的持久化实现替换现有内存实现。
+
+4 模块依赖关系
+====================================================
+4.1 服务端内部分层依赖（单向，只允许上层依赖下层）
+
+  web（Controller） → service（业务规则） → repository（接口） → 数据层
+  domain（实体与枚举）被各层引用，但不依赖任何技术层。
+
+4.2 业务模块间依赖
+
+  - capture 依赖 user 的身份端口：现有 CurrentUserProvider.currentUserId()
+    保持不变，user 模块提供经过真实认证的适配实现（替换 X-Dev-User 替身）；
+  - study 依赖 capture 的遭遇生成能力：驻留达标后产生属于该用户的 Spawn；
+  - capture、study 均依赖 user；user 不反向依赖任何业务模块；
+  - demo 与正式模块互不依赖，仅共用应用入口；
+  - 各业务模块的 repository 接口由 common 的数据层实现装配，业务代码不出现
+    SQL 或数据库类型。
+
+4.3 明确禁止的依赖
+
+  - 客户端绕过服务端直接访问数据库；
+  - 业务模块之间直接读对方的数据表（必须走对方 service/端口）；
+  - user 模块引用 capture/study 的类；
+  - 在业务代码中读取 X-Dev-User 等开发替身（仅 common 的配置层可按 profile
+    装配替身，且正式环境必须关闭，见 questions.csv Q03）。
+
+5 主要数据关系分析
+====================================================
+以下实体中，User/AuthSession 字段以闫昕分析为准，Spawn/Challenge/Question/
+AnswerAttempt/CaptureRecord/Species 以孙虹毅分析与设计为准，StudyTask/
+LocationSample 以董欣毓/赵冠钧后续交付为准。本文只固定实体间的关系与约束。
+
+  User（用户）
+    1 ── 0..*  AuthSession（会话）：每条会话属于且仅属于一个用户；
+               记录签发、到期、撤销时刻；撤销不删除历史。
+    1 ── 0..*  StudyTask（自习任务）：任务归属用户。
+    1 ── 0..*  Spawn（遭遇）：遭遇归属用户。
+    1 ── 0..*  CaptureRecord（收录记录）：收录归属用户。
+
+  StudyTask
+    1 ── 0..*  LocationSample（位置样本）：样本必须属于本人任务。
+    1 ── 0..1  Spawn：驻留达标后最多产生一次遭遇。
+
+  Spawn（遭遇）
+    1 ── 0..1  Challenge（挑战）：一次遭遇对应最多一个进行中的挑战。
+    N ── 1     Species（精灵种类）。
+
+  Challenge（挑战）
+    N ── 1     Question（题目）。
+    1 ── 0..*  AnswerAttempt（作答记录）：每次提交一条，含 requestId 幂等键。
+    1 ── 0..1  CaptureRecord：答对结算后产生。
+
+  CaptureRecord（收录记录）
+    N ── 1     User；N ── 1 Species；1 ── 1 Spawn。
+    唯一约束：(userId, spawnId) 唯一，保证同一遭遇重复提交不重复发奖；
+    建议另加 (userId, speciesId) 维度的数量统计由查询实现，不加唯一约束。
+
+  Species / Question（共享目录数据）
+    Species 1 ── 0..* Question（题目按精灵种类组织，具体基数随题库定型）。
+    目录全员可读；题目正确答案只在服务端判题可见，不下发客户端。
+
+  关系图（文字版）：
+
+    User ─┬─ AuthSession
+          ├─ StudyTask ─ LocationSample
+          │        └──（达标生成）Spawn ─┬─ Challenge ─┬─ AnswerAttempt
+          ├─ Spawn ────────────────┘     │           └─ Question ─ Species
+          └─ CaptureRecord ──────────────┴─ Species
+                                         （Spawn、Species 两处汇聚）
+
+6 数据库设计草案（下一轮实现前定型）
+====================================================
+表清单（与第 5 节实体一一对应）：
+
+  users            | userId 主键；username 唯一索引；口令只存加盐散列（BCrypt）
+  auth_sessions    | sessionId 主键；userId 外键；token 只存摘要；issuedAt/
+                   | expiresAt/revokedAt
+  study_tasks      | taskId 主键；userId 外键；状态与累计有效驻留
+  location_samples | sampleId 主键；taskId 外键；时刻、坐标、精度、来源
+  spawns           | spawnId 主键；userId、speciesId 外键；来源与有效期
+  challenges       | challengeId 主键；spawnId 唯一外键；questionId 外键；状态
+  answer_attempts  | attemptId 主键；challengeId 外键；requestId 唯一（幂等）
+  capture_records  | recordId 主键；(userId, spawnId) 唯一约束
+  species          | speciesId 主键；名称、描述、立绘资源路径
+  questions        | questionId 主键；speciesId 外键；题干、选项、正确答案
+
+技术选型（数据库、迁移工具、连接方式）在 questions.csv Q01/Q02 跟踪，
+10/29 设计交接前定型，不影响本文的模块与关系结论。
+
+7 交给其他成员的明确输入
+====================================================
+  接收者   | 可以直接使用的结论
+  闫昕     | users、auth_sessions 表结构草案；身份适配装配在 common 层完成，
+           | user 模块只提供业务实现。
+  孙虹毅   | capture 的 repository 接口保持不变，下一轮由数据层实现替换内存
+           | 实现；answer_attempts.requestId 唯一约束支撑幂等语义；
+           | (userId, spawnId) 唯一约束支撑不重复收录。
+  董欣毓/  | study_tasks、location_samples 表结构草案；样本归属校验在 service
+  赵冠钧   | 层完成，数据库只做外键与索引。
+  冉昕霖   | 客户端不需要感知数据库；所有数据经 HTTP API 获取。
+  李宗晏   | 第 5 节的关系与唯一约束可直接转化为持久化验收用例（重启后收录
+           | 仍可查、重复提交不增加数量、跨账号不可见）。
+
+8 本轮未决问题
+====================================================
+见同目录 questions.csv，含责任人、建议与目标交接时间。
+
+9 下一轮计划
+====================================================
+10/29-10/30 机动；10/31 提交数据库与公共配置骨架（建表脚本、迁移入口、
+profile 开关）；11/01-11/05 完成持久化实现替换与自测；11/06 与孙虹毅、
+闫昕联调真实身份 + 持久化的完整捕获流程。

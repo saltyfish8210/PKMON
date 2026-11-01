@@ -1,11 +1,11 @@
 id,问题,影响,责任人,建议,状态
-Q01,认证上下文如何取得 userId（token 校验入口、可用依赖与调用方式）,决定 CaptureService 的身份来源；拿不到就只能用测试替身，无法完成真实用户隔离验证,闫昕,请提供 token 校验入口与本地调试取 token 的步骤；我方只从认证上下文取 userId，不从请求体取,待回复
-Q02,capture 相关表的迁移文件由谁写、编号规则与数据库类型/版本,决定能否落地唯一约束与重启后查询,胡豪,我方提供字段与约束需求（capture_record 按 user_id 与 spawn_id 唯一、answer_attempt 按 user_id 与 request_id 唯一），迁移由胡豪统一编号,待回复
-Q03,Species 与题库 Question 的建表与初始数据归属（siege_lion、hello_world_001）,无数据则挑战取不到题，只能做纯规则测试,闫昕,建议由题库/图鉴主责提供初始数据脚本，我方只读,待回复
-Q04,开发遭遇 /api/v1/dev/spawns 仅 dev/test 开放，环境判定方式（profile 或配置项）,决定正式环境不暴露模拟入口,胡豪,建议用 Spring profile 控制，配置项命名由胡豪定，我方按名读取,待回复
+Q01,认证上下文如何取得 userId（token 校验入口、可用依赖与调用方式）,决定 CaptureService 的身份来源；拿不到就只能用测试替身，无法完成真实用户隔离验证,闫昕,请提供 token 校验入口与本地调试取 token 的步骤；我方只从认证上下文取 userId，不从请求体取,待回复（10/25 读闫昕 analysis 第 9/12 节：token 与 userId 契约已定但认证未实现；本人只需替换 CurrentUserProvider 实现）
+Q02,capture 相关表的迁移文件由谁写、编号规则与数据库类型/版本,决定能否落地唯一约束与重启后查询,胡豪,我方提供字段与约束需求（capture_record 按 user_id 与 spawn_id 唯一、answer_attempt 按 user_id 与 request_id 唯一），迁移由胡豪统一编号,待回复（10/25 读胡豪 design 第 7 节：repository 接口保持不变、下一轮由数据层替换内存实现；选型 H2 或 SQLite 待 10/29 定型）
+Q03,Species 与题库 Question 的建表与初始数据归属（siege_lion、hello_world_001）,无数据则挑战取不到题，只能做纯规则测试,闫昕,按团队决策：领域内容与读取由本人负责、迁移由胡豪负责；当前仅 1 种 1 题，扩充属后续范围,已明确（措施：FixtureCatalog 注释已同步；种子内容待本人提供）
+Q04,开发遭遇 /api/v1/dev/spawns 仅 dev/test 开放，环境判定方式（profile 或配置项）,决定正式环境不暴露模拟入口,胡豪,已按胡豪 questions.csv 要求实现：仅 dev/test profile 默认开启，其余关闭，开启时打 WARN,已解决（2026-10-25；CaptureConfig + CaptureSwitchTest + 两个 HTTP 测试）
 Q05,统一 Api 适配层由谁负责（旧 Demo 的 name/question/options.id/success 转换）,旧页面迁移与旧路由保留期限受影响,冉昕霖,建议由网络层主责在适配层转换，我方只提供新字段,待回复
 Q06,收藏概览 /api/v1/collection/summary 的页面字段与调用时机,决定最小收藏查询是否够用,冉昕霖,我方按指南字段实现 collectedSpeciesCount/totalSpeciesCount/captureCount，如页面需要额外字段请提出,待回复
 Q07,旧 Demo 路由（/api/v1/demo/*、X-Demo-Session）的保留期限与下线决定权,决定我是否需要在过渡期兼容两套身份入口,闫昕,建议明确保留到第二阶段结束，期间旧路由独立于新业务,待回复
-Q08,锁顺序“先遭遇后挑战”的落地方案（数据库行锁或唯一约束冲突重试）,决定并发正确提交时只产生一条捕获记录,胡豪,建议以数据库唯一约束为主、冲突时查回已有记录返回，不依赖内存锁,待回复
+Q08,锁顺序“先遭遇后挑战”的落地方案（数据库行锁或唯一约束冲突重试）,决定并发正确提交时只产生一条捕获记录,胡豪,胡豪 design 第 7 节已确认由唯一约束支撑；具体落库方式待其 10/31 数据库骨架,待回复（设计已对齐，代码待真实实现后补 TC-07）
 Q09,启动类扫描范围是否改为 edu.pkmon,目前 capture 包不被扫描，本模块用自动配置注册（多一个 resources 下的 imports 文件）；改扫描范围后可删该文件,胡豪,建议改为 @SpringBootApplication(scanBasePackages = "edu.pkmon")；本模块 @Bean 带 @ConditionalOnMissingBean，会自动让位不会重复注册,待回复
 Q10,旧演示 capture 路由已迁到 /api/v1/demo/capture/*,客户端若直连旧路径将失败；其余旧路由（sessions/state/explore/reset）不变,冉昕霖,请网络适配层改这两处调用；适配层同时把旧字段转为统一字段（见 design.txt 3.3）,待回复

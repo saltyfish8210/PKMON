@@ -1,0 +1,60 @@
+状态：已安装并验证（P0-A Maven、P0-B Flutter）；Android SDK 未安装
+记录日期：2026-10-31
+源码提交号：eb86b64（main）
+工作区外的系统改动：无（不写 Program Files、不改系统 PATH、不需要管理员）
+仓库内改动：无。`flutter pub get` 曾改写 client/pubspec.lock，已还原，未提交
+
+一、P0-A Maven（便携安装）
+  安装位置：.tools\maven\apache-maven-3.9.9（工作区内，仓库外）
+  版本：Apache Maven 3.9.9；运行时 Java 17.0.10（C:\Program Files\Java\jdk-17）
+  配置：.tools\maven-settings.xml
+    localRepository = <workspace>\.m2\repository
+    mirror central -> https://maven.aliyun.com/repository/public
+  下载来源：https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip
+  执行命令（工作目录 server）：
+    mvn -B -s <workspace>\.tools\maven-settings.xml -DargLine=-Djdk.attach.allowAttachSelf=true test
+  实际结果：
+    Tests run: 34, Failures: 0, Errors: 0, Skipped: 0
+    BUILD SUCCESS（Total time 约 21s，依赖首次下载约 45s）
+  过程说明：
+    首轮 34 个用例中 6 个 HTTP 测试（CaptureDefaultProfileHttpTest、CaptureDevProfileHttpTest）
+    报 "Mockito is unable to load ... MockMaker / Could not self-attach"。
+    原因是本机沙箱禁止 JVM 通过外部进程自附加；加 -Djdk.attach.allowAttachSelf=true 后 6 个全过。
+    这是本机环境限制，不是项目代码缺陷；其他机器直接 mvn test 应无需该参数。
+
+二、P0-B Flutter（便携安装）
+  安装位置：.tools\flutter（Flutter 3.47.6 / Dart 3.13.5，与 pubspec 的 ^3.13.5 匹配）
+  下载：flutter_windows_3.47.6-stable.zip（约 1.84 GB，storage.googleapis.com；
+    包与 pub 使用 storage.flutter-io.cn / pub.flutter-io.cn 镜像）
+  环境变量（逐命令注入，未持久化）：
+    FLUTTER_ROOT=.tools\flutter
+    PUB_CACHE=.tools\pub-cache
+    PUB_HOSTED_URL=https://pub.flutter-io.cn
+    FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+    APPDATA/LOCALAPPDATA/TEMP/TMP 指向工作区内目录（默认用户目录不可写）
+    FLUTTER_SUPPRESS_ANALYTICS=true
+  执行与结果（工作目录 client）：
+    flutter --version  -> Flutter 3.47.6 • channel stable • Dart 3.13.5 • DevTools 2.60.0
+    flutter pub get    -> Changed 28 dependencies（依赖解析成功）
+    flutter analyze    -> No issues found! (ran in 19.3s)
+    flutter test       -> 00:00 +8: All tests passed!（8/8）
+  环境说明：
+    Flutter 工具启动与执行时会用管道捕获 git / dart 子进程输出，本机沙箱禁止创建命名管道；
+    本次以一次性完整权限执行。这是本机沙箱限制，不是项目配置，也不改变仓库内容。
+
+三、锁文件观察（需余星晨决定）
+  Flutter 3.47.6 下 `flutter pub get` 改写了 client/pubspec.lock 的 28 项，其中实际版本变化：
+    meta 1.18.3 -> 1.19.0；vector_math 2.4.0 -> 2.4.4；
+    vm_service 15.3.0 -> 15.4.0；web 1.1.1 -> 1.1.2；
+    其余为 SDK 约束/解析信息更新。
+  本人未提交该文件，并已还原到提交版本。是否更新锁文件、是否固定 SDK 版本，由余星晨决定；
+  若不更新，后续每台机器首次 pub get 都会重新改写。
+
+四、未安装与未执行
+  未安装：Android SDK、cmdline-tools、模拟器（flutter analyze/test 不需要）。
+  未执行：flutter build apk、真机/模拟器运行、flutter build web、真实后端联调。
+  说明：APK 与真机验证属于 11/09 打包与演示阶段，按需再装 Android SDK（预计 1–1.5 GB）。
+
+五、空间占用（可回收）
+  .tools\flutter 3.3 GB；.tools\flutter-3.47.6.zip 1.8 GB（可删）；.tools\pub-cache 128 MB；
+  .m2 45 MB；.tools\maven 10 MB。删除 zip 可回收约 1.8 GB。
