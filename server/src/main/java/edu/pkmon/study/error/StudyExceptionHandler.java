@@ -1,6 +1,8 @@
 package edu.pkmon.study.error;
 
 import edu.pkmon.common.api.ApiResponse;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * 其余异常交给 common 的全局兜底，避免影响其他模块。
  */
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudyExceptionHandler {
 
     /**
