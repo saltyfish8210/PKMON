@@ -1,11 +1,11 @@
 阶段：analysis（2026-10-20至10-24）
 作者：赵冠钧
 截止：2026-10-25 04:00（北京时间）；本材料于截止后补交，接收方按实际合入/推送时间读取。
-状态：仅个人分支已推送 origin/analysis/zhaoguanjun-stage2（合入 main 后请将本行改为已合入并填写 main 合入提交号）
+状态：已合入 main（PR #3）
 任务分支：analysis/zhaoguanjun-stage2
-开 PR：https://github.com/saltyfish8210/PKMON/pull/new/analysis/zhaoguanjun-stage2
+开 PR：https://github.com/saltyfish8210/PKMON/pull/3
 分析成果版本（正文、图表、证据、问题清单与 AI 记录；本交接记录回填该号）：592c1634ad364ed3d26916b5fb3e996261c764e0
-main成果合入提交号：（未合入则留空）
+main成果合入提交号：8d3fa2476dba7217a4bec8e0e3cc49c1a11c8d19
 所用输入源码/仓库提交：a9abdb4413eeff8b10470f979c6847ddb8e18d10
 闫昕分析输入：docs/stage2/members/yanxin/analysis/ 与 handoffs/analysis.txt（已读共享用况§6）
 孙虹毅分析输入：docs/stage2/members/sunhongyi/analysis/（结构参考，保留原作者）

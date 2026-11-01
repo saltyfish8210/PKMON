@@ -1,10 +1,10 @@
 阶段：design（2026-10-25至10-28）
 作者：赵冠钧
 截止：2026-10-29 04:00（北京时间）
-状态：仅个人分支（合入 main 后填写 main 合入提交号）
+状态：已合入 main（PR #5）
 任务分支：design/zhaoguanjun-stage2
 设计成果版本（design 正文、图、interfaces、测试与 CSV；本交接记录回填该号）：42b97aef24966174645e33ffbf78377643ecb95b
-main成果合入提交号：（未合入则留空）
+main成果合入提交号：a2f6da0b73afb57560ad8b39a9f2d222d8e5d771
 所用输入源码/仓库 tip：3248a513d0760f32b50587a055c3030151207bc3
 分析成果输入：592c1634ad364ed3d26916b5fb3e996261c764e0
 闫昕共享用况：members/yanxin/analysis/analysis.txt §6（已读）
@@ -31,4 +31,4 @@ docs/stage2/members/zhaoguanjun/analysis/questions.csv（设计轮状态更新�
 交接读取方式：先读 design/design.txt 与 interfaces.json，再打开 diagrams 与 test-cases.csv。
 
 成果提交号：42b97aef24966174645e33ffbf78377643ecb95b
-开 PR：https://github.com/saltyfish8210/PKMON/pull/new/design/zhaoguanjun-stage2
+开 PR：https://github.com/saltyfish8210/PKMON/pull/5
