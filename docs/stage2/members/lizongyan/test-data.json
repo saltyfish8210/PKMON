@@ -1,0 +1,16 @@
+{
+  "testEnvironment": {
+    "baseUrl": "http://127.0.0.1:4180",
+    "authType": "X-Demo-Session"
+  },
+  "testData": {
+    "validSpawnId": "library-001",
+    "correctOptionId": "A"
+  },
+  "expectedResponses": {
+    "captureSuccess": {
+      "captured": true,
+      "count": 1
+    }
+  }
+}
