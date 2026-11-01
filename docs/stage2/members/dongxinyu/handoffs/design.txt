@@ -1,11 +1,11 @@
 阶段：design（2026-10-25 至 10-28）
 作者：董欣毓
 截止：2026-10-29 04:00（北京时间）；本材料于截止后补交，接收方按实际合入/推送时间读取。
-状态：仅个人分支 design/dongxinyu-stage2（合入 main 后请把本行改为已合入并填写 main 合入提交号）
+状态：已合入 main（成果提交 163c21e；main 合入提交号见下行）
 任务分支：design/dongxinyu-stage2
 开 PR：无（直接推 main；若被保护再开 PR）
 设计成果版本（正文、图、接口、测试设计、技术探路；本交接记录回填该号）：b413247
-main成果合入提交号：（合入后回填）
+main成果合入提交号：163c21e（与 design/dongxinyu-stage2 同一提交，2026-11-01 推送）
 所用输入源码/仓库提交：117a706（main，2026-11-01）
 所读他人成果：docs/stage2/members/yanxin/analysis/analysis.txt（§6 共享驻留规则）、docs/stage2/members/zhaoguanjun/design/design.txt（StudyApi/TaskSnapshot）、docs/stage2/members/sunhongyi/design/interfaces.json（/dev/spawns 仅 DEV）、docs/stage2/members/huhao/design/design.txt（模块划分）、docs/stage2/project/decisions.csv
 
