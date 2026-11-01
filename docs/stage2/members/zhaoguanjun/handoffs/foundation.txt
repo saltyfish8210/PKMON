@@ -1,10 +1,10 @@
 阶段：foundation（10/31）
 作者：赵冠钧
 截止：2026-11-01 04:00（北京时间）；材料于工作日前交付。
-状态：仅个人分支（合入 main 后填写 main 合入提交号）
+状态：已合入 main（PR #8）
 任务分支：foundation/zhaoguanjun-stage2
 成果提交号：3f392c982c1c69e40479ecf785eea35412188a59
-main成果合入提交号：（未合入则留空）
+main成果合入提交号：9a2410738f4181950760c67c8398b6d63d7bea92
 设计输入：42b97aef24966174645e33ffbf78377643ecb95b
 分支起点：ac5d0342bf2d11970dda834e96435a14203355a7
 
@@ -31,9 +31,9 @@ main成果合入提交号：（未合入则留空）
   详见 evidence/foundation.txt。
 
 四、真实／模拟／未执行
-  真实：骨架代码、Manifest 声明、本机 test/analyze。
+  真实：骨架代码、Manifest 声明、本机 test/analyze、已合入 main。
   模拟：Fake + Simulated 全路径。
-  未执行：真机权限、Study HTTP、geolocator、RealLocationProvider。
+  未执行：真机权限、Study HTTP 客户端接线、geolocator、RealLocationProvider。
 
 五、对调用方
   余星晨：仍需合入 permission_handler、geolocator 后方可实现 RealLocationProvider。
@@ -43,4 +43,4 @@ main成果合入提交号：（未合入则留空）
 六、下一步
   implementation（11/01-11/05）：异常路径完善、与任务 HTTP/网络层联调。
 
-开 PR：（推送并对齐 main 后填写）
+开 PR：https://github.com/saltyfish8210/PKMON/pull/8
