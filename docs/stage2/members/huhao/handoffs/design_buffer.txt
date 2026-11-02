@@ -1,0 +1,41 @@
+交接记录：设计轮遗留材料补齐（design_buffer 性质，迟于机动日）
+阶段，作者：design_buffer（补），胡豪 | 日期：2026-11-02（组长反馈后补齐）
+
+本人分支与完整提交号：
+- 分支 docs/huhao-stage2-supplement（基于 origin/main e4ddc5b）
+- 成果提交：16a083c7ffce70b8470e4ce15234b05d7f3c5fd9
+
+状态：已合入 main
+主线合并提交号：快进发布，main 位于 16a083c7ffce70b8470e4ce15234b05d7f3c5fd9
+（与 analysis 补交同一提交；已用 git merge-base --is-ancestor 确认 origin/main 包含）
+
+文件路径与内容（均为本次新增，design.txt/interfaces.json 无改动）：
+- design/diagrams/服务端设计包图.puml + .png：技术分包、自动配置装配、
+  ConditionalOnMissingBean 让位机制（对应 common/config 代码）
+- design/diagrams/数据库ER设计图.puml + .png：V1 八表字段、PK/FK/UK，
+  与 db/migration/V1__init_schema.sql 逐列对应
+- design/diagrams/服务启动与迁移顺序图.puml + .png：启动、迁移、启动检查、
+  fail-fast 分支（对应 StartupCheckRunner）
+- design/diagrams/统一异常响应顺序图.puml + .png：四类异常到统一信封的映射
+  （对应 GlobalExceptionHandler 与 capture ApiExceptionHandler 的优先级）
+- design/analysis-to-design.csv：8 条分析到设计的映射（HA-01~HA-08），
+  含变更类型、所属设计部分、理由与对应测试
+- design/test-cases.csv：12 条用例（TC-01~TC-12），10 条已通过
+  （证据见 evidence/foundation.txt），TC-11 重启保留数据待实现轮执行
+
+所用依赖提交号：origin/main e4ddc5b
+
+本人验证：图经本地渲染逐张打开核对；ER 图与 V1 SQL 逐列比对一致；
+测试用例状态与 evidence/foundation.txt 实测记录逐条对应，未执行项如实标注。
+
+真实 / 模拟 / 未执行：文档与图为真实归档；TC-11 未执行（已标注）。
+
+缺项、影响及后续处理：
+- 无新增缺项；本人阶段二剩余事项见 handoffs/foundation.txt「缺项」节
+  （持久化替换属 11/01-11/05 实现轮）。
+
+请以下成员按依赖读取：
+- 闫昕：本人 design 轮材料至此齐全（design.txt / interfaces.json /
+  questions.csv / analysis-to-design.csv / test-cases.csv / diagrams/）；
+- 李宗晏：test-cases.csv 可直接引用为公共层验收依据；
+- 孙虹毅：统一异常响应顺序图说明了业务处理器优先、common 兜底的协作方式。
