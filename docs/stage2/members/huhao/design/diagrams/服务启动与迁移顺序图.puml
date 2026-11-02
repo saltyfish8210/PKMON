@@ -1,0 +1,51 @@
+@startuml 服务启动与迁移顺序图
+' 胡豪 · 第二阶段设计 · 启动、迁移与启动检查时序
+' 对应代码：PkmonApplication.main / Flyway 自动配置 / StartupCheckRunner
+' 实测日志见 evidence/foundation.txt 第二节
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #5B6B7C
+  ParticipantBackgroundColor #F5F8FB
+  ParticipantBorderColor #6F97B8
+  ParticipantFontColor #1F2A37
+  LifeLineBorderColor #B9C7D4
+  GroupBorderColor #6F97B8
+}
+
+actor 开发者 as Dev
+participant "PkmonApplication\n(edu.pkmon.demo)" as App
+participant "Spring Boot\n自动配置" as Boot
+participant "Flyway" as Flyway
+database "H2 数据库" as DB
+participant "StartupCheckRunner\n(common.config)" as Check
+participant "/test/hello" as Health
+
+Dev -> App : mvn spring-boot:run\n（dev 文件库加 profiles=dev）
+App -> Boot : 加载自动配置\n（CommonConfig → CaptureConfig）
+Boot -> Flyway : 启动时自动 migrate()
+alt 空库（首次启动）
+  Flyway -> DB : 建 schema history，应用 V1__init_schema.sql
+  Flyway --> Boot : 已应用迁移 = [V1]
+else 已有库（重启 / 升级）
+  Flyway -> DB : 校验历史，只应用新增版本；已应用的不改写
+  Flyway --> Boot : 迁移状态
+else 数据库不可用或校验失败
+  Flyway --> Boot : 抛出异常
+  Boot --> Dev : 启动直接失败（fail-fast），不半初始化对外服务
+end
+
+Boot -> Check : 应用就绪后 run()
+Check -> DB : 读取连接 URL（不含口令）
+Check -> Flyway : info().applied()
+Check --> Dev : 日志：profiles / datasource / 已应用迁移
+note over Check
+  dev / test profile 追加告警：
+  开发替身与开发遭遇入口默认开启，
+  正式环境不得使用
+end note
+
+Dev -> Health : GET http://127.0.0.1:4180/test/hello
+Health --> Dev : 200 "hello world"\n（只表示服务入口可达）
+@enduml

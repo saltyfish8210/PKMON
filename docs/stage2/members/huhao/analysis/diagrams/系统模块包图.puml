@@ -1,0 +1,62 @@
+@startuml 系统模块包图
+' 胡豪 · 第二阶段分析 · 概念层包图
+' 系统按部署单元分三层；模块主责见 design/design.txt 第 3 节
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam package {
+  BackgroundColor #F5F8FB
+  BorderColor #6F97B8
+  FontColor #1F2A37
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #6F97B8
+}
+
+package "客户端 client/（Flutter）" as Client {
+  [features 页面模块\nmap / capture / dex / bag / profile] as Feat
+  [core/api\n唯一网络层] as Api
+  [core/location\n定位抽象] as Loc
+}
+
+package "服务端 server/（Spring Boot）" as Server {
+  [capture 答题捕获\n主责：孙虹毅] as Capture
+  [user 账号会话\n主责：闫昕（待建）] as User
+  [study 自习驻留\n主责：董欣毓/赵冠钧（待建）] as Study
+  [common 公共模块\n主责：胡豪] as Common
+  [demo 旧攻城狮演示\n已有，冻结不扩展] as Demo
+}
+
+package "数据层（主责：胡豪）" as Data {
+  database "嵌入式数据库\n（H2）" as DB
+  [迁移脚本\ndb/migration] as Mig
+}
+
+Feat --> Api : 只经网络层
+Api --> Capture : HTTP/JSON /api/v1
+Api --> User : HTTP/JSON /api/v1
+Api --> Study : HTTP/JSON /api/v1
+Loc --> Feat : 位置样本
+
+Capture --> Common : 公共类型 / Clock / 异常
+User --> Common : 公共类型 / 时钟
+Study --> Common : 公共类型 / 时钟
+
+Capture ..> DB : 经 Repository 接口装配
+User ..> DB : 经 Repository 接口装配
+Study ..> DB : 经 Repository 接口装配
+Mig --> DB : 版本化建表（只增不改）
+
+note right of Demo
+  demo 与正式模块互不依赖，
+  仅共用应用入口；
+  内存状态不参与数据关系设计
+end note
+
+note bottom of Client
+  客户端不直连数据库；
+  业务模块之间不互读数据表，
+  必须走对方 service / 端口
+end note
+@enduml

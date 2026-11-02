@@ -1,0 +1,9 @@
+analysisId,分析对象或规则,设计补充,变更类型,属于哪部分设计,变更理由,是否模拟,对应接口,对应测试
+HA-01,任何请求需要统一响应形状,新增 ApiResponse 记录类（code/message/data，ok/error 静态构造）,新增,人机交互,全组接口约定统一信封；新模块直接用 ApiResponse，capture 历史 ApiEnvelope 字段语义一致不强改,否,全部 /api/v1 接口,TC-07
+HA-02,异常不能泄露堆栈且形状统一,新增 GlobalExceptionHandler 兜底（40001/40401/50000），业务模块处理器优先匹配,新增,人机交互,客户端只需处理一种信封；敏感信息不下发,否,全部接口（错误路径）,TC-08 / TC-09
+HA-03,过期等时间边界需离线可验证,CommonConfig 提供可注入 java.time.Clock（生产 UTC），@ConditionalOnMissingBean 允许测试替换固定时钟,新增,控制驱动,直接读系统时间无法用单元测试覆盖边界；与 capture 原 captureClock 让位机制兼容,否,全模块注入点,TC-03
+HA-04,分析层数据关系与唯一性要求,落地 V1__init_schema.sql：8 表 + 7 项唯一约束，UUID 字符串主键、UTC 时间戳,新增,数据管理,唯一性必须由数据库约束兜住；迁移只增不改、由本人统一编号,否,持久化层（无 HTTP）,TC-01 / TC-04 / TC-05 / TC-06
+HA-05,开发/测试/正式环境行为不同,application.properties（默认内存库）+ application-dev（文件库）+ application-test（独立 pkmon_test 内存库）分离，口令只走本机环境变量,新增,数据管理,测试不得触碰他人开发库；只提交不含秘密的示例,否,配置层（无 HTTP）,TC-02
+HA-06,交接时环境状态需可核对,新增 StartupCheckRunner：启动后打印 profile、数据源 URL、已应用迁移，dev/test 追加替身告警,新增,控制驱动,接收者一眼确认连的哪个库、迁移到哪个版本；数据库不可用 fail-fast,否,启动日志（无 HTTP）,TC-10
+HA-07,启动类扫描不覆盖 common/capture,两模块经 META-INF AutoConfiguration.imports 注册，CommonConfig 排在 CaptureConfig 前，公共 Bean 全条件让位,新增,控制驱动,不修改他人模块即可装配；user/study 包建立后按同方式接入,否,装配层（无 HTTP）,TC-10
+HA-08,题库/图鉴种子与驻留表未就绪,V1 不建 study_tasks/location_samples；种子内容待孙虹毅提供后走 V2 增量,推迟,数据管理,未到位依赖不虚构字段；机制（Flyway 增量）已就绪,否,V2 迁移（未执行）,待实现轮

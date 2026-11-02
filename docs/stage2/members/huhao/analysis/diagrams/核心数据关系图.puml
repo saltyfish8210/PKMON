@@ -1,0 +1,54 @@
+@startuml 核心数据关系图
+' 胡豪 · 第二阶段分析 · 概念层数据关系
+' 只固定实体间关系与约束；业务字段以各主责人分析为准
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #F5F8FB
+  BorderColor #6F97B8
+  FontColor #1F2A37
+}
+hide empty members
+
+class User <<用户>> 
+class AuthSession <<会话>>
+class StudyTask <<自习任务>>
+class LocationSample <<位置样本>>
+class Spawn <<遭遇机会>>
+class Challenge <<问答挑战>>
+class Question <<题目>>
+class AnswerAttempt <<答题请求>>
+class CaptureRecord <<捕获记录>>
+class Species <<精灵种类>>
+
+User "1" -- "0..*" AuthSession : 签发/撤销不删历史
+User "1" -- "0..*" StudyTask : 任务归属用户
+User "1" -- "0..*" Spawn : 遭遇归属用户
+User "1" -- "0..*" CaptureRecord : 收录归属用户
+StudyTask "1" -- "0..*" LocationSample : 样本必属本人任务
+StudyTask "1" -- "0..1" Spawn : 驻留达标最多产生一次
+Spawn "1" -- "0..1" Challenge : 一次遭遇最多一个进行中挑战
+Spawn "0..*" -- "1" Species
+Challenge "0..*" -- "1" Question
+Challenge "1" -- "0..*" AnswerAttempt : requestId 幂等键
+Challenge "1" -- "0..1" CaptureRecord : 答对结算产生
+CaptureRecord "0..*" -- "1" Species
+Species "1" -- "0..*" Question : 按种类组织
+
+note bottom of CaptureRecord
+  唯一约束 (userId, spawnId)：
+  同一遭遇重复提交不重复发奖
+end note
+
+note bottom of Question
+  正确答案仅服务端判题可见，
+  不下发客户端
+end note
+
+note right of StudyTask
+  StudyTask / LocationSample
+  字段待董欣毓、赵冠钧定稿，
+  本图只固定关系
+end note
+@enduml

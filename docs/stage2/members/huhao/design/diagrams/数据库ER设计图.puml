@@ -1,0 +1,103 @@
+@startuml 数据库ER设计图
+' 胡豪 · 第二阶段设计 · V1 物理模型
+' 与 server/src/main/resources/db/migration/V1__init_schema.sql 一一对应
+' 约定：主键均为 VARCHAR(36) UUID 字符串；时间均为 UTC TIMESTAMP WITH TIME ZONE
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+hide circle
+
+entity "users" as users {
+  * user_id : VARCHAR(36) <<PK>>
+  --
+  * username : VARCHAR(64) <<UK>>
+  * password_hash : VARCHAR(100)（BCrypt 散列）
+  * nickname : VARCHAR(64)
+  * created_at : TIMESTAMPTZ
+}
+
+entity "auth_sessions" as auth_sessions {
+  * session_id : VARCHAR(36) <<PK>>
+  --
+  * user_id : VARCHAR(36) <<FK>>
+  * token_digest : VARCHAR(128) <<UK>>（只存摘要）
+  * issued_at / expires_at : TIMESTAMPTZ
+  revoked_at : TIMESTAMPTZ（撤销不删历史）
+}
+
+entity "species" as species {
+  * species_id : VARCHAR(36) <<PK>>
+  --
+  * business_key : VARCHAR(64) <<UK>>（siege_lion）
+  catalog_number : INT
+  * name : VARCHAR(64)
+  description / image_key
+}
+
+entity "questions" as questions {
+  * question_id : VARCHAR(36) <<PK>>
+  --
+  * species_id : VARCHAR(36) <<FK>>
+  * business_key : VARCHAR(64) <<UK>>
+  * question_text / options_json
+  * correct_option_id（仅服务端可见）
+}
+
+entity "spawns" as spawns {
+  * spawn_id : VARCHAR(36) <<PK>>
+  --
+  * user_id : VARCHAR(36) <<FK>>
+  * species_id : VARCHAR(36) <<FK>>
+  * region_id（library_entrance）
+  * source_type（DEV_SIMULATED / LOCATION）
+  * expires_at / created_at
+}
+
+entity "challenges" as challenges {
+  * challenge_id : VARCHAR(36) <<PK>>
+  --
+  * spawn_id : VARCHAR(36) <<FK,UK>>（一次遭遇一个挑战）
+  * question_id : VARCHAR(36) <<FK>>
+  * status : OPEN / CAPTURED / EXPIRED
+  * expires_at / created_at
+}
+
+entity "answer_attempts" as attempts {
+  * attempt_id : VARCHAR(36) <<PK>>
+  --
+  * challenge_id : VARCHAR(36) <<FK>>
+  * request_id : VARCHAR(36) <<UK>>（幂等键）
+  * option_id
+  * result : CORRECT / WRONG
+  * submitted_at
+}
+
+entity "capture_records" as capture_records {
+  * record_id : VARCHAR(36) <<PK>>
+  --
+  * user_id : VARCHAR(36) <<FK>>
+  * species_id : VARCHAR(36) <<FK>>
+  * spawn_id : VARCHAR(36) <<FK>>
+  * challenge_id : VARCHAR(36) <<FK>>
+  * captured_at : TIMESTAMPTZ
+  .. UK(user_id, spawn_id) 防重复收录 ..
+}
+
+users ||--o{ auth_sessions
+users ||--o{ spawns
+users ||--o{ capture_records
+species ||--o{ questions
+species ||--o{ spawns
+species ||--o{ capture_records
+spawns ||--o| challenges
+questions ||--o{ challenges
+challenges ||--o{ attempts
+challenges ||--o| capture_records
+spawns ||--o| capture_records
+
+note bottom of capture_records
+  未建表（V2+ 增补）：
+  study_tasks / location_samples，
+  待驻留字段定稿（questions.csv Q05）
+end note
+@enduml

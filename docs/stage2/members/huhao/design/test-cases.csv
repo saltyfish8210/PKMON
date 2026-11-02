@@ -1,0 +1,13 @@
+id,类型,对应规则,时钟控制,场景,前置数据,输入与操作,预期结果,证据位置,状态
+TC-01,正常,V1 迁移,系统 UTC,空库首次启动自动迁移,全新空数据库（pkmon_test）,启动应用或执行 Flyway migrate,自动应用 V1__init_schema.sql 且无其他版本；8 表与 7 项唯一约束就绪,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-02,隔离,测试库独立,系统 UTC,自动化测试不触碰开发库,默认配置与 test profile 并存,查看测试实际连接 URL,测试连接 jdbc:h2:mem:pkmon_test，独立于默认与 dev 库,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-03,正常,可注入 Clock,固定时钟,Clock Bean 为 UTC 且可替换,Spring 上下文启动,注入 Clock 读取时区；测试侧替换固定时钟,生产 Bean 为 Clock.systemUTC()；固定时钟下时间断言稳定,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-04,异常,users(username) 唯一,系统 UTC,重复注册同名用户,已插入 username=U1,再次插入相同 username,抛 DuplicateKeyException；原记录不变,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-05,异常,answer_attempts(request_id) 唯一,系统 UTC,同一 requestId 重复作答落库,已存在 request_id=R1 的作答,再次插入 request_id=R1,唯一约束拒绝；幂等由数据库兜住,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-06,并发,capture_records(user_id,spawn_id) 唯一,系统 UTC,同一遭遇重复收录,已存在 (U1,S1) 收录记录,再次插入 (U1,S1),唯一约束拒绝；不重复发奖,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-07,正常,统一信封,系统 UTC,成功与失败信封形状,—,构造 ApiResponse.ok / error,成功 code=0/message=ok/data 非空；失败 code 非 0/data=null,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-08,异常,404 统一信封,系统 UTC,访问不存在路径,服务已启动,GET /api/v1/no-such-endpoint,404 + {"code":40401,"message":"接口或资源不存在","data":null},evidence/foundation.txt 第二节,通过（2026-10-31）
+TC-09,异常,500 兜底,系统 UTC,未捕获异常,可触发未捕获异常的入口,触发异常,500 + code=50000；响应不含堆栈；堆栈仅在服务端日志,evidence/foundation.txt 第一节,通过（2026-10-31）
+TC-10,正常,启动检查与健康入口,系统 UTC,启动核对与健康检查,空库默认 profile,mvn spring-boot:run 后查日志并 GET /test/hello,日志输出 profiles/datasource/已应用迁移；/test/hello 返回 hello world,evidence/foundation.txt 第二节,通过（2026-10-31）
+TC-11,持久化,重启保留数据,系统 UTC,dev 文件库重启后数据仍在,dev profile 文件库已写入数据,停止后重启并查询,数据仍在；迁移不重复执行,—,待执行（11/01-11/05 实现轮）
+TC-12,安全,正式配置不开替身,系统 UTC,默认 profile 下开发入口关闭,默认（非 dev/test）配置,请求开发遭遇入口与 X-Dev-User 替身,开发遭遇入口不可用；替身身份不生效（由 capture 既有默认关闭测试守住）,capture 模块 CaptureDefaultProfileHttpTest,通过（2026-10-31，capture 侧既有测试）

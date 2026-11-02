@@ -1,0 +1,66 @@
+@startuml 服务端设计包图
+' 胡豪 · 第二阶段设计 · 技术分包与装配
+' 对应代码：server/src/main/java/edu/pkmon/；与 系统模块包图（分析）对应，
+' 新增内容为：common 内部三个子包、自动配置装配方式、外部组件（Flyway/H2）
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam package {
+  BackgroundColor #F5F8FB
+  BorderColor #6F97B8
+  FontColor #1F2A37
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #6F97B8
+}
+
+package "edu.pkmon.demo" as DemoPkg {
+  [PkmonApplication\n启动类（主责：胡豪）\n组件扫描仅本包] as App
+}
+
+package "edu.pkmon.common（主责：胡豪）" as CommonPkg {
+  [api\nApiResponse 统一信封] as CApi
+  [error\nGlobalExceptionHandler 兜底] as CErr
+  [config\nCommonConfig 装配\nStartupCheckRunner 启动检查] as CConf
+}
+
+package "edu.pkmon.capture（主责：孙虹毅）" as CapturePkg {
+  [web\nController] as CWeb
+  [service\nCaptureService 等] as CSvc
+  [repository\n接口 + memory 替身] as CRepo
+  [config\nCaptureConfig 装配] as Cfg
+}
+
+package "edu.pkmon.user（待建：闫昕）" as UserPkg
+package "edu.pkmon.study（待建：董欣毓/赵冠钧）" as StudyPkg
+
+package "外部组件" as Ext {
+  [Spring Boot\n自动配置机制] as Boot
+  [Flyway\n版本化迁移] as Flyway
+  database "H2\n默认内存库 / dev 文件库" as H2
+}
+
+App --> Boot : 启动
+Boot --> CConf : AutoConfiguration.imports\n（CommonConfig 排在 CaptureConfig 前）
+Boot --> Cfg : 自动配置注册
+CConf ..> CApi : 装配
+CConf ..> CErr : 装配
+CWeb --> CSvc
+CSvc --> CRepo
+CRepo ..> H2 : 实现替换后走真库\n（当前为内存替身，接口不变）
+CConf --> Flyway : 触发 migrate()
+Flyway --> H2 : 应用 V1+
+
+note right of CConf
+  Clock 等公共 Bean 全部
+  @ConditionalOnMissingBean：
+  测试可替换固定时钟，
+  与 capture 原 captureClock 不冲突
+end note
+
+note bottom of UserPkg
+  user / study 包建立后按同一方式
+  装配公共 Bean，不修改启动类
+end note
+@enduml

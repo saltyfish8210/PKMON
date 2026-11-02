@@ -1,0 +1,48 @@
+@startuml 统一异常响应顺序图
+' 胡豪 · 第二阶段设计 · 异常到统一信封的映射时序
+' 对应代码：common/error/GlobalExceptionHandler（兜底）、
+' capture/error/ApiExceptionHandler（业务处理器，优先匹配）
+skinparam defaultFontName "Microsoft YaHei"
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #5B6B7C
+  ParticipantBackgroundColor #F5F8FB
+  ParticipantBorderColor #6F97B8
+  ParticipantFontColor #1F2A37
+  LifeLineBorderColor #B9C7D4
+  GroupBorderColor #6F97B8
+}
+
+actor 客户端 as Client
+participant "Controller\n(业务模块)" as Ctl
+participant "Service\n(业务模块)" as Svc
+participant "ApiExceptionHandler\n(capture，业务专属)" as Biz
+participant "GlobalExceptionHandler\n(common，兜底)" as G
+
+Client -> Ctl : HTTP 请求
+Ctl -> Svc : 调用业务
+
+alt 业务异常（ApiException / IllegalArgumentException）
+  Svc --> Ctl : throw
+  Ctl --> Biz : 业务处理器优先匹配
+  Biz --> Client : 业务错误码信封\n（40001/40401/40902/41001…，HTTP 状态随码）
+else 请求形状不合法（缺参 / 类型不匹配 / JSON 无法解析）
+  Ctl --> G : MissingServletRequestParameter 等
+  G --> Client : 400 {"code":40001,"message":"参数错误","data":null}
+else 路径不存在
+  Ctl --> G : NoResourceFoundException
+  G --> Client : 404 {"code":40401,"message":"接口或资源不存在","data":null}
+else 未捕获异常
+  Svc --> Ctl : throw Exception
+  Ctl --> G : 兜底匹配
+  G -> G : log.error 记录完整堆栈（仅服务端可见）
+  G --> Client : 500 {"code":50000,"message":"服务器内部错误","data":null}
+end
+
+note over Client, G
+  任何错误都按统一信封返回；
+  堆栈、口令、token、正确答案、
+  真实位置等敏感信息不下发客户端
+end note
+@enduml
