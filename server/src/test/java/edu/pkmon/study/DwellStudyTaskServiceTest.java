@@ -243,7 +243,7 @@ class DwellStudyTaskServiceTest {
         private int created;
 
         @Override
-        public String createStudySpawn(String userId, String regionId, String taskId, Instant now) {
+        public String createStudySpawn(String userId, String regionId, String taskId, Instant now, boolean simulated) {
             created++;
             return "spawn-" + created;
         }

@@ -68,7 +68,7 @@ public final class DwellEvaluator {
         if (sample.accuracyMeters() > rules.maxAccuracyMeters()) {
             return DwellDecision.rejected(state, RejectionReason.LOW_ACCURACY);
         }
-        if (!sample.isGcj02()) {
+        if (!region.coordinateSystem().equalsIgnoreCase(sample.coordinateSystem())) {
             return DwellDecision.rejected(state, RejectionReason.UNSUPPORTED_COORDINATE_SYSTEM);
         }
         if (sample.sampleId().equals(state.lastSampleId())) {

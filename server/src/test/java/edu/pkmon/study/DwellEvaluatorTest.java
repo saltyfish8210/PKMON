@@ -21,6 +21,17 @@ import org.junit.jupiter.api.Test;
  * 驻留规则边界测试。全部使用注入时间与合成距离，不真实等待。
  */
 class DwellEvaluatorTest {
+    @Test
+    void acceptsDeviceFixOnlyAgainstCenterWithMatchingCoordinates() {
+        Region gps = new Region("library", 39.9, 116.4, 80, 100, true, "WGS84");
+        Instant now = Instant.parse("2026-11-04T08:00:00Z");
+        LocationSample fix = new LocationSample("fix", 39.9, 116.4, 6, now, "WGS84", "GPS");
+        DwellState waiting = DwellState.start("task", 60);
+        DwellEvaluator evaluator = new DwellEvaluator(DwellRules.testRules());
+        assertTrue(evaluator.onSample(waiting, gps, fix, now).accepted());
+        assertFalse(evaluator.onSample(waiting, REGION, fix, now).accepted());
+    }
+
 
     private static final DwellRules RULES = DwellRules.testRules();
     private static final Region REGION = Region.of("library_entrance", 39.9042, 116.4074, RULES);

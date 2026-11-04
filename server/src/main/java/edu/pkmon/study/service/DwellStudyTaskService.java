@@ -40,11 +40,11 @@ public final class DwellStudyTaskService implements StudyTaskService {
     }
 
     @Override
-    public TaskView startTask(String userId, String regionId, String requestId, String locationSource) {
+    public synchronized TaskView startTask(String userId, String regionId, String requestId, String locationSource) {
         requireText(userId, "userId");
         requireText(regionId, "regionId");
         requireText(requestId, "requestId");
-        requireText(locationSource, "locationSource");
+        if (!"SIMULATED".equals(locationSource) && !"GPS".equals(locationSource)) throw TaskException.badRequest("未知位置来源");
         Instant now = clock.instant();
         Region region = repository.findRegion(regionId)
                 .orElseThrow(() -> TaskException.notFound("区域不存在"));
@@ -53,13 +53,14 @@ public final class DwellStudyTaskService implements StudyTaskService {
         }
         Optional<StudyTask> sameRequest = repository.findByStartRequest(userId, requestId);
         if (sameRequest.isPresent()) {
-            if (!sameRequest.get().regionId().equals(regionId)) {
+            if (!sameRequest.get().regionId().equals(regionId) || !sameRequest.get().locationSource().equals(locationSource)) {
                 throw TaskException.requestConflict("同一请求编号对应不同区域");
             }
             return TaskView.of(sameRequest.get(), now);
         }
         Optional<StudyTask> active = repository.findActiveByUser(userId);
         if (active.isPresent()) {
+            if (!active.get().locationSource().equals(locationSource)) throw TaskException.stateConflict("请先结束已有任务再切换定位来源");
             return TaskView.of(active.get(), now);
         }
         rejectDuringCooldown(userId, regionId, now);
@@ -71,7 +72,7 @@ public final class DwellStudyTaskService implements StudyTaskService {
     }
 
     @Override
-    public SampleResult submitSample(String userId, String taskId, LocationSample sample) {
+    public synchronized SampleResult submitSample(String userId, String taskId, LocationSample sample) {
         requireText(userId, "userId");
         requireText(taskId, "taskId");
         Objects.requireNonNull(sample, "sample");
@@ -80,6 +81,7 @@ public final class DwellStudyTaskService implements StudyTaskService {
         if (task.state().status() == TaskStatus.ENDED) {
             throw TaskException.stateConflict("任务已结束");
         }
+        if (!task.locationSource().equals(sample.source())) throw TaskException.badRequest("样本来源与任务不一致");
         Optional<LocationSample> existing = repository.findSample(taskId, sample.sampleId());
         if (existing.isPresent()) {
             if (!existing.get().sameContent(sample)) {
@@ -92,7 +94,7 @@ public final class DwellStudyTaskService implements StudyTaskService {
         DwellDecision decision = evaluator.onSample(task.state(), region, sample, now);
         StudyTask updated = task.withState(decision.state());
         if (decision.triggeredNow() && updated.spawnId() == null) {
-            updated = updated.withSpawn(spawnGateway.createStudySpawn(userId, region.regionId(), taskId, now));
+            updated = updated.withSpawn(spawnGateway.createStudySpawn(userId, region.regionId(), taskId, now, sample.isSimulated()));
         }
         repository.save(updated);
         repository.saveSample(taskId, sample, decision.accepted(), decision.rejectionReason());
@@ -100,7 +102,7 @@ public final class DwellStudyTaskService implements StudyTaskService {
     }
 
     @Override
-    public Optional<TaskView> currentTask(String userId) {
+    public synchronized Optional<TaskView> currentTask(String userId) {
         requireText(userId, "userId");
         Instant now = clock.instant();
         Optional<StudyTask> active = repository.findActiveByUser(userId);
@@ -117,7 +119,7 @@ public final class DwellStudyTaskService implements StudyTaskService {
     }
 
     @Override
-    public TaskView endTask(String userId, String taskId, String requestId) {
+    public synchronized TaskView endTask(String userId, String taskId, String requestId) {
         requireText(userId, "userId");
         requireText(taskId, "taskId");
         requireText(requestId, "requestId");

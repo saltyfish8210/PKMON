@@ -1,0 +1,2 @@
+PASS Chrome / Flutter release + Spring Boot: register, login, start, position samples, trigger, navigate with same spawnId, wrong answer and retry, one capture, end.
+Observed task states: WAITING, DWELLING, TRIGGERED, ENDED

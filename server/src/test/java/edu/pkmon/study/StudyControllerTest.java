@@ -40,7 +40,7 @@ class StudyControllerTest {
         StudyTaskService service = new StudyTaskService() {
             @Override
             public TaskView startTask(String userId, String regionId, String requestId, String locationSource) {
-                return new TaskView("task-1", regionId, TaskStatus.WAITING, null, 0, 60, null, NOW);
+                return new TaskView("task-1", regionId, TaskStatus.WAITING, null, 0, 60, null, NOW, "SIMULATED");
             }
 
             @Override
@@ -55,7 +55,7 @@ class StudyControllerTest {
 
             @Override
             public TaskView endTask(String userId, String taskId, String requestId) {
-                return new TaskView(taskId, "library_entrance", TaskStatus.ENDED, null, 20, 60, null, NOW);
+                return new TaskView(taskId, "library_entrance", TaskStatus.ENDED, null, 20, 60, null, NOW, "SIMULATED");
             }
         };
         CurrentUserProvider user = () -> "user-1";
@@ -137,12 +137,12 @@ class StudyControllerTest {
         StudyTaskService service = new StudyTaskService() {
             @Override
             public TaskView startTask(String userId, String regionId, String requestId, String locationSource) {
-                return new TaskView("task-1", regionId, TaskStatus.PAUSED, PauseReason.NO_SIGNAL, 10, 60, null, NOW);
+                return new TaskView("task-1", regionId, TaskStatus.PAUSED, PauseReason.NO_SIGNAL, 10, 60, null, NOW, "SIMULATED");
             }
 
             @Override
             public SampleResult submitSample(String userId, String taskId, LocationSample sample) {
-                TaskView view = new TaskView(taskId, "library_entrance", TaskStatus.DWELLING, null, 20, 60, null, NOW);
+                TaskView view = new TaskView(taskId, "library_entrance", TaskStatus.DWELLING, null, 20, 60, null, NOW, "SIMULATED");
                 return new SampleResult(view, false, RejectionReason.LOW_ACCURACY);
             }
 
@@ -153,7 +153,7 @@ class StudyControllerTest {
 
             @Override
             public TaskView endTask(String userId, String taskId, String requestId) {
-                return new TaskView(taskId, "library_entrance", TaskStatus.ENDED, null, 0, 60, null, NOW);
+                return new TaskView(taskId, "library_entrance", TaskStatus.ENDED, null, 0, 60, null, NOW, "SIMULATED");
             }
         };
         MockMvc local = MockMvcBuilders.standaloneSetup(new StudyController(service, () -> "user-1"))

@@ -9,6 +9,7 @@ import '../widgets/sprite_detail_sheet.dart';
 import '../widgets/task_sheet.dart';
 import 'bag_page.dart';
 import 'capture_page.dart';
+import '../data/api/api_client.dart';
 import 'dex_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
@@ -23,7 +24,8 @@ import 'study/study_page.dart';
 ///
 /// 用 `IndexedStack` 而不是直接换 widget：四个页面常驻内存，切 tab 不丢滚动位置。
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key,this.studyClient});
+  final ApiClient? studyClient;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -186,6 +188,12 @@ class _HomeShellState extends State<HomeShell> {
   // ============================================================ 交互
 
   void _openTasks() {
+    if (widget.studyClient != null) {
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => StudyPage(client: widget.studyClient),
+      ));
+      return;
+    }
     showTaskSheet(
       context,
       running: _task,
@@ -197,7 +205,7 @@ class _HomeShellState extends State<HomeShell> {
       },
       onOpenStudySkeleton: () {
         Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const StudyPage()),
+          MaterialPageRoute<void>(builder: (_) => StudyPage(client:widget.studyClient)),
         );
       },
     );

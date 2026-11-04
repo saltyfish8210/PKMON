@@ -8,8 +8,7 @@ import 'auth_input.dart';
 
 /// 登录页骨架。
 ///
-/// 只负责输入、基础校验和状态显示；真实账号接口尚未接入，
-/// 因此登录会得到明确的「未接入」错误，不会伪造成功。
+/// 账号请求由入口注入的控制器处理。
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -20,10 +19,8 @@ class LoginPage extends StatefulWidget {
   final AuthController controller;
   final VoidCallback onEnterDemo;
 
-  static const String skeletonNotice =
-      '账号接口未接入（骨架）。真实登录/注册暂不可用；本页不会伪造登录成功。';
-  static const String registerNotice =
-      '注册页待接入（下一阶段）；注册接口契约已在设计中定义。';
+  static const String skeletonNotice = '登录后可开始自习并保存本次会话。';
+  static const String registerNotice = '注册新账号';
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -33,11 +30,14 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _password = TextEditingController();
   String? _localError;
+  bool _registering = false;
+  final _nickname = TextEditingController();
 
   @override
   void dispose() {
     _username.dispose();
     _password.dispose();
+    _nickname.dispose();
     super.dispose();
   }
 
@@ -45,14 +45,25 @@ class _LoginPageState extends State<LoginPage> {
     final username = _username.text;
     final password = _password.text;
 
-    final inputError = validateLoginInput(username, password);
+    final inputError = _registering
+        ? validateRegisterInput(username, password, _nickname.text)
+        : validateLoginInput(username, password);
     if (inputError != null) {
       setState(() => _localError = inputError);
       return;
     }
 
     setState(() => _localError = null);
-    await widget.controller.login(username, password);
+    if (_registering) {
+      final result = await widget.controller.register(
+        username,
+        password,
+        _nickname.text,
+      );
+      if (result != null && mounted) setState(() => _registering = false);
+    } else {
+      await widget.controller.login(username, password);
+    }
   }
 
   @override
@@ -99,8 +110,9 @@ class _LoginPageState extends State<LoginPage> {
                         padding: const EdgeInsets.all(AppSpacing.base * 4),
                         decoration: BoxDecoration(
                           color: AppColors.primarySoft,
-                          borderRadius:
-                              BorderRadius.circular(AppRadius.listCard),
+                          borderRadius: BorderRadius.circular(
+                            AppRadius.listCard,
+                          ),
                         ),
                         child: const Text(
                           LoginPage.skeletonNotice,
@@ -123,6 +135,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.base * 4),
+                      if (_registering)
+                        TextField(
+                          controller: _nickname,
+                          enabled: !busy,
+                          decoration: const InputDecoration(labelText: '昵称'),
+                        ),
                       TextField(
                         key: const Key('login_password'),
                         controller: _password,
@@ -152,7 +170,11 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: AppSpacing.base * 6),
                       PrimaryButton(
                         key: const Key('login_submit'),
-                        label: busy ? '登录中…' : '登录',
+                        label: busy
+                            ? (_registering ? '注册中…' : '登录中…')
+                            : _registering
+                            ? '创建账号'
+                            : '登录',
                         onPressed: busy ? null : _submit,
                       ),
                       const SizedBox(height: AppSpacing.base * 3),
@@ -162,12 +184,18 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: busy ? null : widget.onEnterDemo,
                       ),
                       const SizedBox(height: AppSpacing.base * 6),
-                      const Text(
-                        LoginPage.registerNotice,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: AppFontSizes.secondary,
-                          color: AppColors.secondaryText,
+                      TextButton(
+                        onPressed: busy
+                            ? null
+                            : () {
+                                widget.controller.clearError();
+                                setState(() {
+                                  _registering = !_registering;
+                                  _localError = null;
+                                });
+                              },
+                        child: Text(
+                          _registering ? '返回登录' : LoginPage.registerNotice,
                         ),
                       ),
                     ],

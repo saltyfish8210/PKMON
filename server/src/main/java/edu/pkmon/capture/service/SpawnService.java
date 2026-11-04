@@ -42,6 +42,14 @@ public class SpawnService {
         return spawns.save(spawn);
     }
 
+    /** The task UUID is stable. A repeated trigger can only resolve to its original encounter. */
+    public Spawn fromStudyTask(String user, String region, String task, java.time.Instant now, boolean simulated) {
+        if (simulated && !devSpawnEnabled) throw new ApiException(ApiErrorCode.DEV_ONLY);
+        String id = UUID.nameUUIDFromBytes(("study-spawn:" + task).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        return spawns.findById(id).orElseGet(() -> spawns.save(new Spawn(id, user, region, "siege_lion",
+                simulated ? SpawnSourceType.DEV_SIMULATED : SpawnSourceType.LOCATION, now.plus(SPAWN_TTL))));
+    }
+
     /** 取一个属于该用户且未过期的遭遇；不存在与不属于本人一律按不存在处理。 */
     public Spawn requireUsable(String userId, String spawnId) {
         Spawn spawn = isBlank(spawnId) ? null : spawns.findById(spawnId).orElse(null);

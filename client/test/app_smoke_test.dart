@@ -7,7 +7,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('登录 PKMon'), findsOneWidget);
-    expect(find.text('账号接口未接入（骨架）。真实登录/注册暂不可用；本页不会伪造登录成功。'),
+    expect(find.text('登录后可开始自习并保存本次会话。'),
         findsOneWidget);
   });
 }

@@ -82,9 +82,10 @@ public class StudyConfig {
     public Region studyRegion(DwellRules rules,
             @Value("${pkmon.study.region.id:library_entrance}") String regionId,
             @Value("${pkmon.study.region.latitude:39.9042}") double latitude,
-            @Value("${pkmon.study.region.longitude:116.4074}") double longitude) {
+            @Value("${pkmon.study.region.longitude:116.4074}") double longitude,
+            @Value("${pkmon.study.region.coordinate-system:GCJ02}") String coordinates) {
         log.warn("study 区域使用候选中心点 {}（{},{}），未经真机验证；正式数据由 region 表提供", regionId, latitude, longitude);
-        return Region.of(regionId, latitude, longitude, rules);
+        return new Region(regionId, latitude, longitude, rules.enterRadiusMeters(), rules.exitRadiusMeters(), true, coordinates);
     }
 
     /**
@@ -101,17 +102,18 @@ public class StudyConfig {
     }
 
     /**
-     * 遭遇创建端口。当前是替身：只生成编号，不建真实遭遇；接入孙虹毅的 SpawnService 后覆盖本 Bean。
+     * 驻留达标后将遭遇写入捕获模块的当前仓储。
      *
-     * @return 替身端口
+     * @return 可用于挑战的遭遇端口
      */
     @Bean
     @ConditionalOnMissingBean
-    public SpawnGateway spawnGateway(@Value("${pkmon.study.spawn-gateway:stub}") String mode) {
-        if (!"stub".equals(mode)) {
-            throw new IllegalStateException("pkmon.study.spawn-gateway=" + mode + " 尚未实现，只支持 stub");
-        }
-        return new StubSpawnGateway();
+    public SpawnGateway spawnGateway(edu.pkmon.capture.service.SpawnService spawns,
+            @Value("${pkmon.study.spawn-gateway:capture}") String mode) {
+        if ("stub".equals(mode)) return new StubSpawnGateway();
+        if (!"capture".equals(mode)) throw new IllegalArgumentException("未知遭遇模式 " + mode);
+        return (user, region, task, now, simulated) ->
+                spawns.fromStudyTask(user, region, task, now, simulated).spawnId();
     }
 
     /**

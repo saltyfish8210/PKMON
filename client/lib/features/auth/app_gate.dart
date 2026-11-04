@@ -5,7 +5,10 @@ import '../home_shell.dart';
 import 'auth_controller.dart';
 import 'login_page.dart';
 import 'session_store.dart';
-import 'unavailable_auth_api.dart';
+import '../../core/api.dart';
+import '../../data/api/api_client.dart';
+import '../../data/api/auth_api.dart';
+import 'session_token_provider.dart';
 
 /// 入口门禁。
 ///
@@ -32,16 +35,28 @@ class _AppGateState extends State<AppGate> {
   late final AuthController _controller;
   late final bool _ownsController;
   bool _demo = false;
+  ApiClient? _client;
+  bool _wasSignedIn = false;
 
   @override
   void initState() {
     super.initState();
     _ownsController = widget.controller == null;
-    _controller = widget.controller ??
-        AuthController(
-          api: const UnavailableAuthApi(),
-          store: InMemorySessionStore(),
-        );
+    if (_ownsController) {
+      final store = InMemorySessionStore();
+      _client = ApiClient(
+        baseUrl: Uri.parse(Api.defaultBase),
+        tokens: SessionTokenProvider(store),
+        onUnauthorized: () {
+          if (_controller.status == AuthStatus.signedIn) {
+            _controller.handleUnauthorized();
+          }
+        },
+      );
+      _controller = AuthController(api: HttpAuthApi(_client!), store: store);
+    } else {
+      _controller = widget.controller!;
+    }
     _controller.addListener(_onChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -53,32 +68,45 @@ class _AppGateState extends State<AppGate> {
   }
 
   void _onChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (_wasSignedIn && _controller.status == AuthStatus.signedOut) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    _wasSignedIn = _controller.status == AuthStatus.signedIn;
+    setState(() {});
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onChanged);
     if (_ownsController) _controller.dispose();
+    _client?.close();
     super.dispose();
   }
 
   Widget _home(BuildContext context) {
-    return widget.homeBuilder?.call(context) ?? const HomeShell();
+    return widget.homeBuilder?.call(context) ??
+        HomeShell(
+          studyClient: _controller.status == AuthStatus.signedIn
+              ? _client
+              : null,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     return switch (_controller.status) {
-      AuthStatus.unknown || AuthStatus.restoring =>
-        const Scaffold(body: LoadingView(message: '正在恢复登录状态…')),
+      AuthStatus.unknown || AuthStatus.restoring => const Scaffold(
+        body: LoadingView(message: '正在恢复登录状态…'),
+      ),
       AuthStatus.signedIn => _home(context),
-      AuthStatus.signedOut => _demo
-          ? _home(context)
-          : LoginPage(
-              controller: _controller,
-              onEnterDemo: () => setState(() => _demo = true),
-            ),
+      AuthStatus.signedOut =>
+        _demo
+            ? _home(context)
+            : LoginPage(
+                controller: _controller,
+                onEnterDemo: () => setState(() => _demo = true),
+              ),
     };
   }
 }

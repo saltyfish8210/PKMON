@@ -18,6 +18,7 @@ class TaskSnapshot {
     required this.effectiveSeconds,
     required this.requiredSeconds,
     required this.serverTime,
+    this.locationSource,
     this.pauseReason,
     this.spawnId,
     this.sampleAccepted,
@@ -33,6 +34,7 @@ class TaskSnapshot {
       taskId: requireString(json, 'taskId'),
       regionId: requireString(json, 'regionId'),
       status: status,
+      locationSource: optionalString(json, 'locationSource'),
       pauseReason: optionalString(json, 'pauseReason'),
       effectiveSeconds: requireInt(json, 'effectiveSeconds'),
       requiredSeconds: requireInt(json, 'requiredSeconds'),
@@ -53,6 +55,7 @@ class TaskSnapshot {
   final String taskId;
   final String regionId;
   final String status;
+  final String? locationSource;
   final String? pauseReason;
   final int effectiveSeconds;
   final int requiredSeconds;

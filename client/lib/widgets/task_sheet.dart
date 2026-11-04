@@ -86,7 +86,7 @@ Future<void> showTaskSheet(
                     Navigator.of(ctx).pop();
                     onOpenStudySkeleton();
                   },
-                  child: const Text('打开自习骨架（模拟）'),
+                  child: const Text('进入自习任务'),
                 ),
               ),
             ),

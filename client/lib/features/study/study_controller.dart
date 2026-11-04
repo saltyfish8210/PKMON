@@ -4,11 +4,9 @@ import 'package:flutter/foundation.dart';
 
 import '../../core/location/location_provider.dart';
 import '../../core/location/location_sample.dart';
-import '../../core/location/simulated_location_provider.dart';
-import 'fake_study_api.dart';
+import '../../data/api/request_id.dart';
 import 'study_api.dart';
 
-/// 界面可见状态：只反映 API/Fake 响应，禁止本地判奖。
 class TaskViewState {
   const TaskViewState({
     this.task,
@@ -16,12 +14,10 @@ class TaskViewState {
     this.listening = false,
     this.simulated = true,
   });
-
   final TaskSnapshot? task;
   final String? lastError;
   final bool listening;
   final bool simulated;
-
   String get status => task?.status ?? 'IDLE';
   int get effectiveSeconds => task?.effectiveSeconds ?? 0;
   int get requiredSeconds => task?.requiredSeconds ?? 0;
@@ -29,165 +25,188 @@ class TaskViewState {
   String? get pauseReason => task?.pauseReason;
 }
 
-/// 编排开始/采样上传/结束；不计本地奖励。
 class StudyController extends ChangeNotifier {
   StudyController({
     required this._api,
-    required this._location,
+    required LocationProviderPort location,
+    this._device,
     this.regionId = 'library_entrance',
-  });
+  }) : _simulation = location;
 
   final StudyApi _api;
-  final LocationProviderPort _location;
+  final LocationProviderPort _simulation;
+  final LocationProviderPort? _device;
   final String regionId;
+  LocationProviderPort? _location;
+  StreamSubscription<LocationSample>? _samples;
+  StreamSubscription<LocationError>? _errors;
+  Timer? _poll;
+  Timer? _noFix;
+  TaskSnapshot? _task;
+  String? _error;
+  bool _listening = false, _simulated = true, _closed = false, _busy = false;
+  int _epoch = 0;
+  Future<void> _request = Future.value();
+  String? _startKey, _endKey;
+  bool get busy => _busy;
+  TaskViewState get view => TaskViewState(
+    task: _task,
+    lastError: _error,
+    listening: _listening,
+    simulated: _simulated,
+  );
+  bool get active => _task != null && _task!.status != 'ENDED';
+  void _emit() {
+    if (!_closed) notifyListeners();
+  }
 
-  StreamSubscription<LocationSample>? _sampleSub;
-  StreamSubscription<LocationError>? _errorSub;
-  TaskViewState _view = const TaskViewState();
-  String? _createRequestId;
-  bool _disposed = false;
-
-  TaskViewState get view => _view;
-
-  FakeStudyApi? get fakeApi => _api is FakeStudyApi ? _api : null;
-
-  Future<void> startStudy({String locationSource = 'SIMULATED'}) async {
-    _setError(null);
-    _createRequestId = _newId();
+  Future<void> _action(Future<void> Function() work) async {
+    if (_busy || _closed) return;
+    _busy = true;
+    _error = null;
+    _emit();
     try {
-      final snap = await _api.createTask(
-        regionId: regionId,
-        requestId: _createRequestId!,
-        locationSource: locationSource,
-      );
-      _view = TaskViewState(
-        task: snap,
-        simulated: locationSource == 'SIMULATED' || _api is FakeStudyApi,
-        listening: false,
-      );
-      notifyListeners();
-
-      await _sampleSub?.cancel();
-      await _errorSub?.cancel();
-      _sampleSub = _location.samples.listen(_onSample, onError: (Object e) {
-        _setError(e.toString());
-      });
-      _errorSub = _location.errors.listen((err) {
-        _setError('${err.code}: ${err.message}');
-        _view = TaskViewState(
-          task: _view.task,
-          lastError: _view.lastError,
-          listening: false,
-          simulated: _view.simulated,
-        );
-        notifyListeners();
-      });
-
-      await _location.start();
-      _view = TaskViewState(
-        task: _view.task,
-        lastError: _view.lastError,
-        listening: true,
-        simulated: _view.simulated,
-      );
-      notifyListeners();
+      await work();
     } catch (e) {
-      _setError(e.toString());
+      _error = e.toString();
+    } finally {
+      _busy = false;
+      _emit();
     }
   }
 
-  Future<void> _onSample(LocationSample sample) async {
-    final task = _view.task;
-    if (task == null || task.status == 'ENDED') return;
-    try {
-      final snap = await _api.uploadSample(taskId: task.taskId, sample: sample);
-      // 只接受 API 返回的状态，绝不本地伪造 TRIGGERED
-      _view = TaskViewState(
-        task: snap,
-        lastError: snap.sampleAccepted == false
-            ? '样本未接受: ${snap.rejectionReason}'
-            : _view.lastError,
-        listening: _view.listening,
-        simulated: _view.simulated,
-      );
-      notifyListeners();
-    } catch (e) {
-      // 断网等：不把本地状态改成 TRIGGERED
-      _setError('上传失败（本地不计奖）: $e');
-    }
-  }
+  Future<void> restore() => _action(() async {
+    _task = await _api.getCurrent();
+    _simulated = _task?.locationSource != 'GPS';
+  });
 
-  Future<void> endStudy() async {
-    final task = _view.task;
-    await _location.stop();
-    await _sampleSub?.cancel();
-    _sampleSub = null;
-    await _errorSub?.cancel();
-    _errorSub = null;
+  Future<void> startStudy({String locationSource = 'SIMULATED'}) =>
+      _action(() async {
+        if (_listening || _task?.status == 'TRIGGERED') return;
+        final epoch = ++_epoch;
+        _simulated = active ? _simulated : locationSource == 'SIMULATED';
+        final provider = _simulated ? _simulation : _device;
+        if (provider == null) throw StateError('当前设备不支持定位');
+        _location = provider;
+        await _samples?.cancel();
+        await _errors?.cancel();
+        if (_closed || _epoch != epoch) return;
+        _errors = provider.errors.listen((e) {
+          if (_closed || epoch != _epoch) return;
+          _error = e.message;
+          _listening = false;
+          _emit();
+        });
+        _samples = provider.samples.listen((sample) {
+          if (_closed || epoch != _epoch || !_listening || _busy) return;
+          _noFix?.cancel();
+          _sync(
+            epoch,
+            () => _api.uploadSample(taskId: _task!.taskId, sample: sample),
+          );
+        });
+        try {
+          await provider.start();
+          if (_closed || _epoch != epoch) {
+            await provider.stop();
+            return;
+          }
+          if (!active) {
+            _startKey ??= defaultRequestIdGenerator();
+            _task = await _api.createTask(
+              regionId: regionId,
+              requestId: _startKey!,
+              locationSource: _simulated ? 'SIMULATED' : 'GPS',
+            );
+            _startKey = null;
+          }
+          if (_closed || _epoch != epoch) {
+            await provider.stop();
+            return;
+          }
+          _listening = _error == null && _task?.status != 'TRIGGERED';
+          if (!_listening) await provider.stop();
+          _noFix?.cancel();
+          if (_listening) {
+            _noFix = Timer(const Duration(seconds: 15), () {
+              if (epoch == _epoch && _listening) {
+                _error = '仍未收到可用位置，请检查定位服务或尝试到室外采样';
+                _emit();
+              }
+            });
+          }
+          _poll?.cancel();
+          _poll = Timer.periodic(const Duration(seconds: 5), (_) {
+            if (!_busy && active && _task?.status != 'TRIGGERED') {
+              _sync(epoch, _api.getCurrent);
+            }
+          });
+        } catch (_) {
+          await provider.stop();
+          rethrow;
+        }
+      });
 
-    if (task != null && task.status != 'ENDED') {
+  bool _inFlight = false;
+  void _sync(int epoch, Future<TaskSnapshot?> Function() fetch) {
+    if (_inFlight || _closed || epoch != _epoch) return;
+    _inFlight = true;
+    _request = () async {
       try {
-        final snap = await _api.endTask(
-          taskId: task.taskId,
-          requestId: _newId(),
-        );
-        _view = TaskViewState(
-          task: snap,
-          listening: false,
-          simulated: _view.simulated,
-        );
-        notifyListeners();
+        final next = await fetch();
+        if (_closed || epoch != _epoch) return;
+        _task = next;
+        if (next?.sampleAccepted == false) {
+          _error = '样本未采纳：${next?.rejectionReason}';
+        } else if (next?.sampleAccepted == true) {
+          _error = null;
+        }
+        if (!active || next?.status == 'TRIGGERED') await pauseSampling();
       } catch (e) {
-        _setError(e.toString());
+        if (epoch == _epoch) _error = e.toString();
+      } finally {
+        _inFlight = false;
+        _emit();
       }
-    } else {
-      _view = TaskViewState(
-        task: task,
-        listening: false,
-        simulated: _view.simulated,
-        lastError: _view.lastError,
-      );
-      notifyListeners();
+    }();
+  }
+
+  Future<void> pauseSampling() async {
+    ++_epoch;
+    _poll?.cancel();
+    _listening = false;
+    _noFix?.cancel();
+    final samples = _samples, errors = _errors;
+    _samples = null;
+    _errors = null;
+    await _location?.stop();
+    await samples?.cancel();
+    await errors?.cancel();
+    _emit();
+  }
+
+  Future<void> endStudy() => _action(() async {
+    await pauseSampling();
+    await _request;
+    if (active) {
+      _endKey ??= defaultRequestIdGenerator();
+      _task = await _api.endTask(taskId: _task!.taskId, requestId: _endKey!);
+      _endKey = null;
     }
-  }
+  });
 
-  Future<void> retryPermission() async {
-    _setError(null);
-    await _location.start();
-    _view = TaskViewState(
-      task: _view.task,
-      listening: true,
-      simulated: _view.simulated,
-    );
-    notifyListeners();
-  }
-
-  void _setError(String? message) {
-    _view = TaskViewState(
-      task: _view.task,
-      lastError: message,
-      listening: _view.listening,
-      simulated: _view.simulated,
-    );
-    notifyListeners();
-  }
-
-  String _newId() =>
-      'req-${DateTime.now().toUtc().microsecondsSinceEpoch}';
+  Future<void> retryPermission() =>
+      startStudy(locationSource: _simulated ? 'SIMULATED' : 'GPS');
 
   @override
   void dispose() {
-    if (_disposed) return;
-    _disposed = true;
-    unawaited(() async {
-      await _location.stop();
-      await _sampleSub?.cancel();
-      await _errorSub?.cancel();
-      final loc = _location;
-      if (loc is SimulatedLocationProvider) {
-        await loc.dispose();
-      }
-    }());
+    _closed = true;
+    unawaited(
+      pauseSampling().then((_) async {
+        await _simulation.dispose();
+        await _device?.dispose();
+      }),
+    );
     super.dispose();
   }
 }

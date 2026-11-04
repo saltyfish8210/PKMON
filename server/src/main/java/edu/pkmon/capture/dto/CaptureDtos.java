@@ -45,7 +45,7 @@ public final class CaptureDtos {
 
     public record ChallengeResponse(String challengeId, String spawnId, String speciesId,
                                     String speciesName, String questionId, String questionText,
-                                    List<OptionView> options, Instant expiresAt) {
+                                    List<OptionView> options, Instant expiresAt, String sourceType) {
 
         public static ChallengeResponse of(Challenge challenge, Spawn spawn, String speciesName,
                                            Question question) {
@@ -54,7 +54,7 @@ public final class CaptureDtos {
                     .toList();
             return new ChallengeResponse(challenge.challengeId(), spawn.spawnId(), spawn.speciesId(),
                     speciesName, question.questionId(), question.questionText(), views,
-                    challenge.expiresAt());
+                    challenge.expiresAt(), spawn.sourceType().name());
         }
     }
 

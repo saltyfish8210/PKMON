@@ -19,5 +19,5 @@ public interface SpawnGateway {
      * @param now 服务器时间
      * @return 新建的遭遇编号
      */
-    String createStudySpawn(String userId, String regionId, String taskId, Instant now);
+    String createStudySpawn(String userId, String regionId, String taskId, Instant now, boolean simulated);
 }

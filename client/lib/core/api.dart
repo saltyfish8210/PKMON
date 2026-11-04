@@ -42,7 +42,9 @@ class Api {
   /// 2. **网页版** → 用当前页面的地址。因为网页和后端是**同一个服务**托管的，
   ///    直接取同源地址最省事，而且天然不需要后端配 CORS
   /// 3. **安卓** → `10.0.2.2:4180`
-  String get base {
+  String get base => defaultBase;
+
+  static String get defaultBase {
     const override = String.fromEnvironment('API_BASE');
     if (override.isNotEmpty) return override;
     if (kIsWeb) return Uri.base.origin;

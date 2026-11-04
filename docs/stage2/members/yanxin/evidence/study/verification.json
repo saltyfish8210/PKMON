@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-04",
+  "owner": "闫昕",
+  "base": "9954be8d3c0d0093e75a00b27b77df8035e38a9e",
+  "backend": {
+    "tests": 96,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "flutter": {
+    "version": "3.47.6",
+    "dart": "3.13.5",
+    "analyze": "no issues",
+    "testsPassed": 109,
+    "webRelease": "passed"
+  },
+  "ipAddress": "loopback",
+  "classroomJarSha256": "7192d03a8f393cf1851acfe629103c1fb0175c1688d0b681ee235f18c4a6ce1a",
+  "classroomDwellSeconds": 4,
+  "positionSource": "SIMULATED",
+  "browser": "Chrome headless, real UI, real HTTP, packaged JAR",
+  "androidLocationPlatformTests": [
+    "denied",
+    "deniedForever",
+    "service disabled",
+    "retry",
+    "WGS84 sample and timestamp",
+    "release subscriptions"
+  ],
+  "androidDebugBuild": "No Android SDK found on this host",
+  "physicalAndroidDevice": "not executed; no device attached",
+  "businessStorage": "study and capture in memory; account and session JDBC"
+}

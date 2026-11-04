@@ -1,0 +1,19 @@
+自习任务与答题展示 · 闫昕 · 2026-11-04
+
+课堂复现
+1. 从本交接关联提交检出源码，使用 Flutter 3.47.6（Dart 3.13.5）、JDK 17、Maven 3.9。先在 client 运行 flutter pub get、flutter analyze、flutter test、flutter build web --release --no-web-resources-cdn，在 server 执行 mvn package。
+2. 在仓库根目录使用 PowerShell 启动同源服务。把“盘符:/绝对路径/client/build/web/”替换成实际目录，末尾保留斜杠。
+   java -jar server/target/pkmon-server-0.1.0.jar --server.address=127.0.0.1 --server.port=4191 --spring.profiles.active=dev --pkmon.capture.dev-user-header=false --pkmon.study.rules.required-seconds=4 --spring.web.resources.static-locations=file:盘符:/绝对路径/client/build/web/
+3. 浏览器打开 http://127.0.0.1:4191/ 。注册时输入用户名（3至24位字母、数字或下划线）、昵称及12位以上口令。创建后登录，打开地图“任务模式”，点“使用模拟位置开始”。
+4. 页面先等待进入区域，继而显示驻留中，达标后点“前往答题”。先选错误答案，按提示重试并选正确答案，应显示收录1只（新账号）。点“返回自习”，结束任务。
+5. 课堂样本每3秒发送一次。验收时服务端临时使用4秒阈值，通常需约12秒；正常默认阈值为600秒。任务、遭遇与收录目前使用本进程的业务仓储，刷新页面可查询当前任务，重启后业务数据会清空。账号与会话按其数据库配置保存。
+6. 当前课堂区域默认使用 GCJ02 中心 (39.9042,116.4074)。课堂位置数据的来源标记为 SIMULATED，接口返回 DEV_SIMULATED，答题页显示模拟提示。
+
+设备定位
+1. Android 前台使用 geolocator 获取系统授权与定位服务状态。登录后在任务页选择“使用设备定位开始”。离开页面或进入后台会停止采样，回到前台可手动恢复。被拒绝、定位关闭、长时间无样本或上传被拒时查看页面提示。
+2. 使用 Android 模拟器时服务地址指向宿主机；使用手机时通过同一局域网可访问的地址运行 flutter run --dart-define=API_BASE=http://服务电脑地址:4191。仅在用于联调的网络中开放相应端口。
+3. 部署真实设备验收时，应按实地测得的 WGS84 纬经度配置服务端区域，启动参数另加 --pkmon.study.region.coordinate-system=WGS84 --pkmon.study.region.latitude=实测纬度 --pkmon.study.region.longitude=实测经度。真实位置保留系统给出的精度、WGS84 标签和时间戳。坐标系不匹配会被拒绝，课堂默认中心不能当作实际学校坐标。
+4. 真机待核对：允许前台定位；拒绝和永久拒绝后恢复；关闭再开启定位；离开页面/切后台后停止监听；实际进入和离开围栏及无信号暂停。Android位置接口的自动测试以平台替身提供输入，不能替代这次核对。
+
+验收工具
+客户端单测在 client/test/location、client/test/study 等目录。后端逻辑与坐标系测试在 server/src/test/java/edu/pkmon/study。实际浏览器验证可从仓库根目录执行 node docs/stage2/members/yanxin/evidence/study/browser-smoke.cjs，需要可加载的 Playwright、Java 17、构建好的网页和 JAR。CHROME_PATH 可指定已安装的 Chrome；未指定时使用 Playwright 的 Chromium。脚本启动本机临时端口和独立内存库并自动关闭。STUDY_JAR 可指定已内嵌网页的课堂 JAR。脚本通过真实页面注册、登录和答题，并核对服务端触发编号、来源标签及收录数量。

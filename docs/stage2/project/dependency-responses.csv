@@ -4,7 +4,7 @@
 身份端口与装配,闫昕,胡豪、孙虹毅、董欣毓,实际Spring应用中共用Bearer身份；跨账号拒绝已实测,members/yanxin/evidence/implementation.txt,生产身份用Bearer；在dev联调时关闭dev-user-header,2026-11-06 04:00
 默认开发开关,孙虹毅,胡豪、闫昕,主线已修复,f1e3639b46e6b6630dbd4dbd02f9e311a6b5073b,关闭原重复待办；正式账号接线仍验证不能绕过,已完成本项修复
 注册/驻留/答错旧规则,共享既定决策,余星晨,待同步本人设计,project/decisions.csv；正文第2/8节,注册后登录；暂停保留；有效挑战内答错可重试,2026-10-29 04:00
-驻留精确参数,董欣毓,赵冠钧、李宗晏,2026-11-01：设计与四个接口已入main,members/dongxinyu/design/interfaces.json；handoffs/implementation.txt,对齐已提交状态、阈值与错误码；遭遇生成仍为Stub，不计完整捕获接通,2026-10-29 04:00
+驻留精确参数,董欣毓,闫昕、李宗晏,2026-11-01：设计与四个接口已入main,members/dongxinyu/design/interfaces.json；handoffs/implementation.txt,按服务端状态和阈值运行；同一驻留遭遇进入答题的浏览器流程已验证,2026-10-29 04:00
 核心功能验收,李宗晏,各模块作者,捕获分析已交；自习与追踪待补,members/lizongyan/；正文第10/11节,补核心1场景；修正challengeId/userId/业务枚举；区分通过与未执行,2026-10-29 04:00
 捕获网络调用,冉昕霖,余星晨、孙虹毅,PR #2/#7已合并；网络层和页面骨架已入main,members/ranxinlin/design/interfaces.json；client/lib/data/api/,接入真实捕获接口并完成旧页面与入口迁移；账号HTTP仍待实现,2026-10-29 04:00
 分析材料合入,冉昕霖,所有接收者,冉昕霖和董欣毓分析/设计均已入main,members/ranxinlin/；members/dongxinyu/；PR #2/#7,直接按main读取；只处理个人后续模块，不重复要求分析上传,按既有交接安排

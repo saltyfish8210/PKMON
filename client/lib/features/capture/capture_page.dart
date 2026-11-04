@@ -14,8 +14,10 @@ class CapturePage extends StatefulWidget {
     super.key,
     required this.spawnId,
     required this.controller,
+    this.returnLabel = '返回地图',
   });
 
+  final String returnLabel;
   final String spawnId;
   final CaptureController controller;
 
@@ -181,7 +183,7 @@ class _CapturePageState extends State<CapturePage> {
           height: AppSpacing.buttonMinHeight,
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('返回地图'),
+            child: Text(widget.returnLabel),
           ),
         ),
       ],
@@ -201,7 +203,7 @@ class _CapturePageState extends State<CapturePage> {
     return _message(
       title: '挑战已过期',
       body: message,
-      actionLabel: '返回地图',
+      actionLabel: widget.returnLabel,
       onAction: () => Navigator.of(context).pop(),
     );
   }
@@ -210,7 +212,7 @@ class _CapturePageState extends State<CapturePage> {
     return _message(
       title: '没能完成这次相遇',
       body: message,
-      actionLabel: retryable ? '重试' : '返回地图',
+      actionLabel: retryable ? '重试' : widget.returnLabel,
       onAction: retryable
           ? widget.controller.retry
           : () => Navigator.of(context).pop(),

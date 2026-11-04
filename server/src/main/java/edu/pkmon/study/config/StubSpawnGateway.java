@@ -18,7 +18,7 @@ public final class StubSpawnGateway implements SpawnGateway {
     private static final Logger log = LoggerFactory.getLogger(StubSpawnGateway.class);
 
     @Override
-    public String createStudySpawn(String userId, String regionId, String taskId, Instant now) {
+    public String createStudySpawn(String userId, String regionId, String taskId, Instant now, boolean simulated) {
         String spawnId = UUID.randomUUID().toString();
         log.warn("STUB 遭遇：任务 {} 触发，仅生成编号 {}，未写入 spawn 表；接入 capture.SpawnService 后移除",
                 taskId, spawnId);

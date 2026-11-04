@@ -10,8 +10,8 @@ class SimulatedLocationProvider implements LocationProviderPort {
   SimulatedLocationProvider({
     this.interval = const Duration(seconds: 10),
     this.simulatePermissionDenied = false,
-    this.baseLatitude = 39.9925,
-    this.baseLongitude = 116.326,
+    this.baseLatitude = 39.9042,
+    this.baseLongitude = 116.4074,
   });
 
   /// 采样间隔；测试可传入更短时长。
@@ -75,6 +75,7 @@ class SimulatedLocationProvider implements LocationProviderPort {
   }
 
   /// 测试或页面销毁时关闭流。
+  @override
   @mustCallSuper
   Future<void> dispose() async {
     await stop();

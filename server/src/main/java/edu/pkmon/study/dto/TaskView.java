@@ -24,7 +24,7 @@ public record TaskView(
         long effectiveSeconds,
         long requiredSeconds,
         String spawnId,
-        Instant serverTime) {
+        Instant serverTime, String locationSource) {
 
     /**
      * 由聚合状态生成视图。
@@ -36,6 +36,6 @@ public record TaskView(
     public static TaskView of(StudyTask task, Instant now) {
         DwellState state = task.state();
         return new TaskView(task.taskId(), task.regionId(), state.status(), state.pauseReason(),
-                state.effectiveSeconds(), state.requiredSeconds(), task.spawnId(), now);
+                state.effectiveSeconds(), state.requiredSeconds(), task.spawnId(), now, task.locationSource());
     }
 }
