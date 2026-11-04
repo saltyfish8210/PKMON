@@ -1,0 +1,27 @@
+闫昕 · 账号实现与自测交接
+工作轮次　11月1日至5日　组内截止　11月6日04:00（北京时间）
+交付日期　2026-11-04
+源码、接口与验证证据提交　39297a366ca0afff4d64cfea43e0f0a357ad8fec
+输入主线　12869f15a4c488eaf61b506c457f71cc74abbcfb
+个人分支　feature/yanxin-account
+主线检索　https://github.com/saltyfish8210/PKMON/commits/main/docs/stage2/members/yanxin/handoffs/implementation.txt
+
+余星晨、冉昕霖：现有客户端 HttpAuthApi 的 register/login/logout/me 可以调用。AppGate 当前默认仍用 UnavailableAuthApi。余星晨负责把使用真实 HttpAuthApi 的 AuthController 注入 AppGate；冉昕霖负责 ApiClient 通过 SessionTokenProvider 随请求读取当前 token。登录结果使用 data.token、data.expiresAt、data.user；注册成功只返回用户资料，随后调用登录。退出可发送空 JSON 对象或空请求体，重复退出同一已知会话仍返回成功。退出不影响同账户的另一会话。
+
+胡豪：复用 V1 的 users 和 auth_sessions，JDBC 适配实际列 token_digest。Spring Boot 管理 spring-security-crypto 版本，口令采用 {bcrypt} 前缀与成本 12。文件库的账号与会话跨重启验证已通过。默认内存库适合单进程测试，需演示重启后继续登录时请选择 dev 文件库。
+
+孙虹毅、董欣毓：当前两个模块注入的 CurrentUserProvider 已按请求读取 Authorization: Bearer <token>。正式联调用真实登录身份。已有单模块调试可在 dev/test 中使用已开启的 X-Dev-User 替身，其身份带 dev: 前缀，与真实账号 UUID 隔离。只要请求带 Authorization 就校验该凭据，失效时返回 40101。
+
+李宗晏：完整复跑命令与预期结果见 ../evidence/implementation.txt。../evidence/implementation/account_smoke.py 会单独启动临时服务、创建两个不同的账号、检查资源隔离与退出，并重启临时文件库。可直接复用这一脚本作为账号联调验收入口。
+
+启动与手工对接
+1. 从包含上述提交的 main 运行，在仓库根目录执行 mvn -B -f server/pom.xml package，使用 Java 17。
+2. 使用仓库根目录下的 server 作为工作目录，执行下面的命令。默认接口地址为 http://127.0.0.1:4180/api/v1。
+   java -jar target/pkmon-server-0.1.0.jar --spring.profiles.active=dev --pkmon.capture.dev-user-header=false
+   同一目录再次启动可读取相同的 dev 文件库。若换端口，给此命令增加 --server.port=4181，并同步客户端 API_BASE 的端口。
+3. POST /auth/register，JSON 输入 username、password、nickname。用户名为3至24个 ASCII 字母、数字或下划线，统一按小写保存。密码12至64个Unicode码点、最长72个UTF-8字节。昵称去除首尾空白后1至20个码点。
+4. POST /auth/login，JSON 输入 username、password。成功后将 data.token 放入后续请求的 Authorization: Bearer <token> 头。GET /users/me 应返回本人的 userId、username、nickname；POST /auth/logout 后，同一凭据访问 /users/me 应返回 HTTP 401 和业务码40101。
+5. 实际成功与失败 JSON 样例在 ../evidence/implementation/http-results.txt。其他错误为非法输入 400/40001、用户名重复 409/40901、认证依赖暂不可用 503/50301。保存证据时遮掉密码与完整 token。
+
+验证范围
+95项服务端测试通过。真实 HTTP 验证覆盖并发注册唯一性、跨账号自习/遭遇/挑战/收录隔离、退出幂等、有效会话与撤销状态跨进程重启保留。下一轮请在固定主线版本上验证实际 Flutter 登录页面、会话失效回登录以及整个捕获界面流程。客户端会话持久化、捕获记录持久化和定位设备验证分别按原分工继续。
