@@ -28,6 +28,14 @@ class CaptureDevProfileHttpTest {
     private MockMvc mvc;
 
     @Test
+    void invalidBearerNeverFallsBackToDevelopmentHeader() throws Exception {
+        mvc.perform(get("/api/v1/collection/summary")
+                        .header("Authorization", "Bearer invalid").header("X-Dev-User", "u-dev-test"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40101));
+    }
+
+    @Test
     @DisplayName("dev profile：带开发身份头可正常访问业务接口")
     void businessApiWorksWithDevIdentity() throws Exception {
         mvc.perform(get("/api/v1/collection/summary").header("X-Dev-User", "u-dev-test"))

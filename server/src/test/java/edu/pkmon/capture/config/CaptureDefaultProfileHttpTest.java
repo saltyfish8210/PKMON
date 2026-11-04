@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * 默认配置（无 dev/test profile）下的启动与拒绝行为。
- * 期望：应用能正常启动，但开发期身份与开发遭遇入口都关闭，不带身份头一律 503 或 401。
+ * 期望：应用能正常启动，但开发期身份与开发遭遇入口都关闭，不带身份头一律 401。
  */
 @SpringBootTest(classes = PkmonApplication.class)
 @AutoConfigureMockMvc
@@ -26,11 +26,11 @@ class CaptureDefaultProfileHttpTest {
     private MockMvc mvc;
 
     @Test
-    @DisplayName("默认配置：业务接口拒绝，返回 50301 而不是放行")
+    @DisplayName("默认配置：业务接口拒绝，返回 40101 而不是放行")
     void businessApiRejectsWithoutIdentity() throws Exception {
         mvc.perform(get("/api/v1/collection/summary"))
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.code").value(50301));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40101));
     }
 
     @Test
@@ -39,8 +39,8 @@ class CaptureDefaultProfileHttpTest {
         mvc.perform(post("/api/v1/dev/spawns")
                         .contentType(APPLICATION_JSON)
                         .content("{\"regionId\":\"library_entrance\",\"speciesId\":\"siege_lion\"}"))
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.code").value(50301));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40101));
     }
 
     @Test

@@ -1,0 +1,22 @@
+账号后端实现验证 · 2026-11-04
+负责人 闫昕　执行 Codex 本地工具
+输入主线 12869f15a4c488eaf61b506c457f71cc74abbcfb
+环境 Windows、JDK 17.0.20.1、Maven 3.9.11，沿用项目 Spring Boot 依赖管理与 Flyway V1。
+
+在 server 目录执行 mvn -B -DargLine=-Djdk.attach.allowAttachSelf=true package。首次受限进程运行补充测试时未完成，使用允许本机 Java 测试进程正常运行的环境重新执行全部测试。最终 95 项通过，失败、错误、跳过均为 0。每个测试类的计数见 implementation/maven-summary.json。
+
+新增集成验证使用实际 Spring 装配、BCrypt 和 H2。确认库中口令为带成本 12 的 BCrypt 编码，随机令牌只留摘要，过期会话返回 401，捕获和自习共用一个当前用户来源。测试还覆盖重复字段、无效字段类型、多份 Authorization、超长请求体和伪造身份头。原默认配置拒绝匿名业务请求的预期已从“未装配 503”更新为“凭据无效 401”。
+
+独立 HTTP 验证使用打包后的真实 JAR、临时端口、两个随机口令、临时 H2 文件库。脚本终止并重启自己的 Java 进程，使用同一份数据库复验账号、有效会话和已撤销会话。实测输出见 implementation/http-results.txt，成功响应中的 token 已脱敏。开发遭遇由模拟入口创建，判题、账号身份、归属验证和账号数据库均走实际服务。捕获与自习业务仓储仍为各自模块的内存实现，本次跨重启结论只适用于账号与会话。
+
+复现方法（从仓库根目录执行，Python 3.9+、Java 17）
+mvn -B -f server/pom.xml -DargLine=-Djdk.attach.allowAttachSelf=true package
+python docs/stage2/members/yanxin/evidence/implementation/account_smoke.py server/target/pkmon-server-0.1.0.jar
+
+核对结果
+1. 并发注册相同规范用户名，只创建一个账户，另一个请求得到 40901。
+2. 错误口令得到 40101，正确口令返回令牌、到期时间和公开资料。
+3. B 看不到 A 的当前自习任务，也不能结束 A 的任务。
+4. B 不能使用 A 的遭遇、查询 A 的挑战或代为作答。A 收录后查询为 1，B 为 0。
+5. 单次退出只撤销该会话。重复退出成功，旧令牌和冒用开发身份的组合仍被拒绝。
+6. 重启同一 H2 文件库后，原有效会话仍可查本人，已撤销会话持续返回 401，原账号仍可登录。

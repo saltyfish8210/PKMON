@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import static edu.pkmon.user.service.AuthFailure.Kind.*;
 
-/** Executable design prototype. No Spring bean, HTTP route or production storage adapter is installed. */
+/** Account rules shared by the HTTP adapter and the request identity provider. */
 public final class AuthService {
     private final UserRepository users;
     private final AuthSessionRepository sessions;

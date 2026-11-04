@@ -3,7 +3,7 @@ package edu.pkmon.user.dto;
 import edu.pkmon.user.domain.User;
 import java.time.Instant;
 
-/** JSON field names are the final account contract; no HTTP controller is wired in this prototype. */
+/** Wire types for the four account endpoints. Only UserView may expose user details. */
 public final class AuthDtos {
     private AuthDtos() {}
 

@@ -1,0 +1,9 @@
+PASS concurrent same-name registration
+POST /auth/login HTTP 401 {"code": 40101, "message": "\u8d26\u53f7\u6216\u51ed\u636e\u65e0\u6548\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55", "data": null}
+POST /auth/login HTTP 200 {"code": 0, "message": "ok", "data": {"token": "[REDACTED]", "expiresAt": "2026-11-04T20:55:58.489012300Z", "user": {"userId": "22a2f9d9-49a3-499f-bdac-403d9f1bccfb", "username": "player_a", "nickname": "A"}}}
+PASS real login and public user fields
+PASS B cannot read or end A's study task
+PASS spawn, challenge, answer and collection isolated across real accounts
+PASS logout is idempotent, claimed identity cannot revive it, second session survives
+PASS restart preserves active session and revoked session remains rejected
+PASS same persisted account can log in after process restart

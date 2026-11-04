@@ -1,7 +1,7 @@
 事项,提供者或主责,接收者,当前状态,读取位置,接收后直接动作,目标时间
-账号接口与输入,闫昕,余星晨、冉昕霖,已给出,members/yanxin/design/interfaces.json；正文第3/4/8节,按四接口和统一规则设计页面及网络层，不再等口头补充,2026-10-29 04:00
-用户与会话字段,闫昕,胡豪,账号设计已给出；胡豪V1已入main，映射差异已登记,members/yanxin/handoffs/foundation.txt；design/database-fields.csv；V1__init_schema.sql,tokenHash映射现有token_digest列；核对容量和约束，必要变更走增量迁移,2026-10-29 04:00
-身份端口与装配,闫昕,胡豪、孙虹毅、董欣毓,设计已给出；装配待实现,正文第9节；CurrentUser与capture签名兼容测试,公共桥接按请求解析；不回退开发身份；后续做真实集成测试,2026-11-06 04:00
+账号接口与输入,闫昕,余星晨、冉昕霖,四个HTTP接口可调用,members/yanxin/handoffs/implementation.txt,按真实响应连接 HttpAuthApi 与界面，会话失效后清除本地身份,2026-10-29 04:00
+用户与会话字段,闫昕,胡豪,账号JDBC已对接V1并通过文件库跨重启测试,server/src/main/java/edu/pkmon/user/jdbc/JdbcAccounts.java,继续使用V1的token_digest列与现有唯一约束,2026-10-29 04:00
+身份端口与装配,闫昕,胡豪、孙虹毅、董欣毓,实际Spring应用中共用Bearer身份；跨账号拒绝已实测,members/yanxin/evidence/implementation.txt,生产身份用Bearer；在dev联调时关闭dev-user-header,2026-11-06 04:00
 默认开发开关,孙虹毅,胡豪、闫昕,主线已修复,f1e3639b46e6b6630dbd4dbd02f9e311a6b5073b,关闭原重复待办；正式账号接线仍验证不能绕过,已完成本项修复
 注册/驻留/答错旧规则,共享既定决策,余星晨,待同步本人设计,project/decisions.csv；正文第2/8节,注册后登录；暂停保留；有效挑战内答错可重试,2026-10-29 04:00
 驻留精确参数,董欣毓,赵冠钧、李宗晏,2026-11-01：设计与四个接口已入main,members/dongxinyu/design/interfaces.json；handoffs/implementation.txt,对齐已提交状态、阈值与错误码；遭遇生成仍为Stub，不计完整捕获接通,2026-10-29 04:00
