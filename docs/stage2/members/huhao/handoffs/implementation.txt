@@ -1,0 +1,57 @@
+交接记录：持久化实现与本轮自测（implementation）
+阶段，作者：implementation，胡豪 | 日期：2026-11-05
+
+本人分支与完整提交号：
+- 分支 chore/huhao-foundation
+- 成果提交：e748e9f932f4523e7eb4a6a99983cb4ad95cb797
+
+状态：已合入 main
+
+主线合并提交号：快进发布，main 位于 e748e9f932f4523e7eb4a6a99983cb4ad95cb797
+（已用 git merge-base --is-ancestor 确认 origin/main 包含成果提交）
+
+文件路径与运行步骤：
+- 迁移：server/src/main/resources/db/migration/V2__study_tables.sql（regions /
+  study_tasks / location_samples）、V3__seed_catalog.sql（siege_lion + hello_world_001 种子）
+- JDBC 实现：server/src/main/java/edu/pkmon/study/repository/JdbcTaskRepository.java；
+  server/src/main/java/edu/pkmon/capture/repository/jdbc/JdbcRepositories.java
+  （capture 四个仓储接口实现，接口签名不变，孙虹毅侧无需改动）
+- 事务：CaptureService.submit 已加 @Transactional（作答+收录+挑战状态同一事务）
+- 开关：application-dev.properties 已置 pkmon.capture.in-memory-store=false、
+  pkmon.study.in-memory-store=false；默认/test profile 保持内存替身
+- 测试：server/src/test/java/edu/pkmon/study/JdbcTaskRepositoryTest.java、
+  server/src/test/java/edu/pkmon/capture/JdbcCaptureRepositoriesTest.java、
+  CommonFoundationTest（迁移断言更新为 V1+V2+V3）
+- 运行：mvn -f server/pom.xml test；
+  dev 真库启动 mvn -f server/pom.xml spring-boot:run -Dspring-boot.run.profiles=dev
+
+所用依赖提交号：origin/main 609bd95（闫昕账号持久化、董欣毓驻留骨架均已合入）
+
+本人测试：输入、预期、实际、证据
+- 全量测试 Tests run: 108, Failures: 0, Errors: 0（含新增 10 条 JDBC 用例），
+  空库迁移 V1→V3 按序应用、Flyway validate 通过；dev 文件库重启后会话、
+  收录记录、自习任务均保留（真实 HTTP 流程实测）。详见 evidence/implementation.txt。
+
+真实 / 模拟 / 未执行：
+- 真实：迁移、JDBC 持久化、唯一约束、事务、重启保留、种子、全部测试。
+- 模拟：开发遭遇入口 DEV_SIMULATED（仅 dev/test）；study 的 SpawnGateway 仍为
+  StubSpawnGateway（孙虹毅真实遭遇接入前 study_tasks.spawn_id 不建外键）。
+- 未执行：真机定位链路；capture 富查询分页界面。
+
+缺项、影响及后续处理：
+- 默认 profile 仍是内存替身：演示与联调请统一用 dev profile。
+- 开发替身身份（X-Dev-User，dev: 前缀）需先在 users 表落行，否则遭遇创建外键 500。
+- 题库/图鉴扩充（>1 种 1 题）属后续范围，未做。
+- 从「仅 V1 旧库」升级的实测未执行（本机旧库已被覆盖）；空库全新迁移已覆盖，
+  增量机制保证已应用迁移不重复执行。若组员本机有 V1 时代 dev 库，直接启动即可自动升级，
+  如有异常请联系本人并保留 data/ 目录原样。
+
+请以下成员按依赖读取：
+- 孙虹毅：capture 仓储已可在 dev 用真库运行，接口与 DuplicateRecordException 语义不变；
+  你模块的内存替身仍保留，可用 pkmon.capture.in-memory-store=true 回退对比。
+- 董欣毓：study_tasks/location_samples 已建（你记录的 study_task/task_sample 采用复数命名，
+  与 V1 风格一致）；JdbcTaskRepository 已实现 TaskRepository 全部 9 个方法，
+  dev profile 自动启用；spawn_id 外键待孙虹毅 SpawnService 接入后补。
+- 闫昕：账号 JDBC 与本轮迁移无冲突；环境基线 docs/stage2/baselines/environment.txt 已更新。
+- 李宗晏：复测入口 mvn -f server/pom.xml test；重启保留用例可用 dev profile 复现，
+  步骤见 docs/stage2/members/huhao/evidence/implementation.txt 第二节。
