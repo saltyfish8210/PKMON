@@ -1,0 +1,38 @@
+工具与可见版本：DeepSeek Harness 中的 deepseek-flash 模型，版本号未提供；辅助工具
+  Flutter 3.47.6 / Dart 3.13.5、Maven 3.9.9（真实构建、测试、联调）。
+任务场景、阶段、目标与验收标准：
+  implementation（11/01-11/05，截止 11/06 04:00）。目标：接真实接口、完成成功/答错/过期/超时
+  与收藏入口；Fake 只用于独立开发；交出真实联调记录。
+提供的上下文及裁剪理由：
+  main@d30c4f6 的 auth/study/capture 实现；我的 data 层与 CaptureController；
+  study_page 的接线；interfaces.json 与真实后端接口；未提供 token/口令（联调用临时注册账号）。
+初始提示词、原输出附件：
+  提示词（2026-11-05）：好的，进行下一步实现与联调。如果需要补充测试环境请自行补充。
+  原输出：collection 入口、旧演示路径修复、6 个 widget 测试、3 个真实联调用例、
+  evidence/implementation.txt、handoffs/implementation.txt。
+本人发现的问题（AI 自检，非本人结论）：
+  1) 主线已包含我的 data 层，且闫昕已把 CapturePage 接到自习流程并加了 returnLabel；
+  2) Q10 旧演示路径仍指向正式接口，地图演示会 401/400；已改 2 处（含 home_shell 1 行）；
+  3) 运行 flutter test 会隐式 pub get 并改写 pubspec.lock（74 行/58 项），已还原未提交；
+  4) 真实联调需要开发遭遇入口，默认关闭；用 --pkmon.capture.dev-spawn-enabled=true 启动，
+     身份仍走真实 Bearer，未把 X-Dev-User 当认证。
+修订提示与每轮结果：
+  第 1 轮：起后端 -> 3 个联调用例一次通过；
+  第 2 轮：补 6 个 widget 测试 -> 全量 115 通过 + 3 跳过；
+  第 3 轮：web 构建验证 -> 成功；旧演示路由 HTTP 回归 -> 成功。
+采纳/修改后采纳/拒绝及理由：
+  采纳：收藏入口、旧路径修复、widget 测试、真实联调用例、web 构建证据。
+  拒绝：不提交 pubspec.lock；不改 main.dart 与入口逻辑；不用 Fake 结果冒充联调。
+人工检查人（本人）、方法与结果：
+  检查人：冉昕霖。状态：待本人复核。建议先看 evidence/implementation.txt 的联调场景与
+  home_shell 的 1 行改动，再核对 widget 测试与页面文案。
+验证结果与证据：
+  flutter analyze 无问题；flutter test 115 通过 + 3 跳过；
+  PKMON_REAL_BACKEND=1 联调 3/3；flutter build web 成功；详见 evidence/implementation.txt。
+上下文/生成/本人检查/返工耗时：
+  上下文约 20 分钟；实现与联调约 60 分钟；本人检查耗时待本人填写。
+实际费用或Token：未取得。
+质量、效率、问题、诚信与后续改进：
+  优点：真实后端全链路覆盖到幂等与 40902；不足：无 Android 构建/真机、自习触发链路未在设备跑。
+  诚信：未执行项、跨文件改动与锁文件问题均已标注，未把 Mock 写成联调。
+  后续：11/06 起配合入口统一与设备回归；11/09 补 Android 打包。
