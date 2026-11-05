@@ -1,0 +1,20 @@
+阶段与作者：11/01-11/05 实现本人模块（测试） / 李宗晏
+状态：已合入main
+文件路径与运行方式：
+1. docs/stage2/members/lizongyan/analysis/analysis.txt（需求分析报告）
+2. docs/stage2/members/lizongyan/design/test-cases.csv（测试用例）
+3. docs/stage2/members/lizongyan/evidence/implementation.txt（真实执行证据）
+4. tests/acceptance/run_capture_test.ps1（自动化脚本入口）
+运行方式：启动后端服务后，在终端运行 `powershell -ExecutionPolicy Bypass -File .\tests\acceptance\run_capture_test.ps1`
+
+本人测试：
+- 输入：通过自动化脚本模拟用户会话（X-Demo-Session）、探索（explore）、取题（challenge）、提交答案（answer）。
+- 预期：答对（captured=True, count=1）、答错（captured=False, count=0）、重复提交（count保持1）、空参数（返回400拦截）。
+- 实际：测试结果全部符合预期，核心主流程及异常拦截均正常。
+- 证据：见 evidence/implementation.txt 中的 6 条执行记录与终端截图。
+真实/模拟/未执行：真实执行（已在本地启动 Spring Boot 后端实测）。
+缺项、影响、下一步：
+1. 官方 README 路径缺失 /demo 导致 401 鉴权异常（已录入缺陷清单，待孙虹毅/胡豪确认修复）。
+2. 本机前端因 SDK 版本冲突未构建成功（已找余星晨），但不影响接口层验收。
+3. 真实数据库与跨用户隔离暂未实现，持久化测试标为未执行。
+4. 下一步（11/07）：拉取最新 main，复测上述缺陷，并执行完整端到端回归。
