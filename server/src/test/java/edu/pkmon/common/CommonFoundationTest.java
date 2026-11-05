@@ -47,11 +47,32 @@ class CommonFoundationTest {
     }
 
     @Test
-    @DisplayName("空库迁移：V1 初始结构已由 Flyway 成功应用，且无其他迁移")
+    @DisplayName("空库迁移：V1 初始结构、V2 驻留表、V3 种子均已由 Flyway 按序成功应用")
     void emptyDatabaseMigrated() {
         var applied = flyway.info().applied();
-        assertEquals(1, applied.length);
+        assertEquals(3, applied.length);
         assertEquals("V1__init_schema.sql", applied[0].getScript());
+        assertEquals("V2__study_tables.sql", applied[1].getScript());
+        assertEquals("V3__seed_catalog.sql", applied[2].getScript());
+    }
+
+    @Test
+    @DisplayName("重复执行迁移：Flyway validate 通过，已应用迁移未被改写")
+    void migrationIsRepeatableAndStable() {
+        flyway.validate();
+    }
+
+    @Test
+    @DisplayName("种子数据：siege_lion 与 hello_world_001 已入库，correctOptionId 仅存服务端")
+    void catalogSeeded() {
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from species where business_key = 'siege_lion'", Integer.class).intValue());
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from questions where business_key = 'hello_world_001'",
+                Integer.class).intValue());
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from regions where region_id = 'library_entrance' and enabled",
+                Integer.class).intValue());
     }
 
     @Test

@@ -1,0 +1,73 @@
+胡豪 implementation 自测记录（11/01-11/05 实现轮，2026-11-05）
+================================================================
+
+一、本轮交付内容
+- V2__study_tables.sql：regions / study_tasks / location_samples 三表，
+  字段与董欣毓接口定稿（2026-11-01 版）及 StudyTask/DwellState/LocationSample/Region
+  领域记录一一对应；唯一约束 (user_id, start_request_id) 与 (task_id, sample_id)；
+  活动任务与冷却查询索引。表名采用本人 design.txt 第 6 节的复数命名
+  （董欣毓记录中的 study_task/task_sample 即这两张表）。
+- V3__seed_catalog.sql：siege_lion 图鉴 + hello_world_001 题库种子，
+  内容与孙虹毅的 FixtureCatalog 权威来源逐字一致；correct_option_id 仅服务端可见。
+- JdbcTaskRepository（study/repository/）：董欣毓接口中明确由本人负责的 JDBC 实现，
+  TaskRepository 接口签名不变。
+- JdbcRepositories（capture/repository/jdbc/）：capture 四个仓储接口的 JDBC 实现，
+  接口签名不变；唯一约束冲突统一翻译为 DuplicateRecordException，
+  业务层冲突处理路径不变。spawns.user_id 外键保持有效：开发替身身份需先落 users 行。
+- CaptureService.submit 加 @Transactional：作答记录 + 收录记录 + 挑战状态同一事务，
+  任一失败整体回滚（spring-tx 已在 foundation 轮就绪）。
+- 装配：CaptureConfig/StudyConfig 各增 JDBC Bean，由
+  pkmon.capture.in-memory-store=false / pkmon.study.in-memory-store=false 启用；
+  已在 application-dev.properties 置位（dev=真实持久化），默认/test profile 不变。
+- 测试：新增 JdbcTaskRepositoryTest（6 条）、JdbcCaptureRepositoriesTest（4 条）；
+  CommonFoundationTest 迁移断言更新为 V1+V2+V3 并新增重复迁移 validate 与种子检查；
+  CaptureDevProfileHttpTest 补 dev 替身用户落库（JDBC 后外键要求，仅测试准备）。
+
+二、测试记录（全部真实执行）
+环境：Windows 11，OpenJDK 21.0.2，Maven 3.9.12，H2 2.3.232（嵌入式）。
+注：本机 scoop 的 current 联接点在本执行环境下不可用，测试时以版本目录直调
+java/maven（等价命令：mvn -f server/pom.xml test），不影响构建产物。
+
+1. 全量测试（独立测试库 pkmon_test 内存库）
+   命令：mvn -f server/pom.xml test（等价直调，见上）
+   预期：全部通过，测试数不为 0。
+   实际：Tests run: 108, Failures: 0, Errors: 0, Skipped: 0（15 个测试类），
+   其中本轮新增 10 条 JDBC 测试全部通过。通过。
+   启动日志确认迁移序列：[V1 V1__init_schema.sql, V2 V2__study_tables.sql, V3 V3__seed_catalog.sql]，
+   Flyway validate 通过（重复执行不报错、不改写）。
+
+2. dev 文件库重启持久化（核心验收：重启后记录仍在）
+   方法：mvn package 构建 jar，dev profile 启动（jdbc:h2:file:./data/pkmon-dev），
+   走真实 HTTP 流程后停服重启再查。脚本与本条日志留存于本机沙盒目录，关键输出如下：
+     register code=0 → login code=0 → dev spawn code=0（DEV_SIMULATED）
+     → challenge code=0（questionId=hello_world_001，选项 A,B,C，响应不含 correctOptionId）
+     → answer code=0 result=CORRECT captureRecordId=a1847f72-...
+     → summary 重启前 captureCount=1 collected=1/1
+     → study task code=0 taskId=aef868ec-... status=WAITING
+     —— 停服（停前等 3 秒，越过 H2 MVStore 后台落盘窗口 WRITE_DELAY=500ms）——
+     → 重启后 users/me code=0（同 token，会话仍在）
+     → 重启后 summary captureCount=1 collected=1/1（收录仍在）
+     → 重启后 current task 为同一 taskId（自习任务仍在）
+   结论：通过。会话、收录记录、自习任务三类数据重启后均保留。
+   限制：验证用 Stop-Process 强杀模拟停机，已加落盘等待；kill -9 瞬间（<500ms 内）
+   的末次写入丢失属于 H2 崩溃场景，不在「正常重启保留」范围内。
+   dev 库为开发库，含历史测试残留数据，不作为干净环境证据；干净空库迁移由第 1 项
+   （CommonFoundationTest 空库迁移断言）覆盖。
+
+3. 升级路径：本机 dev 文件库先由 dev profile 测试在 V1+V2+V3 上建立；
+   从 11/05 前旧库（仅 V1）升级的实测未执行——本机旧库已在开发中被覆盖。
+   空库全新应用 V1→V3 已由第 1 项覆盖；Flyway 增量机制保证已应用迁移不重复执行。
+
+三、真实 / 模拟 / 未执行
+- 真实：迁移、JDBC 持久化、唯一约束、事务注解、重启保留、种子数据、全部测试。
+- 模拟（沿用既有标注）：开发遭遇入口 DEV_SIMULATED 仅 dev/test 开放；
+  study 的 SpawnGateway 仍是孙虹毅的 StubSpawnGateway 替身（只生成编号，
+  study_tasks.spawn_id 暂不建外键，接入真实遭遇后由后续迁移补）。
+- 未执行：真机定位链路（赵冠钧/客户端联调范围）；capture 富查询分页界面。
+
+四、已知限制
+- 默认 profile（无 profile 启动）仍为内存替身 + 内存库，重启不保留；
+  真实持久化请用 dev profile（见 docs/stage2/baselines/environment.txt）。
+- 开发替身身份（X-Dev-User，dev: 前缀）在 JDBC 模式下必须是 users 表中的真实行，
+  否则遭遇创建触发外键冲突（500）。测试与演示前请先注册或落库该用户。
+- 题库/图鉴扩充属于后续范围，当前只有 1 种 1 题，不报告为已完成。

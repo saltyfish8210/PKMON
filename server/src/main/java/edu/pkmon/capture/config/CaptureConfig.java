@@ -12,6 +12,7 @@ import edu.pkmon.capture.repository.Repositories.SpawnRepository;
 import edu.pkmon.capture.repository.memory.InMemoryAnswerAttemptRepository;
 import edu.pkmon.capture.repository.memory.InMemoryCaptureRecordRepository;
 import edu.pkmon.capture.repository.memory.InMemoryChallengeRepository;
+import edu.pkmon.capture.repository.jdbc.JdbcRepositories;
 import edu.pkmon.capture.repository.memory.InMemorySpawnRepository;
 import edu.pkmon.capture.service.CaptureService;
 import edu.pkmon.capture.service.CollectionService;
@@ -43,8 +44,8 @@ import java.util.Arrays;
  * 也可用同名属性显式覆盖。
  *   pkmon.capture.dev-user-header    开发期身份替身（X-Dev-User 请求头，不是认证）
  *   pkmon.capture.dev-spawn-enabled  开发遭遇入口 /api/v1/dev/spawns
- *   pkmon.capture.in-memory-store    内存仓储替身；真实持久化实现接入前必须为 true，
- *                                    否则本模块没有可用仓储，应用无法启动
+ *   pkmon.capture.in-memory-store    内存仓储替身；false 时启用 JDBC 真库实现
+ *                                    （repository.jdbc.JdbcRepositories，胡豪 11/05）
  * 正式环境需要：dev-user-header=false、dev-spawn-enabled=false、in-memory-store=false（接入真库后）。
  */
 @AutoConfiguration
@@ -109,6 +110,36 @@ public class CaptureConfig {
     @ConditionalOnProperty(name = "pkmon.capture.in-memory-store", havingValue = "true", matchIfMissing = true)
     public CaptureRecordRepository captureRecordRepository() {
         return new InMemoryCaptureRecordRepository();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "pkmon.capture.in-memory-store", havingValue = "false")
+    public SpawnRepository jdbcSpawnRepository(org.springframework.jdbc.core.JdbcTemplate db) {
+        return new JdbcRepositories.SpawnStore(db);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "pkmon.capture.in-memory-store", havingValue = "false")
+    public ChallengeRepository jdbcChallengeRepository(org.springframework.jdbc.core.JdbcTemplate db) {
+        return new JdbcRepositories.ChallengeStore(db);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "pkmon.capture.in-memory-store", havingValue = "false")
+    public AnswerAttemptRepository jdbcAnswerAttemptRepository(
+            org.springframework.jdbc.core.JdbcTemplate db) {
+        return new JdbcRepositories.AttemptStore(db);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "pkmon.capture.in-memory-store", havingValue = "false")
+    public CaptureRecordRepository jdbcCaptureRecordRepository(
+            org.springframework.jdbc.core.JdbcTemplate db) {
+        return new JdbcRepositories.RecordStore(db);
     }
 
     @Bean

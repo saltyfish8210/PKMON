@@ -8,6 +8,7 @@ import edu.pkmon.study.error.StudyExceptionHandler;
 import edu.pkmon.study.port.SpawnGateway;
 import edu.pkmon.study.port.TaskRepository;
 import edu.pkmon.study.repository.InMemoryTaskRepository;
+import edu.pkmon.study.repository.JdbcTaskRepository;
 import edu.pkmon.study.service.DwellStudyTaskService;
 import edu.pkmon.study.service.StudyTaskService;
 import edu.pkmon.study.web.StudyController;
@@ -89,7 +90,8 @@ public class StudyConfig {
     }
 
     /**
-     * 任务存储。第三阶段由 JDBC 实现覆盖。
+     * 任务存储（内存替身）。默认与测试 profile 使用；dev profile 置
+     * pkmon.study.in-memory-store=false 后由下方 JDBC 实现接管。
      *
      * @param region 区域
      * @return 内存仓库
@@ -99,6 +101,20 @@ public class StudyConfig {
     @ConditionalOnProperty(name = "pkmon.study.in-memory-store", havingValue = "true", matchIfMissing = true)
     public TaskRepository taskRepository(Region region) {
         return new InMemoryTaskRepository(region);
+    }
+
+    /**
+     * 任务存储（JDBC 真实持久化，胡豪 11/05）。区域改从 regions 表读取（V2 迁移），
+     * 不再依赖本类的配置注入。
+     *
+     * @param db JDBC 访问
+     * @return JDBC 仓库
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "pkmon.study.in-memory-store", havingValue = "false")
+    public TaskRepository jdbcTaskRepository(org.springframework.jdbc.core.JdbcTemplate db) {
+        return new JdbcTaskRepository(db);
     }
 
     /**

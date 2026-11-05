@@ -33,8 +33,8 @@ import java.util.UUID;
  * 答题捕获的核心业务。判定次序固定为：归属校验 → 幂等判定 → 有效性判定 → 结算。
  * 次序不得改动，理由见 design/design.txt 4.2 与 analysis/analysis.txt 5.3。
  *
- * 事务说明：本类尚未加事务注解——工程当前没有 spring-tx 与数据源（主责胡豪）。
- * 依赖到位后 submit 需要整体事务覆盖“作答记录 + 收录记录 + 挑战状态”。
+ * 事务说明：submit 已加 @Transactional（胡豪 11/05，spring-tx 随数据源就绪），
+ * 作答记录、收录记录、挑战状态在同一事务提交；任一写失败整体回滚，不落半截结算。
  */
 @Service
 public class CaptureService {
@@ -89,6 +89,7 @@ public class CaptureService {
     }
 
     /** 提交作答。四步次序见类注释。 */
+    @org.springframework.transaction.annotation.Transactional
     public AnswerResponse submit(String userId, SubmitAnswerCommand cmd) {
         if (cmd == null || isBlank(cmd.challengeId()) || isBlank(cmd.requestId())
                 || isBlank(cmd.optionId())) {

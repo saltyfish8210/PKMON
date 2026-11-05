@@ -1,11 +1,13 @@
 package edu.pkmon.capture.config;
 
 import edu.pkmon.demo.PkmonApplication;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +28,20 @@ class CaptureDevProfileHttpTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    /**
+     * dev profile 11/05 起使用 JDBC 真库（胡豪），spawns.user_id 有外键：
+     * 开发身份替身对应的用户行必须先存在。MERGE 保证重复执行不冲突。
+     */
+    @BeforeEach
+    void ensureDevIdentityUserExists() {
+        // 开发替身身份带 dev: 前缀（DevHeaderCurrentUserProvider），外键按此前缀校验
+        jdbc.update("merge into users key(user_id) values"
+                + " ('dev:u-dev-test', 'dev:u-dev-test', '$2a$10$testhash', '开发替身', CURRENT_TIMESTAMP)");
+    }
 
     @Test
     void invalidBearerNeverFallsBackToDevelopmentHeader() throws Exception {
