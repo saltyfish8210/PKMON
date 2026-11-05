@@ -1,0 +1,68 @@
+状态：实现与联调完成（2026-11-05）；Android 构建与真机未执行
+源码基线：d30c4f6（main，含我的 data 层与闫昕的 auth/study 接线）
+交付提交：见 handoffs/implementation.txt 回填的成果提交号
+工具链：Flutter 3.47.6 / Dart 3.13.5、Maven 3.9.9、JDK 17.0.10（见 toolchain.txt）
+
+一、本次改动
+  1) client/lib/features/capture/capture_page.dart
+     捕获成功后新增“查看收藏”入口，跳转 CollectionPage 并用服务端 summary 刷新；
+     沿用闫昕已加的 returnLabel（自习流程显示“返回自习”）。
+  2) client/lib/features/capture_page.dart（旧演示页，本人负责）
+     'capture/answer' -> 'demo/capture/answer'（Q10 旧路由迁移后的调用方修正）。
+  3) client/lib/features/home_shell.dart（共享文件，1 行）
+     'capture/challenge' -> 'demo/capture/challenge'。此行属余星晨维护的入口文件，
+     为修复 Q10 旧演示路径的最小改动，需在 PR 中由余星晨确认；不改其他逻辑。
+  4) 新增 client/test/capture/capture_page_test.dart（6 个 widget 测试）
+  5) 新增 client/test/integration/real_backend_test.dart（真实后端联调，默认跳过）
+
+二、真实联调（实际执行）
+  后端构建：mvn -B -s <workspace>\.tools\maven-settings.xml -DskipTests package
+    -> target/pkmon-server-0.1.0.jar（25.7 MB）
+  启动：java -jar target\pkmon-server-0.1.0.jar --pkmon.capture.dev-spawn-enabled=true
+    （默认内存 H2 + Flyway V1-V3；开发遭遇入口开启，身份走真实 Bearer）
+  健康检查：GET /test/hello -> HTTP 200 "hello world"
+  联调命令（client）：
+    PKMON_REAL_BACKEND=1 flutter --no-version-check test test/integration/real_backend_test.dart
+  结果：+3 All tests passed!
+  覆盖场景：
+    - 注册 -> 登录 -> GET /users/me 返回本人；
+    - 无 token 的受保护请求 -> 40101 unauthorized；
+    - POST /dev/spawns 创建遭遇 -> POST /capture/challenge 取题（选项 2..4，无答案字段）；
+    - 错选项 -> WRONG、captureRecordId 为空；
+    - 正确选项 -> CORRECT、captureRecordId 非空；
+    - 同一 requestId 同内容重发 -> 返回同一 captureRecordId（幂等）；
+    - 同一 requestId 不同内容 -> 40902 conflict；
+    - GET /capture/challenges/{id} -> CAPTURED 且记录号一致；
+    - GET /collection/summary -> captureCount >= 1。
+  旧演示路由回归（HTTP 直调）：
+    POST /demo/sessions -> /demo/explore -> /demo/capture/challenge -> /demo/capture/answer
+    结果：challenge 返回“攻城狮”，answer success=true；确认 F2 路径修复有效。
+
+三、静态检查与自动化测试
+  flutter analyze -> No issues found!（13.6s）
+  flutter test（默认，集成用例跳过）-> +115 ~3 All tests passed!
+    其中新增 6 个 CapturePage widget 测试：成功/答错/过期/超时待确认/加载失败重试/收藏入口。
+  flutter build web --release -> √ Built build\web（34.6s；main.dart.js 2.6 MB）
+  server mvn test（此前）-> 34/34 通过（见 toolchain.txt）
+
+四、真实／模拟／未执行
+  真实：上述 HTTP 联调、widget 测试、analyze、web 构建均为实际执行。
+  模拟：Fake 端口仅测试用；旧演示 DemoApi 的 success 不产生 captureRecordId，
+    不作为正式收录证据；开发遭遇页标注“模拟遇见攻城狮”。
+  未执行：flutter build apk（本机无 Android SDK）、Android 真机/模拟器、
+    自习驻留触发到答题的整条 UI 链路（自习流程属闫昕/赵冠钧，已由 study_page 接线，
+    本次未在设备上跑通）；账号切换的设备级验证（单元测试覆盖代次丢弃）。
+
+五、已知问题与边界
+  1) pubspec.lock：Flutter 3.47.6 下 pub get 会改写锁文件（74 行/58 项），本次未提交并已还原；
+     是否更新由余星晨决定，否则每台机器首次 pub get 都会重写。
+  2) home_shell.dart 属余星晨维护，本次仅改 1 行旧演示路径，PR 中请其确认。
+  3) 旧演示与新正式捕获仍是两套入口：地图页走 DemoApi/旧会话，自习页走 Bearer/新页面；
+     F3（入口统一、删除 core/api.dart）需在余星晨接线后做。
+  4) 真实联调使用默认内存库，重启即清；dev profile 文件库的重启后查询未在本次执行。
+
+六、如何复现
+  1) 构建并启动后端（见上）；
+  2) client 下设置 Flutter 环境（见 toolchain.txt）；
+  3) flutter analyze / flutter test；
+  4) 需要真实联调时设置 PKMON_REAL_BACKEND=1 并运行 integration 测试。
