@@ -1,7 +1,10 @@
-用例编号,测试功能,输入与操作,预期结果,实际结果,状态,备注
-TC-CAP-01,答题捕获主流程,提交正确答案(选项A),返回 captured:True, count:1,返回 captured:True, count:1,通过,修正接口路径后跑通
-TC-CAP-02,答题捕获错误选项,提交错误答案,返回 captured:False, count:0,未执行,-,前置步骤未覆盖
-TC-CAP-03,鉴权与路径异常,按 README 路径请求取题,正常取题,返回 401 未经授权,失败,已发现缺陷（路径缺 /demo）
-TC-STU-01,探索遭遇测试,请求探索接口,返回 nearby=True,返回 nearby=True,通过,服务端状态保持正常
-TC-STU-02,健康检查,GET /test/hello,返回 hello world,返回 hello world,通过,环境验证成功
-TC-STU-03,无鉴权访问拦截,不带 Session 请求探索,返回 400 或 401 拦截,返回 HTTP 400 拦截,通过,基本安全拦截生效
+用例编号,测试功能,前置条件,输入与操作,预期结果,实际结果,状态,备注
+TC-CAP-01,答题捕获-正常主流程,服务已启动且完成探索,提交正确答案（optionId="A"）,返回 captured:True, count:1,返回 captured:True, count:1,通过,修正接口路径后跑通
+TC-CAP-02,答题捕获-错误作答,服务已启动且完成探索,提交错误答案（如 optionId="B"）,返回 captured:False, count:0,返回 captured:False, count:0,通过,判题逻辑正常
+TC-CAP-03,答题捕获-幂等性测试,已成功捕获一次,同一 challengeId 连续提交两次正确答案,最终 count 保持为 1,最终 count 保持为 1,通过,防重复结算逻辑生效
+TC-CAP-04,答题捕获-空参数拦截,服务已启动,发送空 Body（{}）请求答题接口,服务端返回 4xx 拦截,返回 HTTP 400,通过,防崩溃测试通过
+TC-STU-01,自习任务-探索遭遇,服务已启动,请求探索接口 POST /api/v1/demo/explore,返回 nearby=True,返回 nearby=True,通过,服务端状态保持正常
+TC-STU-02,自习任务-健康检查,服务已启动,GET /test/hello,返回 hello world,返回 hello world,通过,环境验证成功
+TC-STU-03,接口安全-无鉴权拦截,服务已启动,不带 X-Demo-Session 请求探索,返回 400 或 401 拦截,返回 HTTP 400 拦截,通过,基本安全拦截生效
+TC-CAP-05,接口安全-非法ID拦截,服务已启动,传入不存在的 spawnId（invalid-999）,返回 4xx 拦截,返回 HTTP 401 拦截,通过,鉴权优先，拦截了非法请求
+TC-CAP-06,接口规范-README路径异常,服务已启动,按 README 路径请求 /api/v1/capture/challenge,正常获取题目,返回 HTTP 401 未经授权,失败,发现缺陷：实际代码路径应为 /api/v1/demo/capture/challenge
