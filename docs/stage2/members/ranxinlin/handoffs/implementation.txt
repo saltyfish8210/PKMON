@@ -1,0 +1,58 @@
+阶段：implementation（2026-11-01 至 11-05）
+作者：冉昕霖
+对应截止：2026-11-06 04:00（北京时间）
+实际交出：2026-11-05
+状态：仅个人分支 feature/ranxinlin-capture-ui；推送后由本人开 PR，尚未合入 main
+任务分支：feature/ranxinlin-capture-ui（基于 main d30c4f6）
+成果提交号（完整）：ebbc86bcfa0d6dad8699997c2d16189ee856b299
+
+一、本次交付
+  client/lib/features/capture/capture_page.dart   成功态新增“查看收藏”入口（服务端 summary）
+  client/lib/features/capture_page.dart           旧演示作答路径改为 /demo/capture/answer（Q10）
+  client/lib/features/home_shell.dart             旧演示取题路径改为 /demo/capture/challenge（Q10，1 行）
+  client/test/capture/capture_page_test.dart      6 个 widget 测试（状态与收藏入口）
+  client/test/integration/real_backend_test.dart  真实后端联调 3 个用例（默认跳过）
+  docs/stage2/members/ranxinlin/evidence/implementation.txt
+
+二、真实联调结果（实际执行）
+  后端：mvn package -> java -jar target\pkmon-server-0.1.0.jar
+    --pkmon.capture.dev-spawn-enabled=true
+  联调：PKMON_REAL_BACKEND=1 flutter test test/integration/real_backend_test.dart -> 3/3 通过
+  覆盖：注册/登录/me、40101、开发遭遇、取题、答错、答对、幂等回放、40902、状态、概览。
+  旧演示：/demo/sessions -> explore -> challenge -> answer 全通，answer success=true。
+
+三、静态检查与测试
+  flutter analyze：No issues found!
+  flutter test：115 通过 + 3 跳过（集成用例默认跳过）
+  flutter build web --release：成功（main.dart.js 2.6 MB）
+  server mvn test：34/34（见 toolchain.txt）
+
+四、真实／模拟／未执行
+  真实：HTTP 联调、widget 测试、analyze、web 构建。
+  模拟：Fake、旧演示 DemoApi（success 无收录号，不作正式证据）。
+  未执行：Android APK/真机（无 SDK）；自习驻留触发→答题的设备链路；账号切换设备级验证。
+
+五、需要他人确认/处理
+  1) 余星晨：home_shell.dart 仅改 1 行旧演示路径，请在 PR 中确认；F3 入口统一与删除
+     core/api.dart 仍待你接线；pubspec.lock 是否更新由你定。
+  2) 孙虹毅：真实 capture 接口已按约定联调通过（内存库）；dev profile 文件库重启后查询
+     未在本次执行，TC-08 仍待其验证。
+  3) 闫昕/赵冠钧：自习页已调用我负责的 CapturePage（returnLabel 由闫昕加），本次未改自习逻辑；
+     设备级整链未执行。
+  4) 李宗晏：真实联调记录可作为 capture 客户端证据，但仅限本机默认内存库与开发遭遇入口；
+     未覆盖真机与持久化重启。
+
+六、缺项、影响与下一步
+  1) Android SDK 未安装：无法出 APK/真机演示；11/09 打包阶段需补（约 1–1.5 GB）。
+  2) F3 未完成：旧地图入口仍走 DemoApi，与新正式捕获并存；入口切换由余星晨做。
+  3) 账号切换只做单元级代次校验，未做设备级；11/07 测试日可补。
+  4) 锁文件未提交：跨机器首次 pub get 会重写，需统一 SDK 版本或更新锁文件。
+  下一步（11/06-11/09）：配合余星晨接入新入口、补设备级回归、按李宗晏缺陷清单修复。
+
+七、运行方式
+  见 evidence/implementation.txt 第六节；Flutter 环境变量见 evidence/toolchain.txt。
+
+八、读取顺序
+  1) evidence/implementation.txt；2) capture_page.dart 的收集入口；
+  3) test/integration/real_backend_test.dart（联调场景）；4) test/capture/capture_page_test.dart。
+  本记录引用成果提交（见文首）；本记录自身提交号以 Git 历史为准。

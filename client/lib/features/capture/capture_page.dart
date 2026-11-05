@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/tokens.dart';
 import '../../data/model/capture_models.dart';
 import '../../data/model/collection_models.dart';
+import '../collection/collection_page.dart';
 import 'capture_controller.dart';
 
 /// 答题捕获页（骨架）。
@@ -184,6 +185,19 @@ class _CapturePageState extends State<CapturePage> {
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(widget.returnLabel),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.base * 3),
+        SizedBox(
+          height: AppSpacing.buttonMinHeight,
+          child: OutlinedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    CollectionPage(api: widget.controller.collectionApi),
+              ),
+            ),
+            child: const Text('查看收藏'),
           ),
         ),
       ],

@@ -42,7 +42,7 @@ class _CapturePageState extends State<CapturePage> {
     });
     try {
       final data = await widget.api.request(
-        'capture/answer',
+        'demo/capture/answer',
         body: {
           'challengeId': widget.challenge['challengeId'],
           'optionId': optionId,
