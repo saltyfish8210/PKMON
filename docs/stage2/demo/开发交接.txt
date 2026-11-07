@@ -12,6 +12,8 @@ PKMon 演示开发交接
 修复请求编号长度不匹配：网络层统一生成标准 UUID v4（36 字符），与 study_tasks.start_request_id、answer_attempts.request_id 字段一致。一次操作的网络重试仍复用同一编号。
 随网页打包 Noto Sans SC 中文字体及许可文件，使用本地网页渲染资源。
 提供可重建的演示包脚本、自动浏览器验证和启动器验证；成品带 Windows x64 Java 运行环境。
+文件数据库设置 WRITE_DELAY=0，避免刚收到成功响应就关闭进程时，最近提交还停留在延迟写入窗口。验证脚本在创建任务后立即停止并重启服务，检查同一个任务和既有收藏。
+参数依据：https://h2database.com/html/commands.html#set_write_delay 。这项检查不替代真实设备断电与存储硬件可靠性测试。
 
 三、技术边界
 使用真实账号 Bearer 会话；关闭开发身份请求头。课堂允许模拟位置和模拟遭遇，仍需由驻留流程生成用于捕获的同一个 spawnId。

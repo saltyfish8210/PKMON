@@ -27,7 +27,7 @@ $stderr = Join-Path $logDir "$runName.err.log"
 $argsList = @('-jar', 'pkmon-demo.jar', '--server.address=127.0.0.1', "--server.port=$Port",
     '--spring.profiles.active=dev', '--pkmon.capture.dev-user-header=false',
     '--pkmon.capture.dev-spawn-enabled=true', '--pkmon.study.rules.required-seconds=4',
-    '--pkmon.study.rules.cooldown-seconds=0', '--spring.datasource.url=jdbc:h2:file:./data/pkmon-classroom')
+    '--pkmon.study.rules.cooldown-seconds=0', '--spring.datasource.url=jdbc:h2:file:./data/pkmon-classroom;WRITE_DELAY=0')
 $serverProcess = $null
 try {
     $serverProcess = Start-Process -FilePath $java -ArgumentList $argsList -WorkingDirectory $demoRoot `

@@ -26,7 +26,7 @@ const assert = require('node:assert/strict');
     server = spawn(java, ['-jar', jar, '--server.address=127.0.0.1', '--server.port=0',
       '--spring.profiles.active=dev', '--pkmon.capture.dev-user-header=false',
       '--pkmon.capture.dev-spawn-enabled=true', '--pkmon.study.rules.required-seconds=4',
-      '--pkmon.study.rules.cooldown-seconds=0', '--spring.datasource.url=jdbc:h2:file:' + path.join(dataDir, 'db').replaceAll('\\', '/')],
+      '--pkmon.study.rules.cooldown-seconds=0', '--spring.datasource.url=jdbc:h2:file:' + path.join(dataDir, 'db').replaceAll('\\', '/') + ';WRITE_DELAY=0'],
     { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], cwd: dataDir });
     let output = '';
     return await new Promise((resolve, reject) => {
