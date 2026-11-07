@@ -67,8 +67,13 @@ flutter:
   assets:
     - assets/sprites/
     - assets/fonts/OFL.txt
+    - assets/fonts/Roboto-OFL.txt
 
   fonts:
+    # CanvasKit requires a registered Roboto fallback even when the app uses Noto.
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto.ttf
     - family: NotoSansSC
       fonts:
         - asset: assets/fonts/NotoSansSC.ttf
