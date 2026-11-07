@@ -51,3 +51,5 @@ application-local.yml
 
 # 本地开发数据库（H2 文件库，dev profile 生成）
 server/data/
+/data/
+/logs/

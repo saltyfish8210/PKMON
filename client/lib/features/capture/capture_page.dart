@@ -56,18 +56,25 @@ class _CapturePageState extends State<CapturePage> {
     return switch (state) {
       CaptureIdle() => const SizedBox.shrink(),
       CaptureLoading() => _status(const CircularProgressIndicator(), '正在取题…'),
-      CaptureFailed(:final message, :final retryable) => _failed(message, retryable),
+      CaptureFailed(:final message, :final retryable) => _failed(
+        message,
+        retryable,
+      ),
       CaptureExpired(:final message) => _expired(message),
       CaptureUnknown(:final message) => _unknown(message),
       CaptureCaptured(:final summary) => _captured(summary),
       CaptureReady(
         :final challenge,
         :final lastError,
-        :final lastResultWasWrong
+        :final lastResultWasWrong,
       ) =>
         _question(challenge, lastError, lastResultWasWrong, submitting: false),
-      CaptureSubmitting(:final challenge) =>
-        _question(challenge, null, false, submitting: true),
+      CaptureSubmitting(:final challenge) => _question(
+        challenge,
+        null,
+        false,
+        submitting: true,
+      ),
     };
   }
 
@@ -132,31 +139,32 @@ class _CapturePageState extends State<CapturePage> {
             padding: EdgeInsets.symmetric(vertical: AppSpacing.base * 3),
             child: LinearProgressIndicator(minHeight: 2),
           ),
-        if (wrong)
-          _hint('这次没有答对，可以再试一次。', AppColors.errorText),
+        if (wrong) _hint('这次没有答对，可以再试一次。', AppColors.errorText),
         if (lastError != null) _hint(lastError, AppColors.errorText),
         if (challenge.isSimulated)
-          _hint('模拟遇见攻城狮：本次遭遇来自开发入口，不是真实到场。',
-              AppColors.secondaryText),
+          _hint('本次使用模拟位置；驻留判定、答题和收录由服务端完成。', AppColors.secondaryText),
       ],
     );
   }
 
   Widget _hint(String text, Color color) => Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.base * 2),
-        child: Text(
-          text,
-          style: TextStyle(fontSize: AppFontSizes.secondary, color: color),
-        ),
-      );
+    padding: const EdgeInsets.only(top: AppSpacing.base * 2),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: AppFontSizes.secondary, color: color),
+    ),
+  );
 
   Widget _captured(CollectionSummary? summary) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.captureSide),
       children: [
         const SizedBox(height: AppSpacing.base * 8),
-        const Icon(Icons.check_circle_outline,
-            size: 72, color: AppColors.primary),
+        const Icon(
+          Icons.check_circle_outline,
+          size: 72,
+          color: AppColors.primary,
+        ),
         const SizedBox(height: AppSpacing.base * 4),
         const Text(
           '成为伙伴了！',
@@ -172,7 +180,7 @@ class _CapturePageState extends State<CapturePage> {
           summary == null
               ? '已收入图鉴（收藏数量暂未更新）'
               : '已收集 ${summary.collectedSpeciesCount} / ${summary.totalSpeciesCount} 种，'
-                  '累计捕获 ${summary.captureCount} 次',
+                    '累计捕获 ${summary.captureCount} 次',
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: AppFontSizes.body,

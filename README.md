@@ -2,6 +2,8 @@
 
 北京大学软件工程课程实践项目。PKMon 是一个校园 LBS 收集游戏：玩家在校园地图上移动，触发精灵，答对校园知识题后将其收入图鉴。
 
+第二阶段课堂演示请使用**登录后的自习与收藏流程**。运行说明、两分钟操作路线和展示素材口径见 [使用说明](docs/stage2/demo/使用说明.txt)、[演示步骤](docs/stage2/demo/演示步骤.txt)及[展示素材说明](docs/stage2/demo/展示素材说明.txt)。成品包自带 Windows Java 运行环境；可从 [构建与验证说明](tools/demo/README.txt)重建。课堂采用模拟位置，真实账号、自习任务和捕获记录使用文件数据库。
+
 本仓库收录**课堂展示用的「攻城狮版」完整源码**：
 
 | 目录 | 内容 | 技术栈 |
@@ -11,7 +13,7 @@
 | `开发文档/`、`参考文档/` | 课程文档与参考资料（原有内容，未改动） | — |
 
 > 仓库里的源码是课堂展示时实际运行的版本，**不是**旧压缩包 `PKMON源码.zip` 里的旧版。
-> 演示题目、选项和正确答案都在后端 `server/src/main/java/edu/pkmon/demo/DemoService.java`。
+> 第一阶段游客原型题目在 `server/src/main/java/edu/pkmon/demo/DemoService.java`；第二阶段登录后的捕获流程通过 `capture/port/FixtureCatalog.java` 提供题目，并使用 `capture` 与 `study` 模块处理业务。
 
 ---
 

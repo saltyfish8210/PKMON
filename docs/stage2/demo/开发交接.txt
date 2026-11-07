@@ -1,0 +1,35 @@
+PKMon 演示开发交接
+负责人：闫昕
+
+一、后续责任
+自本轮起，后续代码开发、合并、联调、修复、打包与技术文档由闫昕负责。
+其他成员交齐未提交的现有成果即可；已有 Git 提交保留原作者记录，不再按旧指南要求各模块作者逐轮开发和合并。
+余星晨负责课堂 PPT 与讲稿；李宗晏负责展示录屏与图片整理。展示人员依据同批演示包和验证记录制作材料。
+
+二、本轮整合
+以主线 51e9fd8cb806fb9f9aee864f48e6fe10bf814d55 为基础，保留 PR #9 的两个原提交并合入捕获页“查看收藏”和旧原型接口路径修正。
+登录后的首页改用 MemberHomePage，只访问正式账号业务接口；不读取第一阶段游客会话的收藏计数。进入自习和收藏后返回首页会重新读取收藏。
+修复请求编号长度不匹配：网络层统一生成标准 UUID v4（36 字符），与 study_tasks.start_request_id、answer_attempts.request_id 字段一致。一次操作的网络重试仍复用同一编号。
+随网页打包 Noto Sans SC 中文字体及许可文件，使用本地网页渲染资源。
+提供可重建的演示包脚本、自动浏览器验证和启动器验证；成品带 Windows x64 Java 运行环境。
+
+三、技术边界
+使用真实账号 Bearer 会话；关闭开发身份请求头。课堂允许模拟位置和模拟遭遇，仍需由驻留流程生成用于捕获的同一个 spawnId。
+使用 dev 配置，任务与捕获均为 JDBC 持久化。区域从数据库 regions 表读取；dev 下不是修改经纬度启动参数就能覆盖该表。
+课堂只覆盖候选区域与 SIMULATED 样本。真实设备接入需另外准备实际 WGS84 区域数据和真机验证。
+课堂参数 required-seconds=4、cooldown-seconds=0 仅用于排练；常规默认仍为驻留 600 秒、冷却 1800 秒。
+账户、数据文件不随源码提交；演示包中的 data 在运行后创建，重启不要删除。
+
+四、继续开发从哪里开始
+账号入口：client/lib/features/auth/app_gate.dart、client/lib/features/member_home_page.dart。
+自习页面及协调：client/lib/features/study/；正式接口：client/lib/data/api/。
+驻留与触发：server/src/main/java/edu/pkmon/study/。
+题目、捕获、收藏：server/src/main/java/edu/pkmon/capture/。
+数据库迁移：server/src/main/resources/db/migration/；不要改写已经应用的 V1—V3 文件，新变更新增迁移。
+成品构建与验收：tools/demo/README.txt。
+
+五、Git 使用
+开始前先看 git status，确认所在分支和现有改动，避免覆盖其他人的工作。
+完成的更改按明确文件路径提交。合入主线前读取最新 origin/main；如已前进，正常合并并复测受影响内容。
+不用 force push、reset --hard 或 git clean 处理交付问题。展示包、运行时、视频和数据库不推入源码仓库。
+最终代码提交与成品 SHA256 见同批版本清单。技术证据只记录本次实际执行结果，不将自动测试写成真机验收或其他成员的个人确认。

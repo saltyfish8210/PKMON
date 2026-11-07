@@ -67,7 +67,11 @@ class _StudyPageState extends State<StudyPage> with WidgetsBindingObserver {
     try {
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => CapturePage(returnLabel:'返回自习', spawnId: spawn, controller: capture),
+          builder: (_) => CapturePage(
+            returnLabel: '返回自习',
+            spawnId: spawn,
+            controller: capture,
+          ),
         ),
       );
     } finally {
@@ -98,7 +102,7 @@ class _StudyPageState extends State<StudyPage> with WidgetsBindingObserver {
           padding: const EdgeInsets.all(20),
           children: [
             Text(
-              online ? '自习进度由服务端保存到本次运行。' : '离线模拟练习 · 登录后可进入答题',
+              online ? '在区域内驻留，达标后即可遇见精灵。' : '离线模拟练习 · 登录后可进入答题',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),

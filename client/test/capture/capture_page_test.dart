@@ -59,7 +59,7 @@ void main() {
 
     expect(find.textContaining('hello world'), findsWidgets);
     expect(find.text('A  hello world'), findsOneWidget);
-    expect(find.textContaining('模拟遇见攻城狮'), findsOneWidget);
+    expect(find.textContaining('本次使用模拟位置'), findsOneWidget);
     controller.dispose();
   });
 

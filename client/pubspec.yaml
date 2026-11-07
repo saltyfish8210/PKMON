@@ -66,6 +66,12 @@ flutter:
   # 新增精灵时把图放进 assets/sprites/ 即可，这里用目录写法会自动包含全部文件。
   assets:
     - assets/sprites/
+    - assets/fonts/OFL.txt
+
+  fonts:
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC.ttf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

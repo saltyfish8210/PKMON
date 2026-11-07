@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/loading_view.dart';
 import '../home_shell.dart';
+import '../member_home_page.dart';
 import 'auth_controller.dart';
 import 'login_page.dart';
 import 'session_store.dart';
@@ -85,12 +86,15 @@ class _AppGateState extends State<AppGate> {
   }
 
   Widget _home(BuildContext context) {
-    return widget.homeBuilder?.call(context) ??
-        HomeShell(
-          studyClient: _controller.status == AuthStatus.signedIn
-              ? _client
-              : null,
-        );
+    if (widget.homeBuilder != null) return widget.homeBuilder!(context);
+    if (_controller.status == AuthStatus.signedIn && _client != null) {
+      return MemberHomePage(
+        client: _client!,
+        nickname: _controller.session!.user.nickname,
+        onLogout: _controller.logout,
+      );
+    }
+    return const HomeShell();
   }
 
   @override

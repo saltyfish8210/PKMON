@@ -1,7 +1,7 @@
 import '../model/auth_models.dart';
 import 'api_client.dart';
 
-/// 账号端口。服务端 HTTP 尚未实现（闫昕分支契约），当前以 Fake 推进。
+/// 账号端口。正式界面通过 HttpAuthApi 调用注册、登录与账号接口。
 abstract interface class AuthApi {
   Future<UserView> register({
     required String username,

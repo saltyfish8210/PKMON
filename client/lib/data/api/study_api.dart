@@ -1,7 +1,7 @@
 import '../model/study_models.dart';
 import 'api_client.dart';
 
-/// 自习任务端口。服务端四条路由为设计态，当前以 Fake 推进。
+/// 自习任务端口。登录后的界面通过 HttpStudyApi 连接服务端。
 abstract interface class StudyApi {
   Future<TaskSnapshot> createTask({
     required String regionId,
