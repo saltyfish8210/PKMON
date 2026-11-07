@@ -31,7 +31,7 @@ class PrimaryButton extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.button),
       ),
-      textStyle: const TextStyle(
+      textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
         fontSize: AppFontSizes.body,
         fontWeight: FontWeight.w600,
       ),
@@ -78,7 +78,7 @@ class SecondaryButton extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.button),
       ),
-      textStyle: const TextStyle(
+      textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
         fontSize: AppFontSizes.body,
         fontWeight: FontWeight.w600,
       ),

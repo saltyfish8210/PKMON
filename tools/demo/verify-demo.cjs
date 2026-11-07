@@ -181,8 +181,7 @@ const assert = require('node:assert/strict');
     await click('刷新收藏'); await page.getByText('登录 PKMon', { exact: true }).waitFor();
     ok('network retry, logout and revoked-session return to login');
     assert.deepEqual(unexpectedErrors, []);
-    // Optional engine glyph-fallback probes may occur. They were blocked for the
-    // entire run; the real acceptance criterion is that the full UI still works.
+    assert.deepEqual([...blockedExternal], [], 'Classroom UI must not need fallback glyph downloads');
     ok('entire browser flow works with external network blocked; no uncaught browser error');
     success = true;
   } catch (error) {
