@@ -1,0 +1,72 @@
+Flutter analysis
+Analyzing client...                                             
+No issues found! (ran in 17.3s)
+
+Flutter tests
+00:21 +100 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/location/simulated_location_provider_test.dart: 合成流推送 SIMULATED/GCJ02 样本，stop 后不再推送
+00:21 +101 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/location/simulated_location_provider_test.dart: 合成流推送 SIMULATED/GCJ02 样本，stop 后不再推送
+00:21 +102 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/location/simulated_location_provider_test.dart: 合成流推送 SIMULATED/GCJ02 样本，stop 后不再推送
+00:21 +103 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/location/simulated_location_provider_test.dart: simulatePermissionDenied 时只发错误不发样本
+00:21 +104 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/study/study_controller_test.dart: Controller 只按 Fake 响应更新，dispose 停止采样
+00:23 +105 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widgets/state_views_test.dart: 加载态显示进度与说明
+00:24 +106 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widgets/state_views_test.dart: 错误态显示说明并可重试
+00:24 +107 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 初始态：按钮是「模拟走到图书馆」，地图上没有精灵
+00:24 +108 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 初始态：按钮是「模拟走到图书馆」，地图上没有精灵
+00:24 +109 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 初始态：按钮是「模拟走到图书馆」，地图上没有精灵
+00:25 +110 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 精灵出现：按钮变「遇见攻城狮」，地图上出现「点击遇见」
+00:26 +111 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 已捕获：按钮变「查看我的图鉴」，精灵不再显示
+00:26 +112 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 地图页的三种形态 后端没就绪时主按钮不可点
+00:26 +113 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 图鉴页 未捕获：进度 0/3，第 1 格显示未解锁，另两格是待开发占位
+00:26 +114 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 图鉴页 已捕获：进度 1/3，第 1 格亮出攻城狮
+00:26 +115 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 背包页 未捕获：显示空态引导
+00:26 +116 ~3: R:/tmp/pkmon-yanxin-design-source/client/test/widget_test.dart: 背包页 已捕获：显示精灵条目和持有数量
+00:26 +117 ~3: All tests passed!
+
+Flutter real backend integration
+00:00 +0: loading R:/tmp/pkmon-yanxin-design-source/client/test/integration/real_backend_test.dart
+00:00 +0: 真实后端联调 (setUpAll)
+00:01 +0: 真实后端联调 登录后 me 返回本人
+00:01 +1: 真实后端联调 无 token 的受保护请求返回 40101
+00:01 +2: 真实后端联调 开发遭遇 → 取题 → 答错 → 答对 → 状态 → 概览
+00:01 +3: 真实后端联调 (tearDownAll)
+00:01 +3: All tests passed!
+
+Maven clean verify
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 108, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ pkmon-server ---
+[INFO] Building jar: C:\Users\taoye\Desktop\��������\tmp\pkmon-yanxin-design-source\server\target\pkmon-server-0.1.0.jar
+[INFO] 
+[INFO] --- spring-boot:3.5.7:repackage (repackage) @ pkmon-server ---
+[INFO] Replacing main artifact C:\Users\taoye\Desktop\��������\tmp\pkmon-yanxin-design-source\server\target\pkmon-server-0.1.0.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to C:\Users\taoye\Desktop\��������\tmp\pkmon-yanxin-design-source\server\target\pkmon-server-0.1.0.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  44.995 s
+[INFO] Finished at: 2026-11-07T22:56:03+08:00
+[INFO] ------------------------------------------------------------------------
+
+Flutter release build
+Compiling lib\main.dart for the Web...                          
+Wasm dry run succeeded. Consider building and testing your application with the `--wasm` flag. See docs for more info: https://docs.flutter.dev/platform-integration/web/wasm
+Use --no-wasm-dry-run to disable these warnings.
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 1472 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 11384 bytes (99.3% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Compiling lib\main.dart for the Web...                             73.3s
+√ Built build\web
+
+Packaged browser acceptance
+PASS register/login and account-owned empty collection
+PASS study dwell -> same encounter -> wrong retry -> correct capture; simulation labelled
+PASS collection navigation, task end, homepage refresh; no guest demo APIs
+PASS replayed answer returns one record; conflicting request rejected
+PASS anonymous/invalid sessions rejected; another account cannot read capture
+PASS file database restart preserves account/session, active task, collection and answer replay
+PASS network retry, logout and revoked-session return to login
+PASS entire browser flow works with external network blocked; no uncaught browser error
+

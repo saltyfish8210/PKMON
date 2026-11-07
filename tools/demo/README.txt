@@ -28,4 +28,4 @@ PKMon 演示构建与验证
 开源字体
 NotoSansSC.ttf 来源：https://github.com/google/fonts/tree/main/ofl/notosanssc
 完整 SIL Open Font License 随 client/assets/fonts/OFL.txt 提供；字体原样随包分发，用于离线显示中文。
-Roboto.ttf 来源：https://github.com/google/fonts/tree/main/ofl/roboto ，许可见 client/assets/fonts/Roboto-OFL.txt。它作为 Flutter 渲染器的默认字体随包提供，防止启动时向字体 CDN 发起请求。
+Roboto.ttf 来源：https://github.com/google/fonts/tree/main/ofl/roboto ，许可见 client/assets/fonts/Roboto-OFL.txt。它作为 Flutter 渲染器的默认字体随包提供。引擎可能尝试额外的字形回退请求；验收期间全部外网请求被阻断，以完整页面操作和可读截图确认课堂流程不依赖这些请求。

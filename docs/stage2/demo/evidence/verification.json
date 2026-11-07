@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "verifiedAt": "2026-11-07T15:08:12.815Z",
+  "jarSha256": "dc88fb11f4e36b548c2aa62c5fd188bd6a5a3f196a09c655fa88e23c1135afd5",
+  "checks": [
+    "register/login and account-owned empty collection",
+    "study dwell -> same encounter -> wrong retry -> correct capture; simulation labelled",
+    "collection navigation, task end, homepage refresh; no guest demo APIs",
+    "replayed answer returns one record; conflicting request rejected",
+    "anonymous/invalid sessions rejected; another account cannot read capture",
+    "file database restart preserves account/session, active task, collection and answer replay",
+    "network retry, logout and revoked-session return to login",
+    "entire browser flow works with external network blocked; no uncaught browser error"
+  ],
+  "externalNetworkDisabled": true,
+  "blockedExternal": [
+    "https://fonts.gstatic.com"
+  ],
+  "browserErrors": [],
+  "scope": "Windows Chrome / Flutter Web + Spring Boot + JDBC file database; simulated position; Android not tested"
+}

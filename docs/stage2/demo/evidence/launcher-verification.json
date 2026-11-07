@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-07T14:57:10.686Z",
+  "checks": [
+    "launch from path with spaces using included Java runtime",
+    "occupied port switches to free port without stopping existing listener",
+    "embedded web assets respond successfully",
+    "pressing Enter stops only the launched demo service"
+  ]
+}
