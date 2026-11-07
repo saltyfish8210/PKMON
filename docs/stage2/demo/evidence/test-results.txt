@@ -51,13 +51,28 @@ Maven clean verify
 [INFO] Finished at: 2026-11-07T22:56:03+08:00
 [INFO] ------------------------------------------------------------------------
 
+Button font regression tests
+00:00 +0: loading R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart
+00:00 +0: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 显示骨架说明、演示按钮和注册后置说明
+00:01 +1: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/app_gate_test.dart: 首帧显示恢复中，无会话进入登录页
+00:02 +2: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 空输入只提示，不发请求
+00:02 +3: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/app_gate_test.dart: 进入演示不创建也不保存会话
+00:02 +4: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 错误口令显示统一提示
+00:02 +5: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 错误口令显示统一提示
+00:02 +6: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/app_gate_test.dart: 本地会话已过期时回到登录页并说明原因
+00:02 +7: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 提交中禁用按钮并显示登录中
+00:03 +8: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 提交中禁用按钮并显示登录中
+00:03 +9: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 小屏可滚动且不溢出
+00:03 +10: R:/tmp/pkmon-yanxin-design-source/client/test/features/auth/login_page_test.dart: 演示按钮只回调一次
+00:03 +11: All tests passed!
+
 Flutter release build
 Compiling lib\main.dart for the Web...                          
 Wasm dry run succeeded. Consider building and testing your application with the `--wasm` flag. See docs for more info: https://docs.flutter.dev/platform-integration/web/wasm
 Use --no-wasm-dry-run to disable these warnings.
 Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 1472 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
 Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 11384 bytes (99.3% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
-Compiling lib\main.dart for the Web...                             73.3s
+Compiling lib\main.dart for the Web...                             79.6s
 √ Built build\web
 
 Packaged browser acceptance

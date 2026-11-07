@@ -1,7 +1,7 @@
 {
   "passed": true,
-  "verifiedAt": "2026-11-07T15:08:12.815Z",
-  "jarSha256": "dc88fb11f4e36b548c2aa62c5fd188bd6a5a3f196a09c655fa88e23c1135afd5",
+  "verifiedAt": "2026-11-07T15:20:19.296Z",
+  "jarSha256": "fa60163399cb05b64df9c49eed5f80703a036c0a24a7201dcea767576e2c5e26",
   "checks": [
     "register/login and account-owned empty collection",
     "study dwell -> same encounter -> wrong retry -> correct capture; simulation labelled",
@@ -13,9 +13,7 @@
     "entire browser flow works with external network blocked; no uncaught browser error"
   ],
   "externalNetworkDisabled": true,
-  "blockedExternal": [
-    "https://fonts.gstatic.com"
-  ],
+  "blockedExternal": [],
   "browserErrors": [],
   "scope": "Windows Chrome / Flutter Web + Spring Boot + JDBC file database; simulated position; Android not tested"
 }
