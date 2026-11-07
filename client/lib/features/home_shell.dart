@@ -151,7 +151,7 @@ class _HomeShellState extends State<HomeShell> {
   /// 遇见精灵：先向后端要题，再进答题页；回来后刷新状态
   Future<void> _capture() => _action(() async {
         final challenge = await _api.request(
-          'capture/challenge',
+          'demo/capture/challenge',
           body: <String, dynamic>{'spawnId': 'library-001'},
         );
         if (!mounted) return;
