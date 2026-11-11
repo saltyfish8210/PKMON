@@ -1,0 +1,74 @@
+联调记录（evidence/integration.txt）
+作者：董欣毓
+日期：2026-11-11
+阶段：integration（11/06，补交）
+所用源码提交：8dd076c（main）
+
+一、本次联调目标
+
+验证"自习任务触发 → 遇见攻城狮"这条链路在真实进程上能走通：
+study 模块判定触发 → 产生 spawnId → capture 模块用该 spawnId 出题。以及任务状态在重启后是否保留（JDBC）。
+
+二、环境与启动
+
+开发服务器 group8（Ubuntu 24.04 / OpenJDK 17.0.2 / Maven 3.9.9），仓库 ~/pkmon @ 8dd076c。
+
+启动命令（内存存储，用于先验证代码级联调）：
+java -jar target/pkmon-server-0.1.0.jar \
+  --spring.profiles.active=dev \
+  --server.address=127.0.0.1 --server.port=4181 \
+  --pkmon.capture.dev-user-header=true \
+  --pkmon.capture.in-memory-store=true \
+  --pkmon.study.in-memory-store=true \
+  --pkmon.study.rules.required-seconds=5
+
+身份：X-Dev-User: u1（capture 的开发期替身；user 模块的 dev fixture 会加 dev: 前缀，见缺陷 D-S01）
+
+三、链路一：study → capture（通过）
+
+脚本 ~/study_integration.py（本地副本 D:\work\study_integration.py），步骤与实测：
+
+1. POST /api/v1/study/tasks → 200，status=WAITING，requiredSeconds=5
+2. 第 1 条样本 → 200，sampleAccepted=true，仍 WAITING
+3. 第 2 条样本 → 200，status=DWELLING，effectiveSeconds=0
+4. 第 3 条样本（间隔 6 秒 ≥ 阈值 5）→ 200，status=TRIGGERED，effectiveSeconds=5，spawnId=74da4fd5-…
+5. GET /api/v1/study/tasks/current → 200，返回该 TRIGGERED 任务
+6. POST /api/v1/capture/challenge {"spawnId":"74da4fd5-…"} → 200，
+   challengeId=02ba74b5-…，speciesId=siege_lion，questionId=hello_world_001，返回 A/B/C 选项且不含正确答案
+
+结论：SpawnGateway → capture.SpawnService.fromStudyTask 的跨模块调用成立；一个任务只产生一个 spawnId 的语义在真实进程上保持。
+
+四、链路二：JDBC 持久化（被阻塞，缺陷 D-S01）
+
+dev profile 使用 H2 文件库（server/data/pkmon-dev），迁移 V2 建 study_tasks 并对 user_id 加了外键
+FOREIGN KEY(user_id) REFERENCES users(user_id)。
+
+用 dev 身份（X-Dev-User: u1）创建任务时，实际写入的 user_id 是 "dev:u1"（user 模块 AccountConfiguration 对开发 fixture 加了 dev: 前缀），
+users 表没有这一行，插入失败：
+
+  JdbcSQLIntegrityConstraintViolationException: Referential integrity constraint violation:
+  "CONSTRAINT_4BA: PUBLIC.STUDY_TASKS FOREIGN KEY(USER_ID) REFERENCES PUBLIC.USERS(USER_ID) ('dev:u1')"
+
+接口返回 500 / code 50000，日志见本节命令的 study-it.log。
+因此"重启后任务仍在"的持久化验证本轮未执行。
+
+影响：任何非注册用户（开发身份、演示身份）在 dev/JDBC 下都无法开始自习任务；真实登录用户（users 表有行）理论上可用，但当前 identity 端口还没有把 Bearer token 解析成 userId，所以实际也走不到。
+
+责任与建议（跨模块，本人不擅自改）：
+- 闫昕：开发期身份应解析到 users 表中真实存在的行（例如启动时 seed 一个 dev 用户，或 dev fixture 返回该用户 id），而不是拼 dev: 前缀；
+- 胡豪：若保留外键，需提供 dev/test 的 seed 用户；否则评估去掉该外键、由应用层校验归属。
+
+绕行：本轮用 --pkmon.study.in-memory-store=true --pkmon.capture.in-memory-store=true 完成链路一；这只证明代码集成，不代表持久化通过。
+
+五、未执行
+
+1. 重启后任务仍在（被 D-S01 阻塞）。
+2. 客户端（Flutter）联调：本机无 Flutter 环境，未构建。
+3. 真实定位与真机。
+4. 并发触发与数据库唯一约束验证。
+
+六、复跑
+
+cd ~/pkmon/server && mvn -B -q -DskipTests package
+# 按第二节启动后
+python3 ~/study_integration.py a

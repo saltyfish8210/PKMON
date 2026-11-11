@@ -2,10 +2,10 @@
   "owner": "dongxinyu",
   "stage": "stage2",
   "module": "study",
-  "version": "implementation-2026-11-01",
+  "version": "post-integration-2026-11-11",
   "designedVersion": "design-2026-10-28",
   "status": "implemented_in_memory",
-  "statusNote": "四个 study 接口已在 edu.pkmon.study 实现并通过测试（14 规则 + 6 服务 + 7 控制器，全仓 71 个测试通过）与端到端冒烟（开始→三条样本→触发→结束→结束后 40903→他人 40401，见 evidence/implementation-smoke.txt）。存储为内存实现、身份沿用 capture 的 X-Dev-User 请求头替身、遭遇由 StubSpawnGateway 只生成编号，三项均标为模拟；接 JDBC、真实认证与孙虹毅 SpawnService 后需把对应标记置为 false。",
+  "statusNote": "四个 study 接口在 edu.pkmon.study 实现；内存存储下任务→触发→capture 出题链路已在真实进程验证（evidence/integration.txt）。JDBC 实现（JdbcTaskRepository）已由持久化轮合入并通过 6 个仓库测试，但 dev 身份（dev: 前缀）与 users 外键冲突，导致 dev/JDBC 下创建任务返回 500（缺陷 D-S01，责任：闫昕的身份解析、胡豪的 V2 外键），重启持久化未验。",
   "conventions": {
     "baseUrl": "http://127.0.0.1:4180",
     "businessPrefix": "/api/v1",
@@ -326,11 +326,10 @@
     }
   ],
   "unimplemented": [
-    "JdbcTaskRepository 与 study_task/task_sample 迁移（胡豪）",
-    "SpawnGateway 真实实现（孙虹毅）；当前 StubSpawnGateway 只生成编号",
-    "数据库唯一约束与并发触发测试",
-    "真机定位与客户端联调",
-    "认证接入后移除 X-Dev-User 依赖"
+    "dev 身份到 users 行的衔接（缺陷 D-S01）：阻塞 dev/JDBC 下的任务创建与重启持久化",
+    "认证接入：identity 端口尚未把 Bearer token 解析为 userId",
+    "并发触发与数据库唯一约束实测（TC-S29）",
+    "真机定位与客户端联调（TC-S30）"
   ],
   "implementedFiles": {
     "domain": "server/src/main/java/edu/pkmon/study/domain/",

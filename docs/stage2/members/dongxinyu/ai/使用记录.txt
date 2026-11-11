@@ -64,3 +64,19 @@ AI 使用记录
    - 测试证据只引用本机原型（20 个测试），并注明仓库内尚未提交代码。
 5. 未做：Spring MVC、数据库、并发、真机；这些在实现轮与第三阶段。
 
+
+
+====================================================================
+联调与测试轮（2026-11-11 补记）
+====================================================================
+
+1. 任务：把 implementation 之后的 integration（11/06）与 testing（11/07）补齐，并准备 11/12 课堂讲解稿。
+2. 做法：在开发服务器拉最新 main（8dd076c）跑全量 mvn test；再用真实进程跑"开始任务→三条样本→触发→
+   用 spawnId 取题"的跨模块链路；JDBC 路径失败后定位到外键与开发身份的冲突。
+3. AI 输出：evidence/integration.txt、evidence/testing.txt、handoffs/integration.txt、handoffs/testing.txt、
+   presentation/talk.txt，并更新 design/interfaces.json 的集成后状态。
+4. 本人核对：
+   - 全量测试 108 个通过，本人模块 34 个，逐项与 design/test-cases.csv 对齐；
+   - 跨模块出题确实用了 study 产出的 spawnId，不是另造一个；
+   - JDBC 失败不是规则问题，是 dev 身份（dev: 前缀）与 users 外键；按缺陷 D-S01 记给闫昕与胡豪，未擅自改他人文件。
+5. 未做：并发压测、真机、客户端联调、重启持久化（被 D-S01 阻塞）。

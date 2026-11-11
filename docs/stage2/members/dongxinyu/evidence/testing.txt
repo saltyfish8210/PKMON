@@ -1,0 +1,58 @@
+测试记录（evidence/testing.txt）
+作者：董欣毓
+日期：2026-11-11
+阶段：testing（11/07，补交）
+测试版本：main 8dd076c（代码与本人 implementation 成果 b3374fc 之后的集成、持久化提交）
+环境：开发服务器 group8，Ubuntu 24.04 / OpenJDK 17.0.2 / Maven 3.9.9
+
+一、自动化测试
+
+命令：cd ~/pkmon/server && mvn -B test
+结果：Tests run: 108, Failures: 0, Errors: 0, Skipped: 0
+
+本人模块（edu.pkmon.study）34 个：
+  DwellEvaluatorTest              15 通过
+  DwellStudyTaskServiceTest        6 通过
+  StudyControllerTest              7 通过
+  JdbcTaskRepositoryTest           6 通过
+其他模块 74 个（capture 31、user 23、common 12、demo 8）全部通过。
+
+测试覆盖与 design/test-cases.csv 的对应：TC-S01～TC-S27 已由上述用例覆盖；
+TC-S28（Spring MVC 错误映射）由 StudyControllerTest 覆盖；TC-S29（并发唯一约束）、TC-S30（真机）未执行。
+
+二、接口手工验证（真实进程，内存存储）
+
+脚本 ~/study_integration.py，启动参数见 evidence/integration.txt 第二节。
+
+用例 | 请求 | 实测 | 结论
+1 | POST /study/tasks（X-Dev-User=u1） | 200，code 0，status=WAITING，requiredSeconds=5 | 通过
+2 | 第 1 条样本 | 200，sampleAccepted=true，仍 WAITING | 通过
+3 | 第 2 条样本 | 200，DWELLING，effectiveSeconds=0 | 通过
+4 | 第 3 条样本（间隔 6s ≥ 5） | 200，TRIGGERED，effectiveSeconds=5，spawnId 非空 | 通过
+5 | GET /study/tasks/current | 200，返回 TRIGGERED 任务 | 通过
+6 | POST /capture/challenge（用上面 spawnId） | 200，出题成功，选项不含正确答案 | 通过（跨模块）
+7 | 结束后再提交样本 | 409，code 40903 | 通过
+8 | 他人结束该任务 | 404，code 40401 | 通过
+9 | dev 身份 + JDBC 存储开始任务 | 500，code 50000，外键 users 冲突 | 失败，见缺陷 D-S01
+
+三、缺陷
+
+D-S01（高，阻塞）：dev/JDBC 下无法创建自习任务。
+  现象：study_tasks.user_id 写入 "dev:u1"，users 表无该行，外键约束失败，接口 500。
+  证据：evidence/integration.txt 第四节；日志报错原文已抄录。
+  责任人：闫昕（开发期身份解析）、胡豪（V2 外键与 dev seed）。
+  影响：重启持久化、客户端真实链路都无法验收；演示只能走内存存储或 classroom demo 命名空间。
+  修复建议：dev fixture 解析到 users 中真实存在的行（seed），或由应用层校验归属后去掉该外键。
+
+本轮未发现本人模块的规则/服务缺陷；上一轮 implementation 修的两处（TRIGGERED 不算活动任务、异常处理器优先级）已由本轮 108 个测试与手工用例回归确认。
+
+四、未执行
+
+1. TC-S29 并发：同任务 20 并发触发只产生一条 spawn —— 需要数据库与压测环境，未做。
+2. TC-S30 真机定位与客户端联调 —— 本机无 Flutter，未做。
+3. 重启持久化 —— 被 D-S01 阻塞。
+
+五、结论
+
+自动化 108 个测试全绿；内存存储下"任务→触发→出题"链路实测通过；
+JDBC + 开发身份的持久化路径存在一个跨模块缺陷 D-S01，已记录并指明责任人，不能计入通过。

@@ -1,0 +1,30 @@
+阶段：testing（11/07，补交）
+作者：董欣毓
+截止：11/08 04:00（北京时间）；本材料于 11/11 补交。
+状态：已合入 main（成果提交见下；main 合入提交号在本次推送后回填）
+任务分支：docs/integration-testing
+成果版本：见本目录所在提交（推送后回填 40 位提交号）
+测试版本：main 8dd076c
+材料路径：
+docs/stage2/members/dongxinyu/evidence/testing.txt
+docs/stage2/members/dongxinyu/evidence/integration.txt
+
+读者：李宗晏（复测与缺陷汇总）、闫昕（进度）、胡豪（D-S01 建表侧）、赵冠钧（客户端用例）。
+
+实际验证：
+1. mvn -B test：Tests run: 108, Failures: 0, Errors: 0；本人模块 34 个（规则 15、服务 6、控制器 7、JDBC 6）。
+2. 真实进程手工用例 9 条：8 条通过，1 条失败（dev + JDBC 创建任务，缺陷 D-S01）。
+3. 跨模块用例通过：study 产生的 spawnId 能被 capture 取题接口消费。
+
+真实 / 模拟 / 未执行：
+- 真实：自动化测试、HTTP 手工用例、跨模块调用。
+- 模拟：内存存储、开发身份、5 秒演示阈值。
+- 未执行：TC-S29 并发唯一约束、TC-S30 真机与客户端、重启持久化（被 D-S01 阻塞）。
+
+缺陷：D-S01（高）dev 身份 "dev:u1" 与 study_tasks.user_id 外键冲突，dev/JDBC 下无法创建任务。
+责任人：闫昕（身份解析）、胡豪（V2 外键与 dev seed）。证据见 evidence/integration.txt 第四节。
+
+缺项与后续：
+1. D-S01 修复后补跑 TC-S29 与重启持久化。
+2. 真机与客户端用例需要 Flutter 环境与登录态，本机不具备。
+3. 本人模块未发现规则/服务缺陷；上一轮两处修复已回归。

@@ -1,0 +1,30 @@
+阶段：integration（11/06，补交）
+作者：董欣毓
+截止：11/07 04:00（北京时间）；本材料于 11/11 补交，接收方按实际合入时间读取。
+状态：已合入 main（成果提交见下；main 合入提交号在本次推送后回填）
+任务分支：docs/integration-testing
+成果版本：见本目录所在提交（推送后回填 40 位提交号）
+所用输入源码提交：8dd076c（main）
+材料路径：
+docs/stage2/members/dongxinyu/evidence/integration.txt
+docs/stage2/members/dongxinyu/design/interfaces.json（statusNote 已更新为集成后状态）
+docs/stage2/members/dongxinyu/presentation/talk.txt
+
+读者：闫昕读身份与外键衔接；孙虹毅读 STUDY 来源遭遇已被真实调用；胡豪读 V2 外键与 dev seed；赵冠钧读客户端联调前置条件；李宗晏读缺陷 D-S01。
+
+实际验证（开发服务器 group8，2026-11-11）：
+1. 内存存储下真实链路通过：开始任务 → 三条样本（阈值 5s）→ TRIGGERED + spawnId → 用该 spawnId 调 capture 取题成功（hello_world_001，选项不含答案）。
+2. dev/JDBC 路径失败：study_tasks 对 users 外键，dev 身份 "dev:u1" 不在 users 表，插入报约束冲突，接口 500。
+3. 重启持久化因此未验证。
+
+真实 / 模拟 / 未执行：
+- 真实：HTTP 接口、跨模块调用、capture 出题、错误码。
+- 模拟：内存存储、X-Dev-User 身份、阈值 5 秒（演示值）。
+- 未执行：JDBC 持久化（被 D-S01 阻塞）、客户端联调、真机、并发。
+
+缺项与后续：
+1. D-S01 需闫昕/胡豪处理：dev 身份解析到 users 真实行，或提供 dev seed 用户；处理后可复跑重启持久化。
+2. 认证接入后，study 控制器应改用 user 模块的 CurrentUser，而不是 capture 的开发期替身。
+3. 客户端联调需 Flutter 环境与真实登录态。
+
+交接读取方式：先读 evidence/integration.txt 第三、四节，再按第六节复跑。成果提交号指业务材料提交，不要求包含本文件自身。
