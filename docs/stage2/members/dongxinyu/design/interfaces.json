@@ -2,10 +2,10 @@
   "owner": "dongxinyu",
   "stage": "stage2",
   "module": "study",
-  "version": "post-integration-2026-11-11",
+  "version": "post-integration-2026-11-11b",
   "designedVersion": "design-2026-10-28",
   "status": "implemented_in_memory",
-  "statusNote": "四个 study 接口在 edu.pkmon.study 实现；内存存储下任务→触发→capture 出题链路已在真实进程验证（evidence/integration.txt）。JDBC 实现（JdbcTaskRepository）已由持久化轮合入并通过 6 个仓库测试，但 dev 身份（dev: 前缀）与 users 外键冲突，导致 dev/JDBC 下创建任务返回 500（缺陷 D-S01，责任：闫昕的身份解析、胡豪的 V2 外键），重启持久化未验。",
+  "statusNote": "四个 study 接口已实现并实测：内存存储下任务→触发→capture 出题链路通过；真实注册登录 + Bearer token + JDBC 下，建任务、触发、出题、重启后任务与挑战恢复、结束全部通过（evidence/integration.txt 第七节）。缺陷 D-S01 只影响无 Authorization 头的 dev 替身身份（dev: 前缀触发 users 外键冲突），真实登录不受影响。",
   "conventions": {
     "baseUrl": "http://127.0.0.1:4180",
     "businessPrefix": "/api/v1",
@@ -326,10 +326,10 @@
     }
   ],
   "unimplemented": [
-    "dev 身份到 users 行的衔接（缺陷 D-S01）：阻塞 dev/JDBC 下的任务创建与重启持久化",
-    "认证接入：identity 端口尚未把 Bearer token 解析为 userId",
+    "dev 替身身份到 users 行的衔接（缺陷 D-S01，仅影响替身路径）",
     "并发触发与数据库唯一约束实测（TC-S29）",
-    "真机定位与客户端联调（TC-S30）"
+    "真机定位与客户端联调（TC-S30）",
+    "控制器改用 user 模块 CurrentUser（当前仍注入 capture 的端口）"
   ],
   "implementedFiles": {
     "domain": "server/src/main/java/edu/pkmon/study/domain/",

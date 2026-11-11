@@ -28,3 +28,9 @@ docs/stage2/members/dongxinyu/presentation/talk.txt
 3. 客户端联调需 Flutter 环境与真实登录态。
 
 交接读取方式：先读 evidence/integration.txt 第三、四节，再按第六节复跑。成果提交号指业务材料提交，不要求包含本文件自身。
+
+【2026-11-11 补充】真实登录 + JDBC 验证通过
+用注册账号（qa_study）登录拿 Bearer token，带 token 建任务落库成功（外键通过），三条样本到阈值触发，
+用 spawnId 取题成功；重启进程后 current 仍返回同一任务（TRIGGERED、时长与 spawnId 不变），挑战仍为 OPEN，
+结束任务正常。证据：evidence/integration.txt 第七节、evidence/testing.txt 第 10～12 条。
+结论修正：缺陷 D-S01 只影响无 Authorization 头的 dev 替身身份，真实登录路径已通过；持久化不再列为未验证。

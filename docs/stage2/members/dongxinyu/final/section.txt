@@ -97,7 +97,11 @@ uk_study_tasks_start_request（重复开始幂等）、活动任务唯一、uk_l
 
 6.2 联调
 
-真实进程（内存存储）上跑通：开始任务 → 三条样本（阈值 5 秒）→ TRIGGERED 并给出 spawnId → 用该 spawnId 调 capture 取题接口成功出题（hello_world_001，选项不含答案）。说明"任务产生遭遇"的跨模块调用成立。
+真实进程上跑通两条链路。
+
+其一（内存存储）：开始任务 → 三条样本（阈值 5 秒）→ TRIGGERED 并给出 spawnId → 用该 spawnId 调 capture 取题接口成功出题（hello_world_001，选项不含答案），说明"任务产生遭遇"的跨模块调用成立。
+
+其二（真实登录 + JDBC）：注册登录后带 Bearer token 建任务，落库成功（study_tasks 外键通过），三条件达到阈值触发，取题成功；重启进程后查询当前任务仍是同一 taskId、TRIGGERED、时长与 spawnId 不变，挑战仍为 OPEN，结束任务正常。证明 JDBC 持久化与重启恢复可用。
 
 6.3 证据
 
@@ -105,17 +109,17 @@ evidence/implementation.txt、evidence/implementation-smoke.txt、evidence/integ
 
 7 缺陷与限制
 
-D-S01（高）：dev 环境下用户身份为 "dev:<fixture>"，study_tasks.user_id 对 users 有外键，插入失败，接口返回 500；因此 dev/JDBC 下的任务创建与"重启后任务仍在"未验证。责任：闫昕（身份解析）、胡豪（V2 外键与 dev seed）。
+D-S01（中）：dev 环境下没有 Authorization 头时身份为 "dev:<fixture>"，study_tasks.user_id 对 users 有外键，插入失败、接口 500。带 Bearer token 的真实登录不受影响（见 6.2 其二）。责任：闫昕（替身身份解析）、胡豪（V2 外键与 dev seed）。
 
 其他限制：
-1. 认证尚未把 Bearer token 解析为 userId，study 控制器仍用 capture 的开发期身份替身；
+1. 认证已能解析 Bearer token，但 study 控制器仍注入 capture 的 CurrentUserProvider，属于过渡实现，接入后应改用 user 模块的 CurrentUser；
 2. 真机定位与坐标系未验证，区域中心为候选坐标；
 3. 客户端联调未做（本机无 Flutter）；
 4. 并发触发与数据库唯一约束只做了单元级验证，未做压测。
 
 8 后续
 
-1. 修 D-S01：dev 身份解析到 users 真实行，或提供 dev seed 用户；随后补跑重启持久化与并发测试。
-2. 接入真实认证后，控制器改用 user 模块的 CurrentUser。
-3. 客户端联调：四端点已可用，停止条件为 40903、冷却为 40904，页面只展示服务端 effectiveSeconds。
+1. 修 D-S01：让 dev 替身身份解析到 users 真实行，或提供 dev seed 用户；并发压测随后补。
+2. study 控制器改用 user 模块的 CurrentUser，去掉对 capture 端口类的依赖。
+3. 客户端联调：四端点已可用（含 Bearer token 与开发替身两种身份），停止条件为 40903、冷却为 40904，页面只展示服务端 effectiveSeconds。
 4. 真机验证后用实测精度冻结 50 米上限与 80/100 米半径。

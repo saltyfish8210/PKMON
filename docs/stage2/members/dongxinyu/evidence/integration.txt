@@ -38,7 +38,7 @@ java -jar target/pkmon-server-0.1.0.jar \
 
 结论：SpawnGateway → capture.SpawnService.fromStudyTask 的跨模块调用成立；一个任务只产生一个 spawnId 的语义在真实进程上保持。
 
-四、链路二：JDBC 持久化（被阻塞，缺陷 D-S01）
+四、链路二：JDBC 持久化（dev 替身身份失败，缺陷 D-S01；真实登录已通过，见第七节）
 
 dev profile 使用 H2 文件库（server/data/pkmon-dev），迁移 V2 建 study_tasks 并对 user_id 加了外键
 FOREIGN KEY(user_id) REFERENCES users(user_id)。
@@ -50,25 +50,46 @@ users 表没有这一行，插入失败：
   "CONSTRAINT_4BA: PUBLIC.STUDY_TASKS FOREIGN KEY(USER_ID) REFERENCES PUBLIC.USERS(USER_ID) ('dev:u1')"
 
 接口返回 500 / code 50000，日志见本节命令的 study-it.log。
-因此"重启后任务仍在"的持久化验证本轮未执行。
 
-影响：任何非注册用户（开发身份、演示身份）在 dev/JDBC 下都无法开始自习任务；真实登录用户（users 表有行）理论上可用，但当前 identity 端口还没有把 Bearer token 解析成 userId，所以实际也走不到。
+影响：**仅限没有 Authorization 头的开发替身身份**（X-Dev-User）。带 Bearer token 的真实登录不受影响——
+AccountConfiguration.accountIdentity 先解析 Authorization，解析成功就返回真实 userId，不会加 dev: 前缀。
+第七节用真实账号验证了 JDBC 与重启持久化。
 
 责任与建议（跨模块，本人不擅自改）：
-- 闫昕：开发期身份应解析到 users 表中真实存在的行（例如启动时 seed 一个 dev 用户，或 dev fixture 返回该用户 id），而不是拼 dev: 前缀；
+- 闫昕：dev 替身身份应解析到 users 表中真实存在的行（启动时 seed 一个 dev 用户，或 fixture 直接返回该用户 id）；
 - 胡豪：若保留外键，需提供 dev/test 的 seed 用户；否则评估去掉该外键、由应用层校验归属。
 
-绕行：本轮用 --pkmon.study.in-memory-store=true --pkmon.capture.in-memory-store=true 完成链路一；这只证明代码集成，不代表持久化通过。
+绕行：本轮用 --pkmon.study.in-memory-store=true --pkmon.capture.in-memory-store=true 完成链路一；
+真实登录 + JDBC 用第七节的流程完成。
 
 五、未执行
 
-1. 重启后任务仍在（被 D-S01 阻塞）。
-2. 客户端（Flutter）联调：本机无 Flutter 环境，未构建。
-3. 真实定位与真机。
-4. 并发触发与数据库唯一约束验证。
+1. 客户端（Flutter）联调：本机无 Flutter 环境，未构建。
+2. 真实定位与真机。
+3. 并发触发与数据库唯一约束验证。
 
 六、复跑
 
 cd ~/pkmon/server && mvn -B -q -DskipTests package
 # 按第二节启动后
 python3 ~/study_integration.py a
+
+七、链路三：真实登录 + JDBC 持久化（通过，2026-11-11 补充）
+
+启动：dev profile（H2 文件库，JDBC 实现），端口 4182，阈值 5 秒；
+脚本 ~/study_auth_flow.py（本地副本 D:\work\study_auth_flow.py）。
+
+步骤与实测：
+1. POST /api/v1/auth/register（qa_study / 12 位口令）→ 200，userId=90b6d7a7-540a-4048-96e7-293f7a4b8a40
+2. POST /api/v1/auth/login → 200，返回 token 与 user
+3. POST /api/v1/study/tasks（Authorization: Bearer …）→ 200，WAITING；**插入成功，外键通过**
+4. 第 1/2/3 条样本 → WAITING → DWELLING → TRIGGERED（effectiveSeconds=5，spawnId=532fc4f6-…）
+5. GET /api/v1/study/tasks/current → 200，返回该任务
+6. POST /api/v1/capture/challenge（用该 spawnId）→ 200，出题 hello_world_001
+7. **重启进程**后再次 GET current → 200，仍是同一 taskId、TRIGGERED、effectiveSeconds=5、同一 spawnId
+8. 重启后 GET /api/v1/capture/challenges/{id} → 200，status=OPEN
+9. POST /api/v1/study/tasks/{id}/end → 200，ENDED，保留时长与 spawnId
+
+结论：JDBC 持久化、任务表外键、spawn 唯一性与重启恢复在真实登录下均通过。
+D-S01 只影响开发替身身份，不影响真实链路；但仍会导致"演示用 dev 身份"无法建任务，需修。
+
