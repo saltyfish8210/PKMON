@@ -1,0 +1,35 @@
+材料自查记录（evidence/self-check.txt）
+作者：董欣毓
+日期：2026-11-11
+阶段：documents 前置自查（对应 11/16-11/17 节点，提前完成）
+自查版本：main 20e0e69c
+
+一、自查项与结果（18 项全部通过）
+
+1. 正文图的引用：final/section.txt 引用的 5 张图（analysis 3 张、design 2 张）在仓库中均存在。
+2. 索引路径：final/index.csv 的 44 条路径全部存在（server/ 源码行按目录存在性判断）。
+3. 数字一致性：
+   - evidence/testing.txt 记录 108 个测试、本人模块 34 个；
+   - final/section.txt 同样写 108 与 34；
+   - 正文"缺陷与限制"之前的章节没有声称"重启后任务仍在"已通过。
+4. 交接记录：analysis、design、implementation、integration、testing、documents 六份都含 7～40 位提交号。
+5. 残留检查：docs/stage2/members/dongxinyu 下所有 .txt 无"待填写 / TBD / TODO"。
+
+二、自查方法
+
+脚本 self_check.py（本机 D:\work\self_check.py），做五类断言：引用的图存在、索引路径存在、
+关键数字在证据与正文中一致、交接记录含提交号、无占位残留。输出 18 行 PASS，FAILURES: 0。
+
+复跑方式：把脚本放在仓库根目录执行 python self_check.py，或按上表逐项人工核对。
+
+三、发现与处理
+
+本轮未发现不一致，无需修改正文。
+已知遗漏（不是文档问题，是验证未完成）：
+1. 重启持久化与并发触发未验证（缺陷 D-S01 阻塞），正文第七节已写为限制；
+2. 真机与客户端联调未做，正文未声称通过。
+
+四、结论
+
+材料之间（正文、证据、索引、交接记录）口径一致，可交闫昕汇总；剩余风险是 D-S01 与真机验证，
+已在第七节与交接记录中如实标注。
