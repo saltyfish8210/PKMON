@@ -1,0 +1,40 @@
+展示与演示记录（evidence/demo.txt）
+作者：董欣毓
+日期：2026-11-11
+阶段：release / demo（11/09-11/10，补交）
+
+一、本次产出的展示材料
+
+1. docs/stage2/members/dongxinyu/presentation/talk.txt：5 分钟讲解稿，六段（用户问题、对象与职责、
+   状态图、真实运行结果、未完成、一句话总结）。
+2. docs/stage2/members/dongxinyu/presentation/自习任务与驻留触发-课堂报告.pptx：6 页幻灯片。
+   页序：封面 → 用户问题与两个判断 → 六个对象（分析类图）→ 状态机（设计状态图）→ 真实运行结果 → 未完成与下一步。
+   图直接引用 analysis/ 与 design/ 下的 PNG，不新画一套。
+3. 幻灯片生成后转 PNG 逐页检查：标题、正文、图、页码方向正常；第 3 页曾出现图片尺寸错误（图被放到极小或溢出），
+   已改为按可用宽度等比缩放并重新检查。
+
+二、演示路径（本人负责段）
+
+用真实 HTTP 演示"任务 → 触发 → 出题"，不依赖客户端界面：
+
+启动（开发服务器 group8）：
+  java -jar target/pkmon-server-0.1.0.jar --spring.profiles.active=dev \
+    --server.address=127.0.0.1 --server.port=4181 --pkmon.capture.dev-user-header=true \
+    --pkmon.capture.in-memory-store=true --pkmon.study.in-memory-store=true \
+    --pkmon.study.rules.required-seconds=5
+
+演示脚本：~/study_integration.py a（本机副本 D:\work\study_integration.py）
+展示要点：第 2 条样本进入 DWELLING、第 3 条样本到阈值触发并返回 spawnId、用该 spawnId 调 capture 出题。
+完整输出见 evidence/integration.txt 第三节。
+
+三、未执行
+
+1. 团队打包的 classroom demo（pkmon-demo.jar，源码 3a1ccb0）：本机未运行，未对其截图；
+   展示用服务端 HTTP 链路与讲解稿，不用客户端界面截图。
+2. 真机与 Flutter 客户端：无环境。
+3. 重启持久化：被缺陷 D-S01 阻塞。
+
+四、结论
+
+讲解稿与 6 页幻灯片就绪，演示路径是真实进程上的 HTTP 链路，可现场复跑；
+客户端界面截图与 classroom demo 的截图不在本次材料内，讲课如需要请用团队演示包录制。
