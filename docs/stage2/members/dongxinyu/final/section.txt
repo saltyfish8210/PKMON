@@ -1,0 +1,121 @@
+自习任务与驻留触发
+（面向对象分析设计文档 · 第二章 · 作者：董欣毓）
+
+1 系统目的与范围
+
+PKMon 把校园区域探索、自习驻留与精灵收集连接起来。本章说明"自习任务"与"驻留触发"：用户选择支持的区域开始自习任务，客户端持续上报位置样本，服务端判断是否真的在区域内停留、累计有效时长，达到阈值后生成一次精灵遭遇机会，用户据此答题收集精灵。
+
+本章覆盖：任务开始、查询、结束；区域围栏与样本采纳判定；有效停留的确认、累计、暂停与恢复；达到阈值只生成一次遭遇。不覆盖：账号与登录（闫昕）、地图页与定位插件（赵冠钧）、遭遇与挑战的判题结算（孙虹毅）、建表与迁移（胡豪）。遭遇之后的答题与捕获只引用，不重复规则。
+
+2 参与者与用况
+
+参与者三类：进行自习任务的学生用户；开发与演示配置下使用模拟位置的演示人员；以及作为内部计时者的服务器时间（不是外部参与者，但它是"没有新样本也能暂停"的推进者）。
+
+核心用况是用况 7"有效驻留与触发"，包含"提交位置样本"；用况 6"开始与结束自习任务"是它的前后边界。用况图见 analysis/diagrams/自习任务与驻留用况图.png。
+
+用况 7 前置：任务处于活动状态，请求通过认证且任务属于当前用户，位置来源可信或处于显式演示模式。主流程：用户停留在区域内，服务端逐条校验样本，按规则累计，达到阈值生成一次遭遇。后置：状态按规则推进、已认可时长单调不减、最多一个 spawnId。
+
+用况 6 前置：区域存在且启用、没有其他活动任务、不在冷却期。后置：只保留一条活动任务，结束后记录最终状态与时长，重复调用不改变结果。
+
+3 分析对象与职责
+
+分析类图见 analysis/diagrams/自习任务分析类图.png。六个业务对象：
+
+StudyTask：一次开始到结束的任务记录，保存状态、暂停原因、有效时长、阈值与样本链位置；不判断"够不够时间"。
+Region：圆形围栏，80 米进入、100 米退出，含坐标系与启用标记；未确认真实中心时不可启用。
+LocationSample：一次位置输入，字段为 sampleId、经纬度、精度、采样时刻、坐标系、来源。
+DwellRules：全部规则参数，集中配置，客户端不可指定。
+DwellEvaluator：读旧状态与样本，输出新状态与是否触发；不访问数据库、不读系统时钟。
+Spawn：一次遭遇机会，由捕获流程消费；任务只产生它，不写捕获记录、不发奖励。
+
+4 状态与规则
+
+4.1 状态
+
+WAITING、DWELLING、PAUSED、TRIGGERED、ENDED；暂停原因 OUTSIDE 与 NO_SIGNAL。状态图见 analysis/diagrams/驻留状态图.png 与 design/diagrams/驻留状态图（设计）.png。
+
+状态转换（节选）：
+WAITING --第二条连续合格样本在 80 米内--> DWELLING（从第二条开始计时，首条不追算）
+DWELLING --前后两条都在 100 米内且间隔≤30 秒--> DWELLING（累加间隔）
+DWELLING --首次超出 100 米--> DWELLING（记越界一次，该段不累计）
+DWELLING --连续第二次超出--> PAUSED(OUTSIDE)
+DWELLING --距最后合格样本超过 30 秒（tick 或查询推进）--> PAUSED(NO_SIGNAL)
+PAUSED --两条连续合格样本回到区域内--> DWELLING（保留已认可时长，不补算）
+DWELLING --有效累计达到阈值--> TRIGGERED（只生成一个 spawnId，之后固定）
+任意活动状态 --用户结束--> ENDED
+
+4.2 规则参数
+
+表 1 驻留规则（服务端配置，客户端不可覆盖）
+进入半径 80 米；退出半径 100 米（80–100 米为缓冲带）；精度上限 50 米；样本年龄 30 秒；
+未来偏差 5 秒（0–5 秒截为服务器时间）；采样目标 10 秒、间隔上限 30 秒；触发阈值 600 秒（独立测试 60 秒）；冷却 1800 秒。
+
+4.3 边界口径
+
+累计的是相邻合格样本之间的墙钟间隔，不是"条数 ×10 秒"：样本时刻 0、10、20、30、40、50、60、69、70、71 秒对应有效 0、10、20、30、40、50、59、60、60 秒，第 70 秒触发一次，第 71 秒固定；按整秒向下取整。
+30 秒整不暂停，超过才暂停；首次越界不暂停；缓冲带保持已确认状态并累计；恢复需两条样本；重复 sampleId 内容一致不累计，内容不同 40902；结束后再提交 40903。
+
+5 设计与实现
+
+5.1 分层
+
+模块 edu.pkmon.study：domain（规则与状态）、port（TaskRepository、SpawnGateway）、service（StudyTaskService、DwellStudyTaskService）、dto、error、repository（内存与 JDBC）、config（自动配置、参数、从 capture 取遭遇）、web（StudyController）。装配走 Spring Boot 自动配置，不改启动类。
+
+5.2 关键签名
+
+DwellEvaluator.onSample(DwellState, Region, LocationSample, Instant) : DwellDecision
+DwellEvaluator.onTick(DwellState, Instant) : DwellState
+StudyTaskService.startTask(userId, regionId, requestId, locationSource) : TaskView
+StudyTaskService.submitSample(userId, taskId, sample) : SampleResult
+StudyTaskService.currentTask(userId) : Optional<TaskView>
+StudyTaskService.endTask(userId, taskId, requestId) : TaskView
+
+设计类图见 design/diagrams/驻留规则设计类图.png，样本处理与触发顺序见 design/diagrams/位置样本处理顺序图.png 与 任务触发顺序图.png。
+
+5.3 接口
+
+表 2 四个端点（前缀 /api/v1/study，认证 Bearer 或开发期 X-Dev-User）
+POST /tasks：regionId、requestId、locationSource → TaskView
+POST /tasks/{id}/samples：样本字段 → TaskView + sampleAccepted + rejectionReason
+GET /tasks/current：→ task（无则 null），查询时推进失联判定
+POST /tasks/{id}/end：requestId → TaskView
+
+错误码：40001 参数、40101 未认证、40401 不存在或不属于当前用户、40902 同一请求号内容不同、40903 状态不允许、40904 冷却中。
+
+5.4 持久化
+
+study_tasks 与 location_samples 由迁移 V2 建立（胡豪）；JdbcTaskRepository 提供唯一约束落点：
+uk_study_tasks_start_request（重复开始幂等）、活动任务唯一、uk_location_samples_task_sample（样本幂等）。
+内存实现保留用于测试与演示，两者同一端口，配置切换。
+
+6 测试与联调证据
+
+6.1 自动化
+
+版本 8dd076c：mvn test 共 108 个测试通过；本人模块 34 个（规则 15、服务 6、控制器 7、JDBC 6）。
+关键断言：59 秒不触发、70 秒触发、71 秒固定；tick 40 秒不暂停、41 秒暂停；暂停恢复保留已认可时长；一次性遭遇；幂等与冷却。
+
+6.2 联调
+
+真实进程（内存存储）上跑通：开始任务 → 三条样本（阈值 5 秒）→ TRIGGERED 并给出 spawnId → 用该 spawnId 调 capture 取题接口成功出题（hello_world_001，选项不含答案）。说明"任务产生遭遇"的跨模块调用成立。
+
+6.3 证据
+
+evidence/implementation.txt、evidence/implementation-smoke.txt、evidence/integration.txt、evidence/testing.txt、evidence/design-probe.txt。
+
+7 缺陷与限制
+
+D-S01（高）：dev 环境下用户身份为 "dev:<fixture>"，study_tasks.user_id 对 users 有外键，插入失败，接口返回 500；因此 dev/JDBC 下的任务创建与"重启后任务仍在"未验证。责任：闫昕（身份解析）、胡豪（V2 外键与 dev seed）。
+
+其他限制：
+1. 认证尚未把 Bearer token 解析为 userId，study 控制器仍用 capture 的开发期身份替身；
+2. 真机定位与坐标系未验证，区域中心为候选坐标；
+3. 客户端联调未做（本机无 Flutter）；
+4. 并发触发与数据库唯一约束只做了单元级验证，未做压测。
+
+8 后续
+
+1. 修 D-S01：dev 身份解析到 users 真实行，或提供 dev seed 用户；随后补跑重启持久化与并发测试。
+2. 接入真实认证后，控制器改用 user 模块的 CurrentUser。
+3. 客户端联调：四端点已可用，停止条件为 40903、冷却为 40904，页面只展示服务端 effectiveSeconds。
+4. 真机验证后用实测精度冻结 50 米上限与 80/100 米半径。

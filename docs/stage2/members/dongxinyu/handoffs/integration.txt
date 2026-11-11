@@ -1,9 +1,9 @@
 阶段：integration（11/06，补交）
 作者：董欣毓
 截止：11/07 04:00（北京时间）；本材料于 11/11 补交，接收方按实际合入时间读取。
-状态：已合入 main（成果提交见下；main 合入提交号在本次推送后回填）
+状态：已合入 main（成果提交见下；main 合入提交号：cf1c7fe）
 任务分支：docs/integration-testing
-成果版本：见本目录所在提交（推送后回填 40 位提交号）
+成果版本：cf1c7fe
 所用输入源码提交：8dd076c（main）
 材料路径：
 docs/stage2/members/dongxinyu/evidence/integration.txt

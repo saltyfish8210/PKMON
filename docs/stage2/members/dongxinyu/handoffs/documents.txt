@@ -1,0 +1,24 @@
+阶段：documents（11/16-11/17，提前于 11/11 完成）
+作者：董欣毓
+截止：11/18 04:00 交闫昕；本材料按 11/11 实际完成时间提交。
+状态：已合入 main（成果提交见下；main 合入提交号在本次推送后回填）
+任务分支：docs/final-section
+成果版本：待回填
+所用输入源码提交：cf1c7fe（main）
+材料路径：
+docs/stage2/members/dongxinyu/final/section.txt
+docs/stage2/members/dongxinyu/final/index.csv
+docs/stage2/members/dongxinyu/presentation/talk.txt
+
+读者：闫昕（汇总与排版）、李宗晏（引用测试与缺陷）、赵冠钧与孙虹毅（引用接口与跨模块段落）。
+
+内容说明：
+1. section.txt 是本章正式正文，八节：目的与范围、参与者与用况、分析对象、状态与规则、设计与实现、
+   测试与联调证据、缺陷与限制、后续。图以仓库路径引用，不重复粘贴图片。
+2. index.csv 按提交顺序列出正文、分析、设计、证据、AI 记录、交接记录、展示材料与源码路径，供闫昕直接汇总。
+3. 正文中的数字均可回溯：108 个测试（8dd076c）、跨模块出题链路（内存存储）、缺陷 D-S01（evidence/integration.txt）。
+
+未完成 / 不能写的：
+1. 重启持久化与并发触发未验证（D-S01 阻塞），正文第七节已如实写为限制。
+2. 真机与客户端联调未做，正文未声称已通过。
+3. 装配与接口状态以 design/interfaces.json 的 statusNote 为准，正文不重复维护版本号。

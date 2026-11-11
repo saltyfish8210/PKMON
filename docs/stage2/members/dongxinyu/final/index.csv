@@ -1,0 +1,45 @@
+顺序,材料类型,章节或说明,仓库相对路径
+1,正文,第二章 自习任务与驻留触发,docs/stage2/members/dongxinyu/final/section.txt
+2,分析正文,对象、状态、规则与流程分析,docs/stage2/members/dongxinyu/analysis/analysis.txt
+3,分析问题清单,待决项与责任人,docs/stage2/members/dongxinyu/analysis/questions.csv
+4,分析图索引,四张分析图,docs/stage2/members/dongxinyu/analysis/diagram-index.csv
+5,分析图源,用况图源,docs/stage2/members/dongxinyu/analysis/diagrams/自习任务与驻留用况图.puml
+6,分析导出图,用况图 PNG,docs/stage2/members/dongxinyu/analysis/diagrams/自习任务与驻留用况图.png
+7,分析图源,分析类图源,docs/stage2/members/dongxinyu/analysis/diagrams/自习任务分析类图.puml
+8,分析导出图,分析类图 PNG,docs/stage2/members/dongxinyu/analysis/diagrams/自习任务分析类图.png
+9,分析图源,分析状态图源,docs/stage2/members/dongxinyu/analysis/diagrams/驻留状态图.puml
+10,分析导出图,分析状态图 PNG,docs/stage2/members/dongxinyu/analysis/diagrams/驻留状态图.png
+11,分析图源,遭遇触发流程源,docs/stage2/members/dongxinyu/analysis/diagrams/遭遇触发流程.puml
+12,分析导出图,遭遇触发流程 PNG,docs/stage2/members/dongxinyu/analysis/diagrams/遭遇触发流程.png
+13,设计正文,分层、签名、接口、规则边界与测试设计,docs/stage2/members/dongxinyu/design/design.txt
+14,接口定义,四个端点、错误码、规则参数与签名,docs/stage2/members/dongxinyu/design/interfaces.json
+15,设计对照,分析对象到设计对象,docs/stage2/members/dongxinyu/design/analysis-to-design.csv
+16,测试用例,TC-S01～TC-S30,docs/stage2/members/dongxinyu/design/test-cases.csv
+17,设计图索引,五张设计图,docs/stage2/members/dongxinyu/design/diagram-index.csv
+18,设计图源,规则设计类图源,docs/stage2/members/dongxinyu/design/diagrams/驻留规则设计类图.puml
+19,设计导出图,规则设计类图 PNG,docs/stage2/members/dongxinyu/design/diagrams/驻留规则设计类图.png
+20,设计图源,样本处理顺序图源,docs/stage2/members/dongxinyu/design/diagrams/位置样本处理顺序图.puml
+21,设计导出图,样本处理顺序图 PNG,docs/stage2/members/dongxinyu/design/diagrams/位置样本处理顺序图.png
+22,设计图源,触发顺序图源,docs/stage2/members/dongxinyu/design/diagrams/任务触发顺序图.puml
+23,设计导出图,触发顺序图 PNG,docs/stage2/members/dongxinyu/design/diagrams/任务触发顺序图.png
+24,设计图源,设计状态图源,docs/stage2/members/dongxinyu/design/diagrams/驻留状态图（设计）.puml
+25,设计导出图,设计状态图 PNG,docs/stage2/members/dongxinyu/design/diagrams/驻留状态图（设计）.png
+26,设计图源,包图源,docs/stage2/members/dongxinyu/design/diagrams/自习任务包图.puml
+27,设计导出图,包图 PNG,docs/stage2/members/dongxinyu/design/diagrams/自习任务包图.png
+28,证据,环境与源码索引,docs/stage2/members/dongxinyu/evidence/environment.txt
+29,证据,源码索引明细,docs/stage2/members/dongxinyu/evidence/source-index.csv
+30,证据,设计探路（规则原型 20 测试）,docs/stage2/members/dongxinyu/evidence/design-probe.txt
+31,证据,实现记录,docs/stage2/members/dongxinyu/evidence/implementation.txt
+32,证据,实现冒烟输出,docs/stage2/members/dongxinyu/evidence/implementation-smoke.txt
+33,证据,联调记录（含缺陷 D-S01）,docs/stage2/members/dongxinyu/evidence/integration.txt
+34,证据,测试记录（108 个测试与 9 条手工用例）,docs/stage2/members/dongxinyu/evidence/testing.txt
+35,AI 记录,AI 使用与修正过程,docs/stage2/members/dongxinyu/ai/使用记录.txt
+36,AI 记录,本人采纳与拒绝理由,docs/stage2/members/dongxinyu/ai/本人采纳记录.txt
+37,交接记录,分析,docs/stage2/members/dongxinyu/handoffs/analysis.txt
+38,交接记录,设计,docs/stage2/members/dongxinyu/handoffs/design.txt
+39,交接记录,实现,docs/stage2/members/dongxinyu/handoffs/implementation.txt
+40,交接记录,联调,docs/stage2/members/dongxinyu/handoffs/integration.txt
+41,交接记录,测试,docs/stage2/members/dongxinyu/handoffs/testing.txt
+42,展示材料,课堂讲解稿,docs/stage2/members/dongxinyu/presentation/talk.txt
+43,源码,规则与服务（25 个类）,server/src/main/java/edu/pkmon/study/
+44,源码,模块测试（34 个测试）,server/src/test/java/edu/pkmon/study/
