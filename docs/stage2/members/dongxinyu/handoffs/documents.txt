@@ -1,9 +1,9 @@
 阶段：documents（11/16-11/17，提前于 11/11 完成）
 作者：董欣毓
 截止：11/18 04:00 交闫昕；本材料按 11/11 实际完成时间提交。
-状态：已合入 main（成果提交见下；main 合入提交号在本次推送后回填）
+状态：已合入 main（成果提交见下；main 合入提交号：824ce75）
 任务分支：docs/final-section
-成果版本：待回填
+成果版本：824ce75
 所用输入源码提交：cf1c7fe（main）
 材料路径：
 docs/stage2/members/dongxinyu/final/section.txt
