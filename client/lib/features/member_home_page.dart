@@ -4,6 +4,7 @@ import '../core/tokens.dart';
 import '../data/api/api_client.dart';
 import '../data/api/api_failure.dart';
 import '../data/api/collection_api.dart';
+import '../data/api/collection_detail_api.dart';
 import '../data/model/collection_models.dart';
 import '../models/sprite.dart';
 import 'collection/collection_page.dart';
@@ -163,8 +164,10 @@ class _MemberHomePageState extends State<MemberHomePage> {
         ),
         const SizedBox(height: AppSpacing.base * 4),
         OutlinedButton.icon(
-          onPressed: () =>
-              _open(CollectionPage(api: HttpCollectionApi(widget.client))),
+          onPressed: () => _open(CollectionPage(
+            api: HttpCollectionApi(widget.client),
+            detail: HttpCollectionDetailApi(widget.client),
+          )),
           icon: const Icon(Icons.collections_bookmark_outlined),
           label: const Text('查看收藏'),
         ),

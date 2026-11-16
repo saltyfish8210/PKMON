@@ -44,4 +44,13 @@ public final class FixtureCatalog implements QuestionSource, SpeciesCatalog {
     public int totalSpeciesCount() {
         return SPECIES_NAMES.size();
     }
+
+    /**
+     * 按目录序号列出全部物种。当前只有一种，顺序仍固定为字典序，
+     * 便于图鉴页稳定展示与测试断言。
+     */
+    @Override
+    public List<String> allSpeciesIds() {
+        return SPECIES_NAMES.keySet().stream().sorted().toList();
+    }
 }

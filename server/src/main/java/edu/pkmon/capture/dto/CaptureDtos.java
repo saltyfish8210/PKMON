@@ -84,4 +84,23 @@ public final class CaptureDtos {
     public record CollectionSummaryResponse(int collectedSpeciesCount, int totalSpeciesCount,
                                             int captureCount) {
     }
+
+    /**
+     * 图鉴条目：目录中的一种精灵及其本人收录情况。
+     * 未收录时 {@code count} 为 0、{@code firstCapturedAt} 为 null，条目仍然返回，
+     * 以便页面展示"未解锁"占位，而不是只显示已收的几条。
+     */
+    public record DexEntryView(String speciesId, String name, int count, Instant firstCapturedAt) {
+    }
+
+    public record DexResponse(int collectedSpeciesCount, int totalSpeciesCount,
+                              List<DexEntryView> entries) {
+    }
+
+    /** 背包条目：本人实际持有的一种精灵；{@code latestCapturedAt} 用于倒序排列。 */
+    public record BagEntryView(String speciesId, String name, int count, Instant latestCapturedAt) {
+    }
+
+    public record BagResponse(int totalCount, int speciesCount, List<BagEntryView> entries) {
+    }
 }

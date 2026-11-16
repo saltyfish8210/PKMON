@@ -11,8 +11,39 @@ void main() {
     final paths = <String>[];
     final client = clientWith(
       MockClient((request) async {
-        paths.add(request.url.path);
+        final path = request.url.path;
+        paths.add(path);
         expect(request.headers['Authorization'], 'Bearer test-token');
+        if (path.endsWith('/collection/dex')) {
+          return envelope({
+            'collectedSpeciesCount': captures > 0 ? 1 : 0,
+            'totalSpeciesCount': 1,
+            'entries': [
+              {
+                'speciesId': 'siege_lion',
+                'name': '攻城狮',
+                'count': captures,
+                'firstCapturedAt': captures > 0 ? '2026-11-16T02:00:00Z' : null,
+              },
+            ],
+          });
+        }
+        if (path.endsWith('/collection/bag')) {
+          return envelope({
+            'totalCount': captures,
+            'speciesCount': captures > 0 ? 1 : 0,
+            'entries': captures > 0
+                ? [
+                    {
+                      'speciesId': 'siege_lion',
+                      'name': '攻城狮',
+                      'count': captures,
+                      'latestCapturedAt': '2026-11-16T02:00:00Z',
+                    },
+                  ]
+                : <Map<String, dynamic>>[],
+          });
+        }
         return envelope({
           'collectedSpeciesCount': captures > 0 ? 1 : 0,
           'totalSpeciesCount': 1,
@@ -35,13 +66,17 @@ void main() {
     await tester.ensureVisible(find.text('查看收藏'));
     await tester.tap(find.text('查看收藏'));
     await tester.pumpAndSettle();
-    expect(find.text('收藏概览'), findsOneWidget);
+    expect(find.text('我的收藏'), findsOneWidget);
+    expect(find.text('图鉴'), findsOneWidget);
+    expect(find.text('未解锁'), findsOneWidget);
     captures = 1;
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.text('已收集 1 / 1 种 · 累计捕获 1 次'), findsOneWidget);
-    expect(paths.length, 3);
-    expect(paths.every((path) => path == '/api/v1/collection/summary'), isTrue);
+    expect(paths.length, 5);
+    expect(paths.where((path) => path == '/api/v1/collection/summary').length, 2);
+    expect(paths.where((path) => path == '/api/v1/collection/dex').length, 1);
+    expect(paths.where((path) => path == '/api/v1/collection/bag').length, 1);
   });
 
   testWidgets('加载失败可以重试，退出登录调用账号退出', (tester) async {

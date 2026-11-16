@@ -81,7 +81,7 @@ void main() {
 
     await tester.tap(find.text('查看收藏'));
     await tester.pumpAndSettle();
-    expect(find.text('收藏概览'), findsOneWidget);
+    expect(find.text('我的收藏'), findsOneWidget);
     controller.dispose();
   });
 
