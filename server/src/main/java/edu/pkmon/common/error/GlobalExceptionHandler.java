@@ -1,6 +1,11 @@
 package edu.pkmon.common.error;
 
 import edu.pkmon.common.api.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +35,37 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.error(40001, "参数错误"));
     }
 
-    /** 未匹配到任何接口路径。 */
+    /**
+     * 未匹配到任何接口路径。
+     *
+     * <p>两类请求区别对待：
+     * <ul>
+     *   <li>浏览器直接导航（{@code Accept: text/html} 且不是 {@code /api/**}）：返回应用首页，
+     *       由前端渲染。手输地址多打一个字符时不该看到 {@code {"code":40401}} 这样的 JSON；</li>
+     *   <li>其余情况（接口调用、静态资源）：保持统一 404 信封，不让页面掩盖真实的资源 404。</li>
+     * </ul>
+     */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException e) {
+    public ResponseEntity<?> handleNotFound(NoResourceFoundException e, HttpServletRequest request)
+            throws IOException {
+        if (isBrowserNavigation(request)) {
+            ClassPathResource index = new ClassPathResource("static/index.html");
+            if (index.exists()) {
+                String html = new String(index.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
+            }
+        }
         return ResponseEntity.status(404).body(ApiResponse.error(40401, "接口或资源不存在"));
+    }
+
+    /** 浏览器地址栏导航（而非接口或静态资源请求）。 */
+    private boolean isBrowserNavigation(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null || uri.startsWith("/api/")) {
+            return false;
+        }
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains("text/html");
     }
 
     /** 其余未捕获异常：记日志（含堆栈，仅服务端可见），对外只给统一文案。 */
