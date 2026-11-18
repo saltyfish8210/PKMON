@@ -198,6 +198,13 @@ class AuthController extends ChangeNotifier {
     _emit();
   }
 
+  /// 清掉“注册成功，请登录”这类一次性提示；切换登录/注册模式时调用。
+  void clearNotice() {
+    if (_notice == null) return;
+    _notice = null;
+    _emit();
+  }
+
   Future<void> _clearLocal() async {
     await _store.clear();
     _session = null;

@@ -85,7 +85,7 @@ void main() {
       onEnterDemo: () {},
     )));
     await tester.enterText(find.byKey(const Key('login_username')), 'campus_demo');
-    await tester.enterText(find.byKey(const Key('login_password')), 'secret');
+    await tester.enterText(find.byKey(const Key('login_password')), 'pkmon-secret-1');
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pump();
 

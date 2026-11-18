@@ -60,7 +60,11 @@ class _LoginPageState extends State<LoginPage> {
         password,
         _nickname.text,
       );
-      if (result != null && mounted) setState(() => _registering = false);
+      if (result != null && mounted) {
+        _password.clear();
+        _nickname.clear();
+        setState(() => _registering = false);
+      }
     } else {
       await widget.controller.login(username, password);
     }
@@ -89,18 +93,20 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        '登录 PKMon',
-                        style: TextStyle(
+                      Text(
+                        _registering ? '注册 PKMon' : '登录 PKMon',
+                        style: const TextStyle(
                           fontSize: AppFontSizes.pageTitle,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.base * 2),
-                      const Text(
-                        '用校园账号同步你的图鉴与收藏。',
-                        style: TextStyle(
+                      Text(
+                        _registering
+                            ? '用户名、密码、昵称都按服务端规则校验，注册后用同一账号登录。'
+                            : '用校园账号同步你的图鉴与收藏。',
+                        style: const TextStyle(
                           fontSize: AppFontSizes.body,
                           color: AppColors.secondaryText,
                         ),
@@ -114,9 +120,11 @@ class _LoginPageState extends State<LoginPage> {
                             AppRadius.listCard,
                           ),
                         ),
-                        child: const Text(
-                          LoginPage.skeletonNotice,
-                          style: TextStyle(
+                        child: Text(
+                          _registering
+                              ? '登录后不代表已注册：请先创建账号，再用它登录。'
+                              : LoginPage.skeletonNotice,
+                          style: const TextStyle(
                             fontSize: AppFontSizes.secondary,
                             color: AppColors.primary,
                           ),
@@ -130,17 +138,12 @@ class _LoginPageState extends State<LoginPage> {
                         textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
                           labelText: '用户名',
-                          hintText: '不超过 24 个字符',
+                          hintText: AuthInputRules.usernameHint,
+                          helperText: AuthInputRules.usernameHint,
                           border: OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.base * 4),
-                      if (_registering)
-                        TextField(
-                          controller: _nickname,
-                          enabled: !busy,
-                          decoration: const InputDecoration(labelText: '昵称'),
-                        ),
                       TextField(
                         key: const Key('login_password'),
                         controller: _password,
@@ -150,9 +153,27 @@ class _LoginPageState extends State<LoginPage> {
                         onSubmitted: busy ? null : (_) => _submit(),
                         decoration: const InputDecoration(
                           labelText: '密码',
+                          hintText: AuthInputRules.passwordHint,
+                          helperText: AuthInputRules.passwordHint,
                           border: OutlineInputBorder(),
                         ),
                       ),
+                      if (_registering) ...[
+                        const SizedBox(height: AppSpacing.base * 4),
+                        TextField(
+                          key: const Key('login_nickname'),
+                          controller: _nickname,
+                          enabled: !busy,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: busy ? null : (_) => _submit(),
+                          decoration: const InputDecoration(
+                            labelText: '昵称',
+                            hintText: AuthInputRules.nicknameHint,
+                            helperText: AuthInputRules.nicknameHint,
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
                       if (error != null) ...[
                         const SizedBox(height: AppSpacing.base * 4),
                         ErrorView(message: error, compact: true),
@@ -189,6 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                             ? null
                             : () {
                                 widget.controller.clearError();
+                                widget.controller.clearNotice();
                                 setState(() {
                                   _registering = !_registering;
                                   _localError = null;

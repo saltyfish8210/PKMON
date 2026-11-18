@@ -65,7 +65,7 @@ void main() {
       final store = InMemorySessionStore();
       final controller = AuthController(api: api, store: store);
 
-      final ok = await controller.login('  campus_demo  ', 'secret');
+      final ok = await controller.login('  campus_demo  ', 'pkmon-secret-1');
 
       expect(ok, isTrue);
       expect(controller.status, AuthStatus.signedIn);
@@ -97,7 +97,7 @@ void main() {
       final api = FakeAuthApi();
       final controller = AuthController(api: api, store: InMemorySessionStore());
 
-      expect(await controller.login('   ', 'secret'), isFalse);
+      expect(await controller.login('   ', 'pkmon-secret-1'), isFalse);
       expect(controller.error, '请输入用户名');
       expect(await controller.login('campus_demo', ''), isFalse);
       expect(controller.error, '请输入密码');
@@ -111,8 +111,8 @@ void main() {
         store: InMemorySessionStore(),
       );
 
-      final first = controller.login('campus_demo', 'secret');
-      final second = controller.login('campus_demo', 'secret');
+      final first = controller.login('campus_demo', 'pkmon-secret-1');
+      final second = controller.login('campus_demo', 'pkmon-secret-1');
 
       expect(await second, isFalse);
       expect(api.loginCallCount, 1);
@@ -130,7 +130,7 @@ void main() {
         store: store,
       );
 
-      final ok = await controller.login('campus_demo', 'secret');
+      final ok = await controller.login('campus_demo', 'pkmon-secret-1');
 
       expect(ok, isFalse);
       expect(controller.status, AuthStatus.signedOut);
@@ -146,7 +146,7 @@ void main() {
         store: InMemorySessionStore(),
       );
 
-      final user = await controller.register('campus_demo', 'secret', '校园同学');
+      final user = await controller.register('campus_demo', 'pkmon-secret-1', '校园同学');
 
       expect(user?.username, 'campus_demo');
       expect(controller.status, isNot(AuthStatus.signedIn));
@@ -166,7 +166,7 @@ void main() {
         store: InMemorySessionStore(),
       );
 
-      final user = await controller.register('campus_demo', 'secret', '校园同学');
+      final user = await controller.register('campus_demo', 'pkmon-secret-1', '校园同学');
 
       expect(user, isNull);
       expect(controller.error, '用户名已被占用');
@@ -179,7 +179,7 @@ void main() {
         store: InMemorySessionStore(),
       );
 
-      final user = await controller.register('campus_demo', 'secret', '昵' * 21);
+      final user = await controller.register('campus_demo', 'pkmon-secret-1', '昵' * 21);
 
       expect(user, isNull);
       expect(controller.error, '昵称不能超过 20 个字符');
@@ -193,10 +193,10 @@ void main() {
         store: InMemorySessionStore(),
       );
 
-      final user = await controller.register('u' * 25, 'secret', '校园同学');
+      final user = await controller.register('u' * 25, 'pkmon-secret-1', '校园同学');
 
       expect(user, isNull);
-      expect(controller.error, '用户名不能超过 24 个字符');
+      expect(controller.error, '用户名需为 3–24 位字母、数字或下划线');
       expect(api.calls, isEmpty);
     });
   });
