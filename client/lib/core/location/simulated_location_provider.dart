@@ -29,6 +29,9 @@ class SimulatedLocationProvider implements LocationProviderPort {
   int _seq = 0;
   bool _running = false;
 
+  /// 演示开关：样本坐标整体偏移到区域外（约 330 米），用于现场演示围栏越界与暂停。
+  bool _outside = false;
+
   @override
   Stream<LocationSample> get samples => _samples.stream;
 
@@ -36,6 +39,15 @@ class SimulatedLocationProvider implements LocationProviderPort {
   Stream<LocationError> get errors => _errors.stream;
 
   bool get isRunning => _running;
+
+  bool get isOutside => _outside;
+
+  /// 切换「在区域内 / 在区域外」，下一条样本立即生效。
+  void setOutside(bool outside) {
+    if (_outside == outside) return;
+    _outside = outside;
+    _emit();
+  }
 
   @override
   Future<void> start() async {
@@ -58,7 +70,7 @@ class SimulatedLocationProvider implements LocationProviderPort {
     final now = DateTime.now().toUtc();
     _samples.add(LocationSample(
       sampleId: 'sim-${now.microsecondsSinceEpoch}-$_seq',
-      latitude: baseLatitude,
+      latitude: baseLatitude - (_outside ? 0.003 : 0),
       longitude: baseLongitude,
       accuracyMeters: 12,
       sampledAt: now,

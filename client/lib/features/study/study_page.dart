@@ -23,6 +23,7 @@ class StudyPage extends StatefulWidget {
 
 class _StudyPageState extends State<StudyPage> with WidgetsBindingObserver {
   late final StudyController controller;
+  late final SimulatedLocationProvider simulated;
   bool get android =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   bool get online => widget.client != null;
@@ -33,9 +34,10 @@ class _StudyPageState extends State<StudyPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final client = widget.client;
+    simulated = SimulatedLocationProvider(interval: const Duration(seconds: 3));
     controller = StudyController(
       api: client == null ? FakeStudyApi() : HttpStudyApi(client),
-      location: SimulatedLocationProvider(interval: const Duration(seconds: 3)),
+      location: simulated,
       device: android && online ? DeviceLocationProvider() : null,
     );
     unawaited(controller.restore());
@@ -134,6 +136,27 @@ class _StudyPageState extends State<StudyPage> with WidgetsBindingObserver {
                 onPressed: start ? controller.retryPermission : null,
                 child: const Text('恢复定位 / 重试'),
               ),
+            if (active && v.simulated && !ready) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () {
+                  simulated.setOutside(true);
+                  setState(() {});
+                },
+                child: const Text('演示：模拟离开区域'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  simulated.setOutside(false);
+                  setState(() {});
+                },
+                child: const Text('演示：回到区域内'),
+              ),
+              Text(
+                simulated.isOutside ? '当前模拟位置：区域外' : '当前模拟位置：区域内',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             if (ready && online)
               FilledButton(
                 onPressed: opening ? null : () => openChallenge(v.spawnId!),

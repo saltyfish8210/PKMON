@@ -26,7 +26,7 @@ public final class AuthRules {
     public static void password(String value) {
         if (value == null) throw new AuthFailure(INVALID_INPUT);
         int length = value.codePointCount(0, value.length());
-        if (length < 12 || length > 64 || value.getBytes(StandardCharsets.UTF_8).length > 72
+        if (length < 4 || length > 64 || value.getBytes(StandardCharsets.UTF_8).length > 72
                 || value.codePoints().anyMatch(Character::isISOControl)
                 || !StandardCharsets.UTF_8.newEncoder().canEncode(value)) throw new AuthFailure(INVALID_INPUT);
     }

@@ -32,16 +32,15 @@ void main() {
       expect(validateLoginInput('campus_demo', ''), '请输入密码');
     });
 
-    test('密码短于 12 位或长于 64 位', () {
-      expect(validateLoginInput('campus_demo', 'short'), '密码需为 12–64 位字符');
-      expect(validateLoginInput('campus_demo', 'p' * 11), '密码需为 12–64 位字符');
-      expect(validateLoginInput('campus_demo', 'p' * 12), isNull);
+    test('密码短于 4 位或长于 64 位', () {
+      expect(validateLoginInput('campus_demo', 'abc'), '密码需为 4–64 位字符');
+      expect(validateLoginInput('campus_demo', 'abcd'), isNull);
       expect(validateLoginInput('campus_demo', 'p' * 64), isNull);
-      expect(validateLoginInput('campus_demo', 'p' * 65), '密码需为 12–64 位字符');
+      expect(validateLoginInput('campus_demo', 'p' * 65), '密码需为 4–64 位字符');
     });
 
     test('密码 UTF-8 超过 72 字节时提示过长', () {
-      // 25 个 3 字节汉字 = 75 字节，字符数在 12..64 之内但字节超限。
+      // 25 个 3 字节汉字 = 75 字节，字符数在 4..64 之内但字节超限。
       expect(
         validateLoginInput('campus_demo', '密' * 25),
         '密码过长（超过 72 字节），请缩短后重试',
@@ -68,7 +67,7 @@ void main() {
     test('用户名与密码规则优先于昵称', () {
       expect(validateRegisterInput('', '', ''), '请输入用户名');
       expect(validateRegisterInput('campus_demo', '', ''), '请输入密码');
-      expect(validateRegisterInput('campus_demo', 'short', ''), '密码需为 12–64 位字符');
+      expect(validateRegisterInput('campus_demo', 'abc', ''), '密码需为 4–64 位字符');
     });
 
     test('三项都合法时通过', () {

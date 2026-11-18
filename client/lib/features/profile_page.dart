@@ -17,6 +17,7 @@ class ProfilePage extends StatelessWidget {
     required this.onTasks,
     this.nickname,
     this.onOpenCollection,
+    this.onOpenStudy,
     this.onLogout,
   });
 
@@ -25,6 +26,9 @@ class ProfilePage extends StatelessWidget {
 
   /// 打开账号收藏页（概览/图鉴/背包）；演示模式下为 null。
   final VoidCallback? onOpenCollection;
+
+  /// 打开自习任务页（真实接口）；演示模式下为 null。
+  final VoidCallback? onOpenStudy;
 
   /// 退出登录；演示模式下为 null。
   final Future<void> Function()? onLogout;
@@ -96,6 +100,15 @@ class ProfilePage extends StatelessWidget {
           ),
 
           const SizedBox(height: AppSpacing.base * 8),
+
+          if (onOpenStudy != null) ...[
+            PrimaryButton(
+              label: '开始自习任务（真实接口）',
+              icon: Icons.directions_walk,
+              onPressed: onOpenStudy,
+            ),
+            const SizedBox(height: AppSpacing.base * 3),
+          ],
 
           if (onOpenCollection != null) ...[
             SecondaryButton(

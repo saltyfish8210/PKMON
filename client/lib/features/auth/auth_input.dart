@@ -6,7 +6,7 @@ import 'dart:convert';
 /// “前端放行、后端 400、界面只显示『输入内容不正确』”的体验问题。
 /// 服务端规则（server/src/main/java/edu/pkmon/user/service/AuthRules.java）：
 ///   用户名 ^[A-Za-z0-9_]{3,24}$
-///   密码   12–64 个字符，且 UTF-8 编码后不超过 72 字节
+///   密码   4–64 个字符，且 UTF-8 编码后不超过 72 字节
 ///   昵称   1–20 个字符，去除首尾空白后非空
 class AuthInputRules {
   AuthInputRules._();
@@ -14,7 +14,7 @@ class AuthInputRules {
   static const int usernameMinLength = 3;
   static const int usernameMaxLength = 24;
   static const int nicknameMaxLength = 20;
-  static const int passwordMinLength = 12;
+  static const int passwordMinLength = 4;
   static const int passwordMaxLength = 64;
   static const int passwordMaxBytes = 72;
 
@@ -22,7 +22,7 @@ class AuthInputRules {
   static final RegExp usernamePattern = RegExp(r'^[A-Za-z0-9_]{3,24}$');
 
   static const String usernameHint = '3–24 位字母、数字或下划线';
-  static const String passwordHint = '12–64 位字符';
+  static const String passwordHint = '4–64 位字符';
   static const String nicknameHint = '1–20 个字符，展示在图鉴与收藏页';
 }
 
@@ -42,7 +42,7 @@ String? validatePassword(String password) {
   final length = password.runes.length;
   if (length < AuthInputRules.passwordMinLength ||
       length > AuthInputRules.passwordMaxLength) {
-    return '密码需为 12–64 位字符';
+    return '密码需为 4–64 位字符';
   }
   if (utf8.encode(password).length > AuthInputRules.passwordMaxBytes) {
     return '密码过长（超过 72 字节），请缩短后重试';

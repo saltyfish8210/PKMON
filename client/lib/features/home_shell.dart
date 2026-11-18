@@ -294,6 +294,14 @@ class _HomeShellState extends State<HomeShell> {
                     onReset: _reset,
                     onTasks: _openTasks,
                     nickname: widget.nickname,
+                    onOpenStudy: widget.accountClient == null
+                        ? null
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    StudyPage(client: widget.accountClient),
+                              ),
+                            ),
                     onOpenCollection: widget.accountClient == null
                         ? null
                         : () => Navigator.of(context).push(
