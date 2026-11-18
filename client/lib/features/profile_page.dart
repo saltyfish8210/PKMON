@@ -47,7 +47,7 @@ class ProfilePage extends StatelessWidget {
           const SectionHeader(
             eyebrow: 'EXPLORER PROFILE',
             title: '你好，校园探索者',
-            subtitle: '第一阶段体验账号。',
+            subtitle: '课堂演示模式：数据来自本机服务端的演示接口。',
           ),
 
           const SizedBox(height: AppSpacing.base * 8),
@@ -93,8 +93,8 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: AppSpacing.base * 6),
 
           const Text(
-            '本阶段尚未接入账号登录、真实 GPS、高德地图、后台定位与数据库。'
-            '安卓源工程已提供，Web 与 Flutter 为同一份代码。',
+            '本页是「进入演示（不登录）」的体验模式：位置由课堂模拟样本提供，数据来自服务端演示接口，'
+            '刷新页面会新建会话。账号注册/登录、自习任务、收录与图鉴/背包在登录后使用真实接口与文件数据库。',
             style: TextStyle(
               fontSize: AppFontSizes.secondary,
               color: AppColors.secondaryText,

@@ -26,6 +26,20 @@ class PhoneFrame extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // 展示/投影场景：窗口够宽时铺满，但收在居中的一列里，
+        // 免得表格与列表被拉成横跨整屏的一条。
+        if (constraints.maxWidth >= AppSpacing.webFullBleedBreakpoint) {
+          return ColoredBox(
+            color: AppColors.webBackdrop,
+            child: Center(
+              child: SizedBox(
+                width: AppSpacing.webContentWidth,
+                height: constraints.maxHeight,
+                child: child,
+              ),
+            ),
+          );
+        }
         // 窗口不够宽，说明本来就是小屏，不用加壳
         if (constraints.maxWidth <= AppSpacing.phonePreviewBreakpoint) {
           return child;

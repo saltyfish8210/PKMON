@@ -104,6 +104,12 @@ class AppSpacing {
   /// 网页版「手机壳」的触发阈值：窗口宽于这个值才收起成手机大小。
   /// 比这个窄（比如真的用手机的浏览器打开）就铺满，不加壳。
   static const phonePreviewBreakpoint = 600.0;
+
+  /// 全宽阈值：窗口宽于这个值（投影、桌面窗口）就切到「宽屏居中」布局。
+  static const webFullBleedBreakpoint = 900.0;
+
+  /// 宽屏居中的内容宽度：比手机宽、比整屏窄，地图与图鉴都还能看清。
+  static const webContentWidth = 620.0;
 }
 
 /// 圆角（单位 dp）
