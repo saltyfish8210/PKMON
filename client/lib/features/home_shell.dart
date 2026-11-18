@@ -17,6 +17,15 @@ import 'dex_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
 import 'study/study_page.dart';
+import '../core/location/location_sample.dart';
+import '../core/location/simulated_location_provider.dart';
+import '../core/request_id.dart';
+import '../data/api/capture_api.dart';
+import '../data/api/study_api.dart';
+import 'dart:async';
+import '../data/model/study_models.dart';
+import 'capture/capture_controller.dart';
+import 'capture/capture_page.dart' as account_capture;
 
 /// App 外壳：**全局状态机** + 底部导航 + 四个页面。
 ///
@@ -56,6 +65,21 @@ class _HomeShellState extends State<HomeShell> {
 
   /// 当前 tab：0 地图 / 1 图鉴 / 2 我的精灵 / 3 我的
   int _tab = 0;
+
+  // ---- 地图上的自习任务（真实接口，登录后可用）----
+  static const String _studyRegion = 'library_entrance';
+  SimulatedLocationProvider? _sim;
+  StreamSubscription<LocationSample>? _simSub;
+  String? _studyTaskId;
+  String? _studyStatus;
+  String? _studySpawnId;
+  int _studyEffective = 0;
+  int _studyRequired = 0;
+  bool _studyOutside = false;
+  bool _studyBusy = false;
+
+  StudyApi? get _studyApi =>
+      widget.accountClient == null ? null : HttpStudyApi(widget.accountClient!);
 
   /// 全局加载态。**初值必须是 true**：首帧就要显示进度条，
   /// 否则会闪一下「按钮可点」的假象。
@@ -168,6 +192,163 @@ class _HomeShellState extends State<HomeShell> {
       });
 
   /// 遇见精灵：先向后端要题，再进答题页；回来后刷新状态
+  /// 在地图上开始自习任务：创建任务 → 模拟样本持续上报 → 达标生成遭遇。
+  Future<void> _startStudyOnMap() async {
+    final api = _studyApi;
+    if (api == null || _studyBusy) return;
+    setState(() {
+      _studyBusy = true;
+      _error = null;
+    });
+    try {
+      final snap = await api.createTask(
+        regionId: _studyRegion,
+        requestId: RequestId.generate(),
+        locationSource: 'SIMULATED',
+      );
+      _sim ??= SimulatedLocationProvider(interval: const Duration(seconds: 3));
+      _simSub ??= _sim!.samples.listen((sample) async {
+        final id = _studyTaskId;
+        if (id == null) return;
+        try {
+          final r = await api.uploadSample(
+            taskId: id,
+            sample: LocationSampleDto(
+              sampleId: sample.sampleId,
+              latitude: sample.latitude,
+              longitude: sample.longitude,
+              accuracyMeters: sample.accuracyMeters,
+              sampledAt: sample.sampledAt,
+              coordinateSystem: sample.coordinateSystem,
+              source: 'SIMULATED',
+            ),
+          );
+          if (!mounted) return;
+          setState(() {
+            _studyStatus = r.status;
+            _studyEffective = r.effectiveSeconds;
+            _studyRequired = r.requiredSeconds;
+            _studySpawnId = r.spawnId ?? _studySpawnId;
+          });
+        } catch (_) {
+          // 单条样本失败不影响后续上报
+        }
+      });
+      await _sim!.start();
+      if (!mounted) return;
+      setState(() {
+        _studyTaskId = snap.taskId;
+        _studyStatus = snap.status;
+        _studyEffective = snap.effectiveSeconds;
+        _studyRequired = snap.requiredSeconds;
+        _studyBusy = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _studyBusy = false;
+        _error = '开始自习失败：$e';
+      });
+    }
+  }
+
+  Future<void> _endStudyOnMap() async {
+    final api = _studyApi;
+    final id = _studyTaskId;
+    if (api == null || id == null) return;
+    await _sim?.stop();
+    try {
+      await api.endTask(taskId: id, requestId: RequestId.generate());
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _studyTaskId = null;
+      _studyStatus = null;
+      _studySpawnId = null;
+      _studyEffective = 0;
+      _studyRequired = 0;
+    });
+  }
+
+  void _setStudyOutside(bool outside) {
+    _sim?.setOutside(outside);
+    setState(() => _studyOutside = outside);
+  }
+
+  /// 遭遇生成后进入答题（真实接口）。
+  Future<void> _openStudyChallenge() async {
+    final client = widget.accountClient;
+    final spawn = _studySpawnId;
+    if (client == null || spawn == null) return;
+    final controller = CaptureController(
+      captureApi: HttpCaptureApi(client),
+      collectionApi: HttpCollectionApi(client),
+    );
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => account_capture.CapturePage(
+          spawnId: spawn,
+          controller: controller,
+          returnLabel: '返回地图',
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _endStudyOnMap();
+  }
+
+  Widget _studyBanner(BuildContext context) {
+    final status = switch (_studyStatus) {
+      'DWELLING' => '驻留中',
+      'PAUSED' => '已暂停',
+      'TRIGGERED' => '遭遇已生成',
+      'ENDED' => '已结束',
+      _ => _studyStatus ?? '准备中',
+    };
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('自习任务　$status　有效驻留 $_studyEffective / $_studyRequired 秒',
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(_studyOutside ? '模拟位置：区域外' : '模拟位置：区域内',
+              style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+          const SizedBox(height: 6),
+          Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _setStudyOutside(true),
+                child: const Text('演示：离开区域'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _setStudyOutside(false),
+                child: const Text('回到区域'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _endStudyOnMap,
+                child: const Text('结束自习'),
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+
   Future<void> _capture() => _action(() async {
         final challenge = await _api.request(
           'demo/capture/challenge',
@@ -260,19 +441,41 @@ class _HomeShellState extends State<HomeShell> {
               child: IndexedStack(
                 index: _tab,
                 children: [
-                  MapPage(
-                    locationLabel: _location.label,
-                    nearby: _nearby,
-                    captured: _captured,
-                    taskRunning: _task,
-                    actionEnabled: !_busy && _ready,
-                    collected: _collected,
-                    totalSpecies: _totalSpecies,
-                    helloText: _hello,
-                    onExplore: _explore,
-                    onCapture: _capture,
-                    onGoToDex: () => setState(() => _tab = 1),
-                    onTasks: _openTasks,
+                  Stack(
+                    children: [
+                      MapPage(
+                        locationLabel:
+                            _studyTaskId == null ? _location.label : '图书馆入口',
+                        nearby: _studyTaskId == null
+                            ? _nearby
+                            : _studySpawnId != null,
+                        captured: _studyTaskId == null ? _captured : false,
+                        taskRunning: _studyTaskId == null ? _task : true,
+                        actionEnabled: !_busy && _ready,
+                        collected: _collected,
+                        totalSpecies: _totalSpecies,
+                        helloText: _hello,
+                        spriteAsset: _studyTaskId == null
+                            ? AppAssets.siegeLion
+                            : AppAssets.spiritPlaceholder,
+                        spriteLabel: _studyTaskId == null ? '攻城狮' : '自习精灵',
+                        onExplore: _studyTaskId == null
+                            ? (_studyApi == null ? _explore : _startStudyOnMap)
+                            : _startStudyOnMap,
+                        onCapture: _studyTaskId == null
+                            ? _capture
+                            : _openStudyChallenge,
+                        onGoToDex: () => setState(() => _tab = 1),
+                        onTasks: _openStudyChallenge,
+                      ),
+                      if (_studyTaskId != null)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          child: _studyBanner(context),
+                        ),
+                    ],
                   ),
                   DexPage(
                     captured: _captured,

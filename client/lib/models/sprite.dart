@@ -7,6 +7,9 @@ class AppAssets {
   /// 之后把文件丢进 assets/sprites/ 即可，pubspec 里用的是目录写法，不用改。
   /// 旧立绘银杏书灵保留在 展示材料/UI设计稿/资源/银杏书灵.png。
   static const siegeLion = 'assets/sprites/siege_lion.png';
+
+  /// 自习任务演示用的占位精灵（非正式美术资源）。
+  static const spiritPlaceholder = 'assets/sprites/spirit_placeholder.png';
 }
 
 /// 图鉴里的一格。

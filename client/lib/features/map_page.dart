@@ -12,7 +12,7 @@ import '../widgets/pill_chip.dart';
 /// 接高德 SDK 之前，先把版式和交互定下来。
 ///
 /// 底部面板有**三种形态**，由 `captured` / `nearby` 决定：
-/// 没走到图书馆 → 「模拟走到图书馆」；精灵出现 → 「遇见攻城狮」；已捕获 → 「查看我的图鉴」。
+/// 没走到图书馆 → 「模拟走到图书馆」；精灵出现 → 「遇见」；已捕获 → 「查看我的图鉴」。
 class MapPage extends StatelessWidget {
   const MapPage({
     super.key,
@@ -28,6 +28,8 @@ class MapPage extends StatelessWidget {
     required this.onCapture,
     required this.onGoToDex,
     required this.onTasks,
+    this.spriteAsset = AppAssets.siegeLion,
+    this.spriteLabel = '攻城狮',
   });
 
   /// 当前模拟位置，如「校园南门」
@@ -55,6 +57,12 @@ class MapPage extends StatelessWidget {
   final VoidCallback onCapture;
   final VoidCallback onGoToDex;
   final VoidCallback onTasks;
+
+  /// 地图上出现的精灵图（自习任务演示时用占位精灵）。
+  final String spriteAsset;
+
+  /// 精灵名，用于气泡文字。
+  final String spriteLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +270,7 @@ class MapPage extends StatelessWidget {
       left: w * 0.43,
       top: h * 0.21,
       child: Semantics(
-        label: '遇见攻城狮',
+        label: '遇见',
         button: true,
         child: InkWell(
           onTap: actionEnabled ? onCapture : null,
@@ -270,7 +278,7 @@ class MapPage extends StatelessWidget {
           child: Column(
             children: [
               Image.asset(
-                AppAssets.siegeLion,
+                spriteAsset,
                 width: 90,
                 height: 90,
                 errorBuilder: (context, error, stackTrace) => const SizedBox(
@@ -413,9 +421,9 @@ class MapPage extends StatelessWidget {
       action = onGoToDex;
       enabled = true;
     } else if (nearby) {
-      description = '攻城狮出现了，回答一个问题认识它。';
+      description = ' 出现了，回答一个问题认识它。';
       icon = Icons.auto_awesome;
-      label = '遇见攻城狮';
+      label = '遇见';
       action = onCapture;
       enabled = actionEnabled;
     } else {
