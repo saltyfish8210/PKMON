@@ -10,6 +10,9 @@ import '../widgets/task_sheet.dart';
 import 'bag_page.dart';
 import 'capture_page.dart';
 import '../data/api/api_client.dart';
+import '../data/api/collection_api.dart';
+import '../data/api/collection_detail_api.dart';
+import 'collection/collection_page.dart';
 import 'dex_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
@@ -24,8 +27,24 @@ import 'study/study_page.dart';
 ///
 /// 用 `IndexedStack` 而不是直接换 widget：四个页面常驻内存，切 tab 不丢滚动位置。
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key,this.studyClient});
+  const HomeShell({
+    super.key,
+    this.studyClient,
+    this.accountClient,
+    this.nickname,
+    this.onLogout,
+  });
+
   final ApiClient? studyClient;
+
+  /// 已登录时注入的账号客户端：用于「我的收藏」与退出登录；演示模式为 null。
+  final ApiClient? accountClient;
+
+  /// 已登录用户昵称；演示模式为 null。
+  final String? nickname;
+
+  /// 退出登录回调；演示模式为 null。
+  final Future<void> Function()? onLogout;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -274,6 +293,20 @@ class _HomeShellState extends State<HomeShell> {
                     busy: _busy,
                     onReset: _reset,
                     onTasks: _openTasks,
+                    nickname: widget.nickname,
+                    onOpenCollection: widget.accountClient == null
+                        ? null
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => CollectionPage(
+                                  api: HttpCollectionApi(widget.accountClient!),
+                                  detail: HttpCollectionDetailApi(
+                                    widget.accountClient!,
+                                  ),
+                                ),
+                              ),
+                            ),
+                    onLogout: widget.onLogout,
                   ),
                 ],
               ),

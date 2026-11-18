@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/loading_view.dart';
 import '../home_shell.dart';
-import '../member_home_page.dart';
 import 'auth_controller.dart';
 import 'login_page.dart';
 import 'session_store.dart';
@@ -88,8 +87,11 @@ class _AppGateState extends State<AppGate> {
   Widget _home(BuildContext context) {
     if (widget.homeBuilder != null) return widget.homeBuilder!(context);
     if (_controller.status == AuthStatus.signedIn && _client != null) {
-      return MemberHomePage(
-        client: _client!,
+      // 登录后进的是同一个四页外壳（地图/图鉴/我的精灵/我的），
+      // 这样注册完账号就能用地图与遭遇；「我的」里再进账号收藏页。
+      return HomeShell(
+        studyClient: _client,
+        accountClient: _client,
         nickname: _controller.session!.user.nickname,
         onLogout: _controller.logout,
       );

@@ -15,7 +15,19 @@ class ProfilePage extends StatelessWidget {
     required this.busy,
     required this.onReset,
     required this.onTasks,
+    this.nickname,
+    this.onOpenCollection,
+    this.onLogout,
   });
+
+  /// 已登录用户的昵称；为 null 表示处于「进入演示（不登录）」模式。
+  final String? nickname;
+
+  /// 打开账号收藏页（概览/图鉴/背包）；演示模式下为 null。
+  final VoidCallback? onOpenCollection;
+
+  /// 退出登录；演示模式下为 null。
+  final Future<void> Function()? onLogout;
 
   /// 已捕获种类数（来自后端）
   final int collected;
@@ -44,10 +56,12 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
+          SectionHeader(
             eyebrow: 'EXPLORER PROFILE',
-            title: '你好，校园探索者',
-            subtitle: '课堂演示模式：数据来自本机服务端的演示接口。',
+            title: nickname == null ? '你好，校园探索者' : '你好，$nickname',
+            subtitle: nickname == null
+                ? '课堂演示模式：数据来自本机服务端的演示接口。'
+                : '已登录账号：地图、图鉴、收藏都读这个账号的数据。',
           ),
 
           const SizedBox(height: AppSpacing.base * 8),
@@ -83,6 +97,15 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.base * 8),
 
+          if (onOpenCollection != null) ...[
+            SecondaryButton(
+              label: '我的收藏（概览 / 图鉴 / 背包）',
+              icon: Icons.collections_bookmark_outlined,
+              onPressed: onOpenCollection,
+            ),
+            const SizedBox(height: AppSpacing.base * 3),
+          ],
+
           SecondaryButton(
             label: '重新开始演示',
             icon: Icons.restart_alt,
@@ -92,9 +115,17 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.base * 6),
 
-          const Text(
-            '本页是「进入演示（不登录）」的体验模式：位置由课堂模拟样本提供，数据来自服务端演示接口，'
-            '刷新页面会新建会话。账号注册/登录、自习任务、收录与图鉴/背包在登录后使用真实接口与文件数据库。',
+          if (onLogout != null) ...[
+            _LogoutButton(onLogout: onLogout!),
+            const SizedBox(height: AppSpacing.base * 5),
+          ],
+
+          Text(
+            nickname == null
+                ? '本页是「进入演示（不登录）」的体验模式：位置由课堂模拟样本提供，数据来自服务端演示接口，'
+                      '刷新页面会新建会话。账号注册/登录、自习任务、收录与图鉴/背包在登录后使用真实接口与文件数据库。'
+                : '已登录账号：地图与图鉴读的是本机服务端的演示数据，点「我的收藏」查看该账号真实的收录记录'
+                      '（概览 / 图鉴 / 背包三段读同一份收录事实）。退出后可用同一账号重新登录，数据仍在。',
             style: TextStyle(
               fontSize: AppFontSizes.secondary,
               color: AppColors.secondaryText,
@@ -184,5 +215,26 @@ class _RowDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Divider(height: 1, thickness: 1, color: AppColors.divider);
+  }
+}
+
+/// 退出登录按钮：单独抽出来，避免把异步回调直接塞进 build。
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton({required this.onLogout});
+
+  final Future<void> Function() onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => onLogout(),
+      icon: const Icon(Icons.logout, size: 18),
+      label: const Text('退出登录'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.errorText,
+        side: const BorderSide(color: AppColors.divider),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+      ),
+    );
   }
 }
