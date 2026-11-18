@@ -476,14 +476,6 @@ class MapPage extends StatelessWidget {
             icon: icon,
             onPressed: enabled ? action : null,
           ),
-          const SizedBox(height: AppSpacing.base * 2),
-
-          Center(
-            child: Text(
-              'Flutter 预览 · $helloText',
-              style: const TextStyle(fontSize: 10, color: AppColors.secondaryText),
-            ),
-          ),
         ],
       ),
     );
