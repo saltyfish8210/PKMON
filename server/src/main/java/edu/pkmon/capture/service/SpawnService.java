@@ -46,8 +46,13 @@ public class SpawnService {
     public Spawn fromStudyTask(String user, String region, String task, java.time.Instant now, boolean simulated) {
         if (simulated && !devSpawnEnabled) throw new ApiException(ApiErrorCode.DEV_ONLY);
         String id = UUID.nameUUIDFromBytes(("study-spawn:" + task).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
-        return spawns.findById(id).orElseGet(() -> spawns.save(new Spawn(id, user, region, "siege_lion",
-                simulated ? SpawnSourceType.DEV_SIMULATED : SpawnSourceType.LOCATION, now.plus(SPAWN_TTL))));
+        // 同一个任务只对应一个遭遇；但这条遭遇若已过期（学生中途离开、隔天再演示），
+        // 必须按当前时刻重建，否则答题页一打开就是 41001「遭遇已过期」。
+        return spawns.findById(id)
+                .filter(existing -> existing.usableAt(now))
+                .orElseGet(() -> spawns.save(new Spawn(id, user, region, "study_spirit",
+                        simulated ? SpawnSourceType.DEV_SIMULATED : SpawnSourceType.LOCATION,
+                        now.plus(SPAWN_TTL))));
     }
 
     /** 取一个属于该用户且未过期的遭遇；不存在与不属于本人一律按不存在处理。 */

@@ -77,6 +77,7 @@ class _HomeShellState extends State<HomeShell> {
   int _studyRequired = 0;
   bool _studyOutside = false;
   bool _studyBusy = false;
+  bool _studyCaptured = false;
 
   StudyApi? get _studyApi =>
       widget.accountClient == null ? null : HttpStudyApi(widget.accountClient!);
@@ -295,6 +296,38 @@ class _HomeShellState extends State<HomeShell> {
     );
     if (!mounted) return;
     await _endStudyOnMap();
+    await _refreshStudyCollection();
+  }
+
+  /// 捕获后刷新账号收藏：概览数字与「查看收藏」页读的都是账号接口。
+  Future<void> _refreshStudyCollection() async {
+    final client = widget.accountClient;
+    if (client == null) return;
+    try {
+      final s = await HttpCollectionApi(client).summary();
+      if (!mounted) return;
+      setState(() {
+        _collected = s.collectedSpeciesCount;
+        _totalSpecies = s.totalSpeciesCount;
+        _studyCaptured = s.captureCount > 0;
+      });
+    } catch (_) {}
+  }
+
+  void _openAccountCollection() {
+    final client = widget.accountClient;
+    if (client == null) {
+      setState(() => _tab = 1);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CollectionPage(
+          api: HttpCollectionApi(client),
+          detail: HttpCollectionDetailApi(client),
+        ),
+      ),
+    );
   }
 
   Widget _studyBanner(BuildContext context) {
@@ -449,7 +482,7 @@ class _HomeShellState extends State<HomeShell> {
                         nearby: _studyTaskId == null
                             ? _nearby
                             : _studySpawnId != null,
-                        captured: _studyTaskId == null ? _captured : false,
+                        captured: _studyTaskId == null ? _captured : _studyCaptured,
                         taskRunning: _studyTaskId == null ? _task : true,
                         actionEnabled: !_busy && _ready,
                         collected: _collected,
@@ -465,7 +498,9 @@ class _HomeShellState extends State<HomeShell> {
                         onCapture: _studyTaskId == null
                             ? _capture
                             : _openStudyChallenge,
-                        onGoToDex: () => setState(() => _tab = 1),
+                        onGoToDex: _studyCaptured
+                            ? _openAccountCollection
+                            : () => setState(() => _tab = 1),
                         onTasks: _openStudyChallenge,
                       ),
                       if (_studyTaskId != null)

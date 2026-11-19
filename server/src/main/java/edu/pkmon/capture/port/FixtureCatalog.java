@@ -26,9 +26,24 @@ public final class FixtureCatalog implements QuestionSource, SpeciesCatalog {
                     new Question.OptionValue("C", "什么都不输出，只是定义了一个字符串")),
             "A");
 
-    private static final Map<String, String> SPECIES_NAMES = Map.of("siege_lion", "攻城狮");
+    /** 自习任务演示用的占位精灵（立绘为 assets/sprites/spirit_placeholder.png）。 */
+    private static final Question STUDY_SPIRIT_Q = new Question(
+            "study_spirit_001",
+            "study_spirit",
+            "连续学习 25 分钟后休息 5 分钟，这种时间管理方法通常叫什么？",
+            List.of(
+                    new Question.OptionValue("A", "番茄工作法"),
+                    new Question.OptionValue("B", "康奈尔笔记法"),
+                    new Question.OptionValue("C", "费曼学习法")),
+            "A");
 
-    private static final Map<String, Question> QUESTIONS = Map.of("siege_lion", HELLO_WORLD);
+    private static final Map<String, String> SPECIES_NAMES = Map.of(
+            "siege_lion", "攻城狮",
+            "study_spirit", "自习精灵");
+
+    private static final Map<String, Question> QUESTIONS = Map.of(
+            "siege_lion", HELLO_WORLD,
+            "study_spirit", STUDY_SPIRIT_Q);
 
     @Override
     public Optional<Question> findBySpeciesId(String speciesId) {

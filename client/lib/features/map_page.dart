@@ -407,6 +407,7 @@ class MapPage extends StatelessWidget {
 
   Widget _buildBottomPanel(BuildContext context) {
     // 三种形态。captured 优先于 nearby（后端保证二者互斥）
+    final String name = spriteLabel.isEmpty ? '精灵' : spriteLabel;
     final String description;
     final IconData icon;
     final String label;
@@ -415,15 +416,15 @@ class MapPage extends StatelessWidget {
     final bool enabled;
 
     if (captured) {
-      description = '攻城狮已经收入图鉴，去看看它的故事吧。';
+      description = '$name 已经收入图鉴，去收藏里看看。';
       icon = Icons.auto_stories_outlined;
-      label = '查看我的图鉴';
+      label = '查看收藏';
       action = onGoToDex;
       enabled = true;
     } else if (nearby) {
       description = ' 出现了，回答一个问题认识它。';
       icon = Icons.auto_awesome;
-      label = '遇见';
+      label = '遇见$name';
       action = onCapture;
       enabled = actionEnabled;
     } else {
