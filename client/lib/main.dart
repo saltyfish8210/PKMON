@@ -3,6 +3,7 @@ import 'package:flutter/semantics.dart';
 
 import 'core/theme.dart';
 import 'features/auth/app_gate.dart';
+import 'features/map/map_demo_page.dart';
 import 'widgets/phone_frame.dart';
 
 /// App 入口。
@@ -28,6 +29,10 @@ class PkmonApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: const AppGate(),
+      // 开发用入口：直接打开真实地图页（第一周验收用，不影响正常流程）
+      routes: <String, WidgetBuilder>{
+        '/map-demo': (BuildContext context) => const MapDemoPage(),
+      },
 
       // 用 builder 而不是在某个页面里包一层：builder 包住的是整个
       // Navigator，所以所有页面都在「手机壳」里，不用每页各写一遍。
