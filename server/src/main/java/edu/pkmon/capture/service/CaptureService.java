@@ -80,10 +80,10 @@ public class CaptureService {
             challenges.save(existing);
         }
 
-        Question question = questions.findBySpeciesId(spawn.speciesId())
+        Question question = questions.draw(spawn.speciesId(), challenges.recentQuestions(userId))
                 .orElseThrow(() -> new ApiException(ApiErrorCode.QUESTION_UNAVAILABLE));
         Challenge challenge = new Challenge(UUID.randomUUID().toString(), userId, spawn.spawnId(),
-                question.questionId(), ChallengeStatus.OPEN, now.plus(CHALLENGE_TTL));
+                question.questionId(), ChallengeStatus.OPEN, now.plus(CHALLENGE_TTL).truncatedTo(java.time.temporal.ChronoUnit.MICROS));
         challenges.save(challenge);
         return toChallengeResponse(challenge, spawn);
     }
@@ -121,7 +121,7 @@ public class CaptureService {
             }
             throw new ApiException(ApiErrorCode.EXPIRED, "挑战已过期，请重新遭遇");
         }
-        Question question = questions.findBySpeciesId(spawn.speciesId())
+        Question question = questions.findById(challenge.questionId())
                 .orElseThrow(() -> new ApiException(ApiErrorCode.QUESTION_UNAVAILABLE));
         if (!question.hasOption(cmd.optionId())) {
             throw new ApiException(ApiErrorCode.INVALID_PARAM, "选项不属于该题");
@@ -206,7 +206,7 @@ public class CaptureService {
     }
 
     private ChallengeResponse toChallengeResponse(Challenge challenge, Spawn spawn) {
-        Question question = questions.findBySpeciesId(spawn.speciesId())
+        Question question = questions.findById(challenge.questionId())
                 .orElseThrow(() -> new ApiException(ApiErrorCode.QUESTION_UNAVAILABLE));
         String speciesName = species.nameOf(spawn.speciesId()).orElse(spawn.speciesId());
         return ChallengeResponse.of(challenge, spawn, speciesName, question);

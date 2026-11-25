@@ -15,7 +15,6 @@ import 'session_token_provider.dart';
 /// 冷启动先恢复本地会话：
 /// - 无会话或已过期 → 登录页；
 /// - 有有效会话 → 主界面；
-/// - 「进入演示」只切换本地标志，不创建、不保存 Session。
 ///
 /// 业务页面不依赖本类；只有入口负责接线。
 class AppGate extends StatefulWidget {
@@ -34,7 +33,6 @@ class AppGate extends StatefulWidget {
 class _AppGateState extends State<AppGate> {
   late final AuthController _controller;
   late final bool _ownsController;
-  bool _demo = false;
   ApiClient? _client;
   bool _wasSignedIn = false;
 
@@ -106,13 +104,7 @@ class _AppGateState extends State<AppGate> {
         body: LoadingView(message: '正在恢复登录状态…'),
       ),
       AuthStatus.signedIn => _home(context),
-      AuthStatus.signedOut =>
-        _demo
-            ? _home(context)
-            : LoginPage(
-                controller: _controller,
-                onEnterDemo: () => setState(() => _demo = true),
-              ),
+      AuthStatus.signedOut => LoginPage(controller: _controller),
     };
   }
 }

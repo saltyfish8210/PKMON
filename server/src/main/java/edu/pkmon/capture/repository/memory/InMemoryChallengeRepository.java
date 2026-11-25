@@ -28,6 +28,11 @@ public final class InMemoryChallengeRepository implements ChallengeRepository {
                 .max(Comparator.comparing(Challenge::expiresAt));
     }
 
+    public java.util.List<String> recentQuestions(String userId) {
+        return byId.values().stream().filter(item -> item.userId().equals(userId))
+                .sorted(Comparator.comparing(Challenge::expiresAt).reversed()).limit(9).map(Challenge::questionId).toList();
+    }
+
     @Override
     public Challenge save(Challenge challenge) {
         byId.put(challenge.challengeId(), challenge);

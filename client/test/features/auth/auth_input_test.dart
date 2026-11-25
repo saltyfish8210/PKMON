@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pkmon_app/features/auth/auth_input.dart';
 
 /// 规则必须与服务端 AuthRules 一致：
-/// 用户名 ^[A-Za-z0-9_]{3,24}$；密码 12–64 字符且 ≤72 字节；昵称 1–20 字符。
+/// 用户名 ^[A-Za-z0-9_]{3,24}$；密码 4–64 字符且 ≤72 字节；昵称 1–20 字符。
 void main() {
   const okPassword = 'pkmon-secret-1';
 

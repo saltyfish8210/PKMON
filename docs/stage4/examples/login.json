@@ -1,0 +1,13 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "token": "<REDACTED>",
+    "expiresAt": "2026-11-25T02:32:56.369723400Z",
+    "user": {
+      "userId": "b12e0660-1bf6-494d-8a9d-a3a1ee243d2b",
+      "username": "m06_9fab6a94_abe",
+      "nickname": "接口验收"
+    }
+  }
+}

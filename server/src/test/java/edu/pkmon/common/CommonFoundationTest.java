@@ -50,7 +50,8 @@ class CommonFoundationTest {
     @DisplayName("空库迁移：V1 初始结构、V2 驻留表、V3 种子均已由 Flyway 按序成功应用")
     void emptyDatabaseMigrated() {
         var applied = flyway.info().applied();
-        assertEquals(3, applied.length);
+        assertEquals(5, applied.length);
+        assertEquals("V5__seed_catalog_full.sql", applied[4].getScript());
         assertEquals("V1__init_schema.sql", applied[0].getScript());
         assertEquals("V2__study_tables.sql", applied[1].getScript());
         assertEquals("V3__seed_catalog.sql", applied[2].getScript());

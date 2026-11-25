@@ -90,7 +90,7 @@ public final class CaptureDtos {
      * 未收录时 {@code count} 为 0、{@code firstCapturedAt} 为 null，条目仍然返回，
      * 以便页面展示"未解锁"占位，而不是只显示已收的几条。
      */
-    public record DexEntryView(String speciesId, String name, int count, Instant firstCapturedAt) {
+    public record DexEntryView(String speciesId, String name, int catalogNumber, String description, String imageKey, int count, Instant firstCapturedAt) {
     }
 
     public record DexResponse(int collectedSpeciesCount, int totalSpeciesCount,

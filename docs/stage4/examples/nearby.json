@@ -1,0 +1,18 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "items": [
+      {
+        "spawnId": "04467119-54e0-3031-825b-5e59e7af16bc",
+        "speciesId": "study_spirit",
+        "name": "自习精灵",
+        "iconKey": "spirit_placeholder",
+        "distanceMeters": 39,
+        "regionName": "图书馆",
+        "latitude": 39.9042,
+        "longitude": 116.4074
+      }
+    ]
+  }
+}

@@ -35,6 +35,9 @@ class DexEntry {
     required this.name,
     required this.count,
     this.firstCapturedAt,
+    this.catalogNumber = 0,
+    this.description = '',
+    this.imageKey = 'assets/sprites/spirit_placeholder.png',
   });
 
   factory DexEntry.fromJson(Map<String, dynamic> json) {
@@ -44,6 +47,9 @@ class DexEntry {
       speciesId: requireString(json, 'speciesId'),
       name: requireString(json, 'name'),
       count: count,
+      catalogNumber: json['catalogNumber'] as int? ?? 0,
+      description: json['description'] as String? ?? '',
+      imageKey: json['imageKey'] as String? ?? 'assets/sprites/spirit_placeholder.png',
       firstCapturedAt: optionalUtcTime(json, 'firstCapturedAt'),
     );
   }
@@ -52,6 +58,9 @@ class DexEntry {
   final String name;
   final int count;
   final DateTime? firstCapturedAt;
+  final int catalogNumber;
+  final String description;
+  final String imageKey;
 
   bool get captured => count > 0;
 }

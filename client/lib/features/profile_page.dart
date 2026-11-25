@@ -120,7 +120,7 @@ class ProfilePage extends StatelessWidget {
           ],
 
           SecondaryButton(
-            label: '重新开始演示',
+            label: '刷新账号数据',
             icon: Icons.restart_alt,
             // 加载中禁用，避免重复请求
             onPressed: busy ? null : onReset,
@@ -134,11 +134,7 @@ class ProfilePage extends StatelessWidget {
           ],
 
           Text(
-            nickname == null
-                ? '本页是「进入演示（不登录）」的体验模式：位置由课堂模拟样本提供，数据来自服务端演示接口，'
-                      '刷新页面会新建会话。账号注册/登录、自习任务、收录与图鉴/背包在登录后使用真实接口与文件数据库。'
-                : '已登录账号：地图与图鉴读的是本机服务端的演示数据，点「我的收藏」查看该账号真实的收录记录'
-                      '（概览 / 图鉴 / 背包三段读同一份收录事实）。退出后可用同一账号重新登录，数据仍在。',
+            '地图、图鉴、背包与统计使用当前账号的收录记录。定位样本为模拟数据。',
             style: TextStyle(
               fontSize: AppFontSizes.secondary,
               color: AppColors.secondaryText,

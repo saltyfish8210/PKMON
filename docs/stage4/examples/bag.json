@@ -1,0 +1,16 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "totalCount": 1,
+    "speciesCount": 1,
+    "entries": [
+      {
+        "speciesId": "study_spirit",
+        "name": "自习精灵",
+        "count": 1,
+        "latestCapturedAt": "2026-11-24T18:33:00.703724Z"
+      }
+    ]
+  }
+}

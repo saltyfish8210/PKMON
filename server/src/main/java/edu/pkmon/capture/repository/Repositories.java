@@ -21,6 +21,8 @@ public final class Repositories {
     public interface SpawnRepository {
         Optional<Spawn> findById(String spawnId);
 
+        List<Spawn> activeFor(String userId, java.time.Instant now);
+
         Spawn save(Spawn spawn);
     }
 
@@ -28,6 +30,8 @@ public final class Repositories {
         Optional<Challenge> findById(String challengeId);
 
         Optional<Challenge> findOpenByUserAndSpawn(String userId, String spawnId);
+
+        List<String> recentQuestions(String userId);
 
         Challenge save(Challenge challenge);
     }

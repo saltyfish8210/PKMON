@@ -44,10 +44,10 @@ class CaptureDefaultProfileHttpTest {
     }
 
     @Test
-    @DisplayName("默认配置：旧演示接口不受影响")
-    void demoEndpointsStillWork() throws Exception {
+    @DisplayName("默认配置：旧演示接口仅 dev 开放")
+    void demoEndpointsAreAbsent() throws Exception {
         mvc.perform(post("/api/v1/demo/sessions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(40401));
     }
 }

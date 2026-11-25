@@ -1,71 +1,41 @@
 package edu.pkmon.capture.port;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.pkmon.capture.domain.Question;
-
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * 题库与物种目录的开发期固定数据，同时作为题库/图鉴种子内容的来源。
- *
- * 分工（见 docs/stage2/project/decisions.csv「题库职责」）：领域内容与读取由孙虹毅负责，
- * 种子数据的装载与迁移由胡豪负责，闫昕协调。
- * 当前只有 1 种精灵（siege_lion）与 1 道题（hello_world_001）；扩充属于后续范围，
- * 不得报告为已完成。
- */
 public final class FixtureCatalog implements QuestionSource, SpeciesCatalog {
+    public record Catalog(List<Species> species, List<Question> questions) {}
+    private final Catalog catalog;
 
-    private static final Question HELLO_WORLD = new Question(
-            "hello_world_001",
-            "siege_lion",
-            "执行 print(\"hello world\") 之后，控制台会输出什么？",
-            List.of(
-                    new Question.OptionValue("A", "hello world"),
-                    new Question.OptionValue("B", "\"hello world\"（连引号一起输出）"),
-                    new Question.OptionValue("C", "什么都不输出，只是定义了一个字符串")),
-            "A");
-
-    /** 自习任务演示用的占位精灵（立绘为 assets/sprites/spirit_placeholder.png）。 */
-    private static final Question STUDY_SPIRIT_Q = new Question(
-            "study_spirit_001",
-            "study_spirit",
-            "连续学习 25 分钟后休息 5 分钟，这种时间管理方法通常叫什么？",
-            List.of(
-                    new Question.OptionValue("A", "番茄工作法"),
-                    new Question.OptionValue("B", "康奈尔笔记法"),
-                    new Question.OptionValue("C", "费曼学习法")),
-            "A");
-
-    private static final Map<String, String> SPECIES_NAMES = Map.of(
-            "siege_lion", "攻城狮",
-            "study_spirit", "自习精灵");
-
-    private static final Map<String, Question> QUESTIONS = Map.of(
-            "siege_lion", HELLO_WORLD,
-            "study_spirit", STUDY_SPIRIT_Q);
-
-    @Override
-    public Optional<Question> findBySpeciesId(String speciesId) {
-        return Optional.ofNullable(QUESTIONS.get(speciesId));
+    public FixtureCatalog() {
+        try (var input = FixtureCatalog.class.getResourceAsStream("/catalog/stage4.json")) {
+            catalog = new ObjectMapper().readValue(input, Catalog.class);
+        } catch (IOException error) {
+            throw new IllegalStateException("无法读取物种目录", error);
+        }
     }
 
-    @Override
-    public Optional<String> nameOf(String speciesId) {
-        return Optional.ofNullable(SPECIES_NAMES.get(speciesId));
+    public Optional<Question> draw(String speciesId, List<String> recent) {
+        var nativePool = catalog.questions().stream().filter(question -> question.speciesId().equals(speciesId)).toList();
+        if (nativePool.isEmpty()) return Optional.empty();
+        if (recent.isEmpty()) return Optional.of(nativePool.get(0));
+        var available = nativePool.stream().filter(question -> !recent.contains(question.questionId())).toList();
+        if (available.isEmpty()) available = catalog.questions().stream().filter(question -> !recent.contains(question.questionId())).toList();
+        return Optional.of(available.get(ThreadLocalRandom.current().nextInt(available.size())));
     }
 
-    @Override
-    public int totalSpeciesCount() {
-        return SPECIES_NAMES.size();
+    public Optional<Question> findById(String questionId) {
+        return catalog.questions().stream().filter(question -> question.questionId().equals(questionId)).findFirst();
     }
 
-    /**
-     * 按目录序号列出全部物种。当前只有一种，顺序仍固定为字典序，
-     * 便于图鉴页稳定展示与测试断言。
-     */
-    @Override
-    public List<String> allSpeciesIds() {
-        return SPECIES_NAMES.keySet().stream().sorted().toList();
+    public Optional<Species> details(String speciesId) {
+        return catalog.species().stream().filter(item -> item.speciesId().equals(speciesId)).findFirst();
     }
+    public Optional<String> nameOf(String speciesId) { return details(speciesId).map(Species::name); }
+    public int totalSpeciesCount() { return catalog.species().size(); }
+    public List<String> allSpeciesIds() { return catalog.species().stream().map(Species::speciesId).toList(); }
 }

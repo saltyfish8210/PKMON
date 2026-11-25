@@ -418,7 +418,7 @@ class MapPage extends StatelessWidget {
     if (captured) {
       description = '$name 已经收入图鉴，去收藏里看看。';
       icon = Icons.auto_stories_outlined;
-      label = '查看收藏';
+      label = '查看我的图鉴';
       action = onGoToDex;
       enabled = true;
     } else if (nearby) {
@@ -428,7 +428,7 @@ class MapPage extends StatelessWidget {
       action = onCapture;
       enabled = actionEnabled;
     } else {
-      description = '走近图书馆，发现一台还在改 bug 的攻城狮。';
+      description = '在图书馆入口开始自习，驻留达标后可遇见精灵。';
       icon = Icons.directions_walk;
       label = '模拟走到图书馆';
       action = onExplore;

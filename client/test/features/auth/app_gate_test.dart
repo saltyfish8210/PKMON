@@ -36,7 +36,7 @@ void main() {
     expect(find.text('HOME'), findsNothing);
   });
 
-  testWidgets('进入演示不创建也不保存会话', (tester) async {
+  testWidgets('正式入口不提供匿名演示', (tester) async {
     final store = InMemorySessionStore();
     final controller = AuthController(
       api: FakeAuthApi(),
@@ -46,10 +46,9 @@ void main() {
 
     await tester.pumpWidget(gate(controller));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('进入演示（不登录）'));
-    await tester.pumpAndSettle();
+    expect(find.text('进入演示（不登录）'), findsNothing);
 
-    expect(find.text('HOME'), findsOneWidget);
+    expect(find.text('HOME'), findsNothing);
     expect(await store.load(), isNull);
   });
 

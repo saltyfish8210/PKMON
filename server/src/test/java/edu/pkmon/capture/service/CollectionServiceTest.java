@@ -43,9 +43,9 @@ class CollectionServiceTest {
     void emptyCollection() {
         DexResponse dex = support.collectionService.dex(USER);
 
-        assertEquals(1, dex.totalSpeciesCount());
+        assertEquals(8, dex.totalSpeciesCount());
         assertEquals(0, dex.collectedSpeciesCount());
-        assertEquals(1, dex.entries().size());
+        assertEquals(8, dex.entries().size());
         assertEquals(SPECIES, dex.entries().get(0).speciesId());
         assertEquals("攻城狮", dex.entries().get(0).name());
         assertEquals(0, dex.entries().get(0).count());
@@ -79,7 +79,7 @@ class CollectionServiceTest {
 
         assertEquals(1, summary.collectedSpeciesCount());
         assertEquals(1, summary.captureCount());
-        assertEquals(1, summary.totalSpeciesCount());
+        assertEquals(8, summary.totalSpeciesCount());
     }
 
     @Test
@@ -122,6 +122,6 @@ class CollectionServiceTest {
 
         assertEquals(0, support.collectionService.dex(USER).collectedSpeciesCount());
         assertTrue(support.collectionService.bag(USER).entries().isEmpty());
-        assertEquals(1, support.collectionService.summary(USER).captureCount());
+        assertEquals(0, support.collectionService.summary(USER).captureCount());
     }
 }

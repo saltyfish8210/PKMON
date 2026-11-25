@@ -1,0 +1,82 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "collectedSpeciesCount": 1,
+    "totalSpeciesCount": 8,
+    "entries": [
+      {
+        "speciesId": "siege_lion",
+        "name": "攻城狮",
+        "catalogNumber": 1,
+        "description": "背着键盘穿过机房，专爱拆解程序的小谜题。",
+        "imageKey": "assets/sprites/siege_lion.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "study_spirit",
+        "name": "自习精灵",
+        "catalogNumber": 2,
+        "description": "它守在图书馆入口，把一段段专心的时间收进沙漏。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 1,
+        "firstCapturedAt": "2026-11-24T18:33:00.703724Z"
+      },
+      {
+        "speciesId": "ink_owl",
+        "name": "墨羽鸮",
+        "catalogNumber": 3,
+        "description": "它在阅览室的灯下校对引文，从不折书角。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "fern_fox",
+        "name": "蕨尾狐",
+        "catalogNumber": 4,
+        "description": "尾巴卷成嫩蕨的形状，会沿着温室的阴影散步。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "orbit_cat",
+        "name": "星轨猫",
+        "catalogNumber": 5,
+        "description": "在天文台的窗台上，它用尾尖描出星轨。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "wave_otter",
+        "name": "听波獭",
+        "catalogNumber": 6,
+        "description": "它伏在实验台边，用胡须感受音叉的振动。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "prism_deer",
+        "name": "棱光鹿",
+        "catalogNumber": 7,
+        "description": "阳光穿过鹿角时，走廊的白墙上会出现彩带。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      },
+      {
+        "speciesId": "bridge_beaver",
+        "name": "筑桥狸",
+        "catalogNumber": 8,
+        "description": "它在模型工坊搭小桥，总要先试一试承重。",
+        "imageKey": "assets/sprites/spirit_placeholder.png",
+        "count": 0,
+        "firstCapturedAt": null
+      }
+    ]
+  }
+}

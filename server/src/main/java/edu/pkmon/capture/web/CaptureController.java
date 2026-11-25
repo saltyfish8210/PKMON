@@ -45,6 +45,14 @@ public class CaptureController {
         return ApiEnvelope.ok(response);
     }
 
+    public record StatusRequest(String challengeId) {}
+
+    @PostMapping("/status")
+    public ApiEnvelope status(@RequestBody StatusRequest request) {
+        if (request.challengeId() == null || request.challengeId().isBlank()) throw new IllegalArgumentException("challengeId 不能为空");
+        return status(request.challengeId());
+    }
+
     @GetMapping("/challenges/{challengeId}")
     public ApiEnvelope status(@PathVariable String challengeId) {
         String userId = currentUser.currentUserId();

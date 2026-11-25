@@ -64,8 +64,8 @@ class HttpCaptureApi implements CaptureApi {
 
   @override
   Future<ChallengeStatus> status({required String challengeId}) async {
-    final data = await _client.get(
-      '/capture/challenges/${Uri.encodeComponent(challengeId)}',
+    final data = await _client.post(
+      '/capture/status', body: {'challengeId': challengeId},
     );
     return ChallengeStatus.fromJson(data);
   }

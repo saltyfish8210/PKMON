@@ -17,6 +17,10 @@ public final class InMemorySpawnRepository implements SpawnRepository {
         return spawnId == null ? Optional.empty() : Optional.ofNullable(byId.get(spawnId));
     }
 
+    public java.util.List<Spawn> activeFor(String userId, java.time.Instant now) {
+        return byId.values().stream().filter(item -> item.userId().equals(userId) && item.usableAt(now)).toList();
+    }
+
     @Override
     public Spawn save(Spawn spawn) {
         byId.put(spawn.spawnId(), spawn);

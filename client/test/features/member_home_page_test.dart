@@ -63,20 +63,22 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('已收集 0 / 1 种 · 累计捕获 0 次'), findsOneWidget);
+    const summary = '/api/v1/collection/summary';
+    expect(paths, [summary]);
+    paths.clear();
     await tester.ensureVisible(find.text('查看收藏'));
     await tester.tap(find.text('查看收藏'));
     await tester.pumpAndSettle();
     expect(find.text('我的收藏'), findsOneWidget);
     expect(find.text('图鉴'), findsOneWidget);
     expect(find.text('未解锁'), findsOneWidget);
+    expect(paths, unorderedEquals([summary, '/api/v1/collection/dex', '/api/v1/collection/bag']));
+    paths.clear();
     captures = 1;
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.text('已收集 1 / 1 种 · 累计捕获 1 次'), findsOneWidget);
-    expect(paths.length, 5);
-    expect(paths.where((path) => path == '/api/v1/collection/summary').length, 2);
-    expect(paths.where((path) => path == '/api/v1/collection/dex').length, 1);
-    expect(paths.where((path) => path == '/api/v1/collection/bag').length, 1);
+    expect(paths, [summary]);
   });
 
   testWidgets('加载失败可以重试，退出登录调用账号退出', (tester) async {

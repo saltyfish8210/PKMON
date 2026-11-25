@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../core/api.dart';
-import '../core/location_provider.dart';
 import '../core/tokens.dart';
 import '../models/sprite.dart';
+import '../data/model/collection_models.dart';
 import '../widgets/error_banner.dart';
-import '../widgets/sprite_detail_sheet.dart';
-import '../widgets/task_sheet.dart';
-import 'bag_page.dart';
-import 'capture_page.dart';
 import '../data/api/api_client.dart';
 import '../data/api/collection_api.dart';
 import '../data/api/collection_detail_api.dart';
 import 'collection/collection_page.dart';
-import 'dex_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
 import 'study/study_page.dart';
@@ -60,24 +54,23 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  final Api _api = Api();
-  final LocationProvider _location = DemoLocationProvider();
-
-  /// 当前 tab：0 地图 / 1 图鉴 / 2 我的精灵 / 3 我的
+  Map<String, dynamic>? _marker;
+  DexView? _dex;
+  BagView? _bag;
   int _tab = 0;
 
-  // ---- 地图上的自习任务（真实接口，登录后可用）----
   static const String _studyRegion = 'library_entrance';
   SimulatedLocationProvider? _sim;
   StreamSubscription<LocationSample>? _simSub;
   String? _studyTaskId;
   String? _studyStatus;
-  String? _studySpawnId;
   int _studyEffective = 0;
   int _studyRequired = 0;
   bool _studyOutside = false;
   bool _studyBusy = false;
-  bool _studyCaptured = false;
+  String? _capturedName;
+  double _latitude = 39.9042;
+  double _longitude = 116.4074;
 
   StudyApi? get _studyApi =>
       widget.accountClient == null ? null : HttpStudyApi(widget.accountClient!);
@@ -86,30 +79,17 @@ class _HomeShellState extends State<HomeShell> {
   /// 否则会闪一下「按钮可点」的假象。
   bool _busy = true;
 
-  /// 后端已连上（会话建好 + hello 拿到）。没就绪前地图主按钮是灰的。
-  bool _ready = false;
-
-  /// 精灵是否已出现在地图上。**由后端驱动**——服务端算的是 `nearby && !captured`，
-  /// 所以捕获后它会自动变回 false。
-  bool _nearby = false;
-
-  /// 是否已捕获。同样由后端驱动。
-  bool _captured = false;
-
-  /// 任务模式是否进行中。纯客户端状态，跟后端无关。
-  bool _task = false;
-
   /// 错误消息，非空时顶部显示横幅
   String? _error;
 
   /// 后端健康检查返回的文本
-  String _hello = '正在连接后端';
+  String get _hello => '账号收藏 · 模拟定位';
 
   /// 已捕获种类数。**用后端返回的值**，不再像旧版那样本地写死 `captured ? 1 : 0`。
   int _collected = 0;
 
   /// 总种类数，同样来自后端
-  int _totalSpecies = dexSlots.length;
+  int _totalSpecies = 0;
 
   @override
   void initState() {
@@ -119,7 +99,8 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
-    _api.close();
+    _simSub?.cancel();
+    _sim?.dispose();
     super.dispose();
   }
 
@@ -139,60 +120,44 @@ class _HomeShellState extends State<HomeShell> {
       await job();
     } catch (e) {
       final message = e.toString().replaceFirst('Exception: ', '');
-      // 会话失效时丢掉本地会话，这样「重试」会重新建会话而不是继续用失效的 id。
-      // 旧版缺这一步，服务重启后怎么点重试都修不好。
-      if (message.contains('会话已失效') || message.contains('会话已满')) {
-        _api.forgetSession();
-        _ready = false;
-      }
       if (mounted) setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  /// 确保有一个可用会话。没有就建，有就跳过。
-  Future<void> _ensureSession() async {
-    if (_ready && _api.session.isNotEmpty) return;
-    await _api.connect();
-    final hello = await _api.hello();
-    if (!mounted) return;
-    setState(() {
-      _hello = hello;
-      _ready = true;
+  Future<void> _connect() => _action(_refresh);
+
+  Future<void> _refreshNearby(double latitude, double longitude) async {
+    final client = widget.accountClient;
+    if (client == null) return;
+    _latitude = latitude;
+    _longitude = longitude;
+    final response = await client.get('/capture/nearby', query: {
+      'lat': '$latitude', 'lng': '$longitude', 'radius': '200',
     });
+    if (!mounted || latitude != _latitude || longitude != _longitude) return;
+    final items = (response['items'] as List).cast<Map<String, dynamic>>();
+    setState(() => _marker = items.isEmpty ? null : items.first);
   }
 
-  // ============================================================ 业务操作
-
-  /// 启动时调一次：建会话 → 健康检查 → 拉状态
-  Future<void> _connect() => _action(() async {
-        await _ensureSession();
-        await _refresh();
-      });
-
-  /// 拉最新状态。**故意不包在 `_action` 里**——它总是被别的操作在内部调用，
-  /// 这样加载态能覆盖整个链路（包括从答题页返回后）。
   Future<void> _refresh() async {
-    final state = await _api.request('demo/state');
+    final client = widget.accountClient;
+    if (client == null) return;
+    final detail = HttpCollectionDetailApi(client);
+    final summary = await HttpCollectionApi(client).summary();
+    final dex = await detail.dex();
+    final bag = await detail.bag();
+    await _refreshNearby(_latitude, _longitude);
     if (!mounted) return;
     setState(() {
-      _nearby = state['nearby'] as bool? ?? false;
-      _captured = state['captured'] as bool? ?? false;
-      _collected = state['count'] as int? ?? 0;
-      _totalSpecies = state['totalSpecies'] as int? ?? dexSlots.length;
+      _collected = summary.collectedSpeciesCount;
+      _totalSpecies = summary.totalSpeciesCount;
+      _dex = dex;
+      _bag = bag;
     });
   }
 
-  /// 模拟走到图书馆。位置是在请求**成功之后**才改的——
-  /// 顺序反了会出现「报错了但位置已经变了」的不一致。
-  Future<void> _explore() => _action(() async {
-        await _api.request('demo/explore', body: <String, dynamic>{});
-        await _location.moveToLibrary();
-        await _refresh();
-      });
-
-  /// 遇见精灵：先向后端要题，再进答题页；回来后刷新状态
   /// 在地图上开始自习任务：创建任务 → 模拟样本持续上报 → 达标生成遭遇。
   Future<void> _startStudyOnMap() async {
     final api = _studyApi;
@@ -229,8 +194,9 @@ class _HomeShellState extends State<HomeShell> {
             _studyStatus = r.status;
             _studyEffective = r.effectiveSeconds;
             _studyRequired = r.requiredSeconds;
-            _studySpawnId = r.spawnId ?? _studySpawnId;
+
           });
+          await _refreshNearby(sample.latitude, sample.longitude);
         } catch (_) {
           // 单条样本失败不影响后续上报
         }
@@ -257,15 +223,19 @@ class _HomeShellState extends State<HomeShell> {
     final api = _studyApi;
     final id = _studyTaskId;
     if (api == null || id == null) return;
-    await _sim?.stop();
     try {
       await api.endTask(taskId: id, requestId: RequestId.generate());
-    } catch (_) {}
+    } catch (error) {
+      if (mounted) setState(() => _error = '结束自习失败：$error');
+      return;
+    }
+    await _sim?.stop();
     if (!mounted) return;
     setState(() {
       _studyTaskId = null;
       _studyStatus = null;
-      _studySpawnId = null;
+      _capturedName = null;
+
       _studyEffective = 0;
       _studyRequired = 0;
     });
@@ -279,7 +249,8 @@ class _HomeShellState extends State<HomeShell> {
   /// 遭遇生成后进入答题（真实接口）。
   Future<void> _openStudyChallenge() async {
     final client = widget.accountClient;
-    final spawn = _studySpawnId;
+    final spawn = _marker?['spawnId'] as String?;
+    final name = _marker?['name'] as String?;
     if (client == null || spawn == null) return;
     final controller = CaptureController(
       captureApi: HttpCaptureApi(client),
@@ -294,40 +265,11 @@ class _HomeShellState extends State<HomeShell> {
         ),
       ),
     );
+    final captured = controller.state.value is CaptureCaptured;
+    controller.dispose();
     if (!mounted) return;
-    await _endStudyOnMap();
-    await _refreshStudyCollection();
-  }
-
-  /// 捕获后刷新账号收藏：概览数字与「查看收藏」页读的都是账号接口。
-  Future<void> _refreshStudyCollection() async {
-    final client = widget.accountClient;
-    if (client == null) return;
-    try {
-      final s = await HttpCollectionApi(client).summary();
-      if (!mounted) return;
-      setState(() {
-        _collected = s.collectedSpeciesCount;
-        _totalSpecies = s.totalSpeciesCount;
-        _studyCaptured = s.captureCount > 0;
-      });
-    } catch (_) {}
-  }
-
-  void _openAccountCollection() {
-    final client = widget.accountClient;
-    if (client == null) {
-      setState(() => _tab = 1);
-      return;
-    }
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CollectionPage(
-          api: HttpCollectionApi(client),
-          detail: HttpCollectionDetailApi(client),
-        ),
-      ),
-    );
+    if (captured) setState(() => _capturedName = name);
+    await _connect();
   }
 
   Widget _studyBanner(BuildContext context) {
@@ -382,70 +324,9 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
-  Future<void> _capture() => _action(() async {
-        final challenge = await _api.request(
-          'demo/capture/challenge',
-          body: <String, dynamic>{'spawnId': 'library-001'},
-        );
-        if (!mounted) return;
-        await Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => CapturePage(api: _api, challenge: challenge),
-          ),
-        );
-        await _refresh();
-      });
-
-  /// 重新开始演示
-  Future<void> _reset() => _action(() async {
-        await _ensureSession();
-        await _api.request('demo/reset', body: <String, dynamic>{});
-        _location.reset();
-        if (mounted) {
-          setState(() {
-            _task = false;
-            _tab = 0;
-          });
-        }
-        await _refresh();
-      });
-
-  /// 错误横幅上的「重试」。
-  ///
-  /// 只重建会话并刷新状态，**不重置演示进度**——
-  /// 旧版这里走的是 reset()，会把用户已经捕获的精灵也清掉。
-  void _retry() {
-    _connect();
-  }
-
-  // ============================================================ 交互
-
-  void _openTasks() {
-    if (widget.studyClient != null) {
-      Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => StudyPage(client: widget.studyClient),
-      ));
-      return;
-    }
-    showTaskSheet(
-      context,
-      running: _task,
-      onToggle: () => setState(() => _task = !_task),
-      // 「快进至完成」复用 explore：等价于走到图书馆并刷新状态
-      onFastForward: () {
-        setState(() => _task = false);
-        _explore();
-      },
-      onOpenStudySkeleton: () {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => StudyPage(client:widget.studyClient)),
-        );
-      },
-    );
-  }
-
-  void _openSpriteDetail() {
-    showSpriteDetail(context, unlocked: _captured);
+  void _openTasks() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => StudyPage(client: widget.studyClient)));
+    if (mounted) await _connect();
   }
 
   // ============================================================ 界面
@@ -467,7 +348,7 @@ class _HomeShellState extends State<HomeShell> {
             if (_error != null)
               ErrorBanner(
                 message: _error!,
-                onRetry: _retry,
+                onRetry: _connect,
                 retryEnabled: !_busy,
               ),
             Expanded(
@@ -477,31 +358,20 @@ class _HomeShellState extends State<HomeShell> {
                   Stack(
                     children: [
                       MapPage(
-                        locationLabel:
-                            _studyTaskId == null ? _location.label : '图书馆入口',
-                        nearby: _studyTaskId == null
-                            ? _nearby
-                            : _studySpawnId != null,
-                        captured: _studyTaskId == null ? _captured : _studyCaptured,
-                        taskRunning: _studyTaskId == null ? _task : true,
-                        actionEnabled: !_busy && _ready,
+                        locationLabel: _studyOutside ? '区域外（模拟）' : '图书馆入口（模拟）',
+                        nearby: _marker != null,
+                        captured: _marker == null && _studyTaskId != null && _capturedName != null,
+                        taskRunning: _studyTaskId != null,
+                        actionEnabled: !_busy && !_studyBusy && widget.accountClient != null,
                         collected: _collected,
                         totalSpecies: _totalSpecies,
                         helloText: _hello,
-                        spriteAsset: _studyTaskId == null
-                            ? AppAssets.siegeLion
-                            : AppAssets.spiritPlaceholder,
-                        spriteLabel: _studyTaskId == null ? '攻城狮' : '自习精灵',
-                        onExplore: _studyTaskId == null
-                            ? (_studyApi == null ? _explore : _startStudyOnMap)
-                            : _startStudyOnMap,
-                        onCapture: _studyTaskId == null
-                            ? _capture
-                            : _openStudyChallenge,
-                        onGoToDex: _studyCaptured
-                            ? _openAccountCollection
-                            : () => setState(() => _tab = 1),
-                        onTasks: _openStudyChallenge,
+                        spriteAsset: _marker == null ? AppAssets.spiritPlaceholder : 'assets/sprites/${_marker!['iconKey']}.png',
+                        spriteLabel: _marker?['name'] as String? ?? _capturedName ?? '附近精灵',
+                        onExplore: _studyTaskId == null ? _startStudyOnMap : _connect,
+                        onCapture: _openStudyChallenge,
+                        onGoToDex: () => setState(() => _tab = 1),
+                        onTasks: _openTasks,
                       ),
                       if (_studyTaskId != null)
                         Positioned(
@@ -512,34 +382,27 @@ class _HomeShellState extends State<HomeShell> {
                         ),
                     ],
                   ),
-                  DexPage(
-                    captured: _captured,
-                    collected: _collected,
-                    totalSpecies: _totalSpecies,
-                    onOpenDetail: _openSpriteDetail,
-                  ),
-                  BagPage(
-                    captured: _captured,
-                    count: _collected,
-                    onOpenDetail: _openSpriteDetail,
-                  ),
+                  ListView(children: [
+                    ListTile(title: Text('图鉴 $_collected / $_totalSpecies')),
+                    for (final entry in _dex?.entries ?? <DexEntry>[])
+                      ListTile(leading: Image.asset(entry.imageKey, width: 44), title: Text('${entry.catalogNumber}. ${entry.name}'),
+                          subtitle: Text(entry.description), trailing: Text(entry.captured ? '×${entry.count}' : '未收录')),
+                  ]),
+                  ListView(children: [
+                    ListTile(title: Text('我的精灵 · ${_bag?.totalCount ?? 0} 只')),
+                    for (final entry in _bag?.entries ?? <BagEntry>[])
+                      ListTile(title: Text(entry.name), trailing: Text('×${entry.count}')),
+                  ]),
                   ProfilePage(
                     collected: _collected,
                     totalSpecies: _totalSpecies,
-                    taskRunning: _task,
+                    taskRunning: _studyTaskId != null,
                     helloText: _hello,
                     busy: _busy,
-                    onReset: _reset,
+                    onReset: _connect,
                     onTasks: _openTasks,
                     nickname: widget.nickname,
-                    onOpenStudy: widget.accountClient == null
-                        ? null
-                        : () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) =>
-                                    StudyPage(client: widget.accountClient),
-                              ),
-                            ),
+                    onOpenStudy: _openTasks,
                     onOpenCollection: widget.accountClient == null
                         ? null
                         : () => Navigator.of(context).push(

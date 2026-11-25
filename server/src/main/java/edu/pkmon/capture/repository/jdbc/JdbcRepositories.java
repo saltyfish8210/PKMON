@@ -60,6 +60,10 @@ public final class JdbcRepositories {
                     .stream().findFirst();
         }
 
+        public List<Spawn> activeFor(String userId, java.time.Instant now) {
+            return db.query("select * from spawns where user_id=? and expires_at>?", MAPPER, userId, utc(now));
+        }
+
         @Override
         public Spawn save(Spawn spawn) {
             try {
@@ -106,6 +110,10 @@ public final class JdbcRepositories {
             return db.query(SELECT_WITH_OWNER
                             + " where s.user_id = ? and c.spawn_id = ? and c.status = 'OPEN'",
                     MAPPER, userId, spawnId).stream().findFirst();
+        }
+
+        public List<String> recentQuestions(String userId) {
+            return db.queryForList("select c.question_id from challenges c join spawns s on s.spawn_id=c.spawn_id where s.user_id=? order by c.expires_at desc, c.challenge_id desc limit 9", String.class, userId);
         }
 
         @Override

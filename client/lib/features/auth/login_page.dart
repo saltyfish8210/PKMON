@@ -13,11 +13,11 @@ class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
     required this.controller,
-    required this.onEnterDemo,
+    this.onEnterDemo,
   });
 
   final AuthController controller;
-  final VoidCallback onEnterDemo;
+  final VoidCallback? onEnterDemo;
 
   static const String skeletonNotice = '登录后可开始自习并保存本次会话。';
   static const String registerNotice = '注册新账号';
@@ -199,7 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: busy ? null : _submit,
                       ),
                       const SizedBox(height: AppSpacing.base * 3),
-                      SecondaryButton(
+                      if (widget.onEnterDemo != null) SecondaryButton(
                         key: const Key('login_demo'),
                         label: '进入演示（不登录）',
                         onPressed: busy ? null : widget.onEnterDemo,

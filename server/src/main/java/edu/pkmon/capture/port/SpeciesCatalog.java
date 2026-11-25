@@ -11,6 +11,10 @@ import java.util.Optional;
  */
 public interface SpeciesCatalog {
 
+    record Species(String speciesId, int catalogNumber, String name, String description, String imageKey) {}
+
+    Optional<Species> details(String speciesId);
+
     Optional<String> nameOf(String speciesId);
 
     int totalSpeciesCount();

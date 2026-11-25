@@ -190,6 +190,13 @@ public class CaptureConfig {
 
     @Bean
     @ConditionalOnMissingBean
+    public edu.pkmon.capture.web.NearbyController nearbyController(CurrentUserProvider users, SpawnRepository spawns,
+            CaptureRecordRepository records, edu.pkmon.study.port.TaskRepository tasks, FixtureCatalog catalog, Clock clock) {
+        return new edu.pkmon.capture.web.NearbyController(users, spawns, records, tasks, catalog, clock);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public CollectionController collectionController(CollectionService collectionService,
                                                      CurrentUserProvider currentUserProvider) {
         return new CollectionController(collectionService, currentUserProvider);

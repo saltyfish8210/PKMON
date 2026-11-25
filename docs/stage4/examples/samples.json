@@ -1,0 +1,16 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "taskId": "740582c4-5fff-4c4f-8ea4-393c76bb56a7",
+    "regionId": "library_entrance",
+    "status": "TRIGGERED",
+    "pauseReason": null,
+    "effectiveSeconds": 2,
+    "requiredSeconds": 2,
+    "spawnId": "04467119-54e0-3031-825b-5e59e7af16bc",
+    "serverTime": "2026-11-24T18:33:00.211729400Z",
+    "sampleAccepted": true,
+    "rejectionReason": null
+  }
+}

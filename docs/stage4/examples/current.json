@@ -1,0 +1,17 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "task": {
+      "taskId": "740582c4-5fff-4c4f-8ea4-393c76bb56a7",
+      "regionId": "library_entrance",
+      "status": "WAITING",
+      "pauseReason": null,
+      "effectiveSeconds": 0,
+      "requiredSeconds": 2,
+      "spawnId": null,
+      "serverTime": "2026-11-24T18:32:56.816847400Z",
+      "locationSource": "SIMULATED"
+    }
+  }
+}

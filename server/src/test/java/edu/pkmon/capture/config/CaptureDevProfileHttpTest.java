@@ -44,6 +44,12 @@ class CaptureDevProfileHttpTest {
     }
 
     @Test
+    void legacyRoutesRemainClientErrorsWithoutSession() throws Exception {
+        mvc.perform(get("/api/v1/demo/state")).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/demo/sessions")).andExpect(status().isOk());
+    }
+
+    @Test
     void invalidBearerNeverFallsBackToDevelopmentHeader() throws Exception {
         mvc.perform(get("/api/v1/collection/summary")
                         .header("Authorization", "Bearer invalid").header("X-Dev-User", "u-dev-test"))

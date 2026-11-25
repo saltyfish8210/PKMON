@@ -60,8 +60,10 @@ class AuthServiceTest {
     }
 
     @Test void passwordUsesUnicodeCountAndUtf8ByteLimitWithoutTruncation() {
-        assertFailure(INVALID_INPUT, () -> AuthRules.password("a".repeat(11)));
-        assertDoesNotThrow(() -> AuthRules.password("a".repeat(12)));
+        assertFailure(INVALID_INPUT, () -> AuthRules.password("a".repeat(3)));
+        assertDoesNotThrow(() -> AuthRules.password("a".repeat(4)));
+        assertFailure(INVALID_INPUT, () -> AuthRules.password("😀".repeat(3)));
+        assertDoesNotThrow(() -> AuthRules.password("😀".repeat(4)));
         assertDoesNotThrow(() -> AuthRules.password("a".repeat(64)));
         assertFailure(INVALID_INPUT, () -> AuthRules.password("a".repeat(65)));
         assertDoesNotThrow(() -> AuthRules.password("密".repeat(24)));

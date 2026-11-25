@@ -43,7 +43,7 @@ public class CollectionService {
         List<CaptureRecord> captured = records.findByUser(userId);
         Map<String, List<Instant>> bySpecies = capturesBySpecies(captured);
         return new CollectionSummaryResponse(bySpecies.size(), species.totalSpeciesCount(),
-                captured.size());
+                bySpecies.values().stream().mapToInt(List::size).sum());
     }
 
     /**
@@ -56,14 +56,14 @@ public class CollectionService {
         int collected = 0;
         for (String speciesId : species.allSpeciesIds()) {
             List<Instant> times = captures.getOrDefault(speciesId, List.of());
-            String name = species.nameOf(speciesId).orElse(speciesId);
+            var info = species.details(speciesId).orElseThrow();
             if (times.isEmpty()) {
-                entries.add(new DexEntryView(speciesId, name, 0, null));
+                entries.add(new DexEntryView(speciesId, info.name(), info.catalogNumber(), info.description(), info.imageKey(), 0, null));
                 continue;
             }
             collected++;
             Instant first = times.stream().min(Comparator.naturalOrder()).orElse(null);
-            entries.add(new DexEntryView(speciesId, name, times.size(), first));
+            entries.add(new DexEntryView(speciesId, info.name(), info.catalogNumber(), info.description(), info.imageKey(), times.size(), first));
         }
         return new DexResponse(collected, species.totalSpeciesCount(), entries);
     }

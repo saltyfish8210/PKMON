@@ -1,0 +1,11 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "challengeId": "e0b9d184-1b88-4d6f-9eeb-27a0e1f565ce",
+    "requestId": "d6cfc5d9-c1d4-461e-a2a2-bebfff436494",
+    "result": "CORRECT",
+    "captureRecordId": "c9b655c1-241f-42ca-9a1a-adb35d949250",
+    "speciesId": "study_spirit"
+  }
+}
